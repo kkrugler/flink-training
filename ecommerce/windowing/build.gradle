@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.github.davidmc24.gradle.plugin:gradle-avro-plugin:1.9.1"
-    }
-}
-apply plugin: "com.github.davidmc24.gradle.plugin.avro"
-apply plugin: 'application'
+ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.ECommerceWindowingJob'
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.avro.StateMigrationJob'
+apply plugin: 'application'
 
 mainClassName = ext.javaExerciseClassName
 
 dependencies {
-    implementation "org.apache.flink:flink-avro:${flinkVersion}"
+    implementation project(path: ':ecommerce:common')
+}
 
-    implementation project(path: ':troubleshooting:state-migration:common')
+sourceSets {
+    main.java.srcDirs += 'src/provided/java'
+    main.java.srcDirs += 'src/solution/java'
 }
