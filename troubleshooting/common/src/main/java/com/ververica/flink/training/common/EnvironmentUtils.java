@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.flink.configuration.RestOptions.BIND_PORT;
+import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
 import static org.apache.flink.configuration.TaskManagerOptions.CPU_CORES;
 import static org.apache.flink.configuration.TaskManagerOptions.MANAGED_MEMORY_SIZE;
 import static org.apache.flink.configuration.TaskManagerOptions.TASK_HEAP_MEMORY;
@@ -79,6 +80,8 @@ public class EnvironmentUtils {
             flinkConfig.set(TASK_HEAP_MEMORY, MemorySize.ofMebiBytes(1024));
             flinkConfig.set(TASK_OFF_HEAP_MEMORY, MemorySize.ofMebiBytes(256));
             flinkConfig.set(MANAGED_MEMORY_SIZE, MemorySize.ofMebiBytes(1024));
+            flinkConfig.set(ENABLE_FLAMEGRAPH, true);
+
             env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
 
             // configure filesystem state backend

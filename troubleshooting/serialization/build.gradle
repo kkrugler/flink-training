@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'java-library'
+ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.SerializationJob'
+
+apply plugin: 'application'
+
+mainClassName = ext.javaExerciseClassName
+
+dependencies {
+    implementation project(path: ':troubleshooting:common')
 }
 
-// common set of dependencies
-dependencies {
-    // --------------------------------------------------------------
-    // Compile-time dependencies that should NOT be part of the
-    // shadow jar and are provided in the lib folder of Flink
-    // --------------------------------------------------------------
-
-    api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    api "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
-    api "org.furyio:fury-core:0.3.0"
-
+sourceSets {
+    main.java.srcDirs += 'src/provided/java'
+    tasks.withType(ScalaCompile) {
+        main.scala.srcDirs += 'src/provided/scala'
+    }
 }

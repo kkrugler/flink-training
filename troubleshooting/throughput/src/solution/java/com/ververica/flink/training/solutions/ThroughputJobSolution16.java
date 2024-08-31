@@ -29,6 +29,8 @@ import com.ververica.flink.training.common.Measurement;
 import com.ververica.flink.training.common.SourceUtils;
 import com.ververica.flink.training.common.WindowedMeasurements;
 import com.ververica.flink.training.exercises.WindowedMeasurementsForArea;
+import io.fury.Fury;
+import io.fury.config.Language;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
@@ -38,7 +40,6 @@ import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.metrics.DescriptiveStatisticsHistogram;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -48,14 +49,12 @@ import org.apache.flink.util.Collector;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.ververica.flink.training.common.EnvironmentUtils.createConfiguredEnvironment;
 import static com.ververica.flink.training.common.EnvironmentUtils.isLocal;
 
-/** Streaming job evolved by using custom Kryo serializer for WindowedMeasurementsForArea */
-public class ThroughputJobSolution15 {
+/** Streaming job evolved by using custom Fury serializers */
+public class ThroughputJobSolution16 {
 
     /**
      * Creates and starts the troubled streaming job.
@@ -75,11 +74,9 @@ public class ThroughputJobSolution15 {
         env.enableCheckpointing(5000);
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(4000);
 
-        // Register serialized types
-        env.registerType(Measurement.class);
-        env.registerType(WindowedMeasurements.class);
-        env.registerType(WindowedMeasurementsForArea.class);
-
+        // Register serializers
+        env.getConfig().registerTypeWithKryoSerializer(Measurement.class,
+                MeasurementSerializer.class);
         env.getConfig().registerTypeWithKryoSerializer(WindowedMeasurements.class,
                 WindowedMeasurementsSerializer.class);
         env.getConfig().registerTypeWithKryoSerializer(WindowedMeasurementsForArea.class,
@@ -139,7 +136,7 @@ public class ThroughputJobSolution15 {
                     .disableChaining();
         }
 
-        env.execute(ThroughputJobSolution15.class.getSimpleName());
+        env.execute(ThroughputJobSolution16.class.getSimpleName());
     }
 
     /** Deserializes the JSON Kafka message. */
@@ -286,60 +283,77 @@ public class ThroughputJobSolution15 {
         return objectMapper;
     }
 
-    public static class WindowedMeasurementsSerializer extends Serializer<WindowedMeasurements> {
+    public static class MeasurementSerializer extends Serializer<Measurement> {
+
+        private Fury fury;
+
+        public MeasurementSerializer() {
+            fury = Fury.builder().withLanguage(Language.JAVA)
+                    // Allow to deserialize objects unknown types, more flexible
+                    // but may be insecure if the classes contains malicious code.
+                    .requireClassRegistration(true)
+                    .build();
+
+            fury.register(Measurement.class);
+        }
 
         @Override
+        public void write(Kryo kryo, Output output, Measurement object) {
+            fury.serializeJavaObject(output, object);
+        }
+
+        @Override
+        public Measurement read(Kryo kryo, Input input, Class<Measurement> type) {
+            return fury.deserializeJavaObject(input, Measurement.class);
+        }
+
+
+    }
+    public static class WindowedMeasurementsSerializer extends Serializer<WindowedMeasurements> {
+
+        private Fury fury;
+
+        public WindowedMeasurementsSerializer() {
+            fury = Fury.builder().withLanguage(Language.JAVA)
+                    // Allow to deserialize objects unknown types, more flexible
+                    // but may be insecure if the classes contains malicious code.
+                    .requireClassRegistration(true)
+                    .build();
+
+            fury.register(WindowedMeasurements.class);
+        }
+        @Override
         public void write(Kryo kryo, Output output, WindowedMeasurements value) {
-            output.writeLong(value.getWindowStart());
-            output.writeLong(value.getWindowEnd());
-            output.writeString(value.getLocation());
-            output.writeLong(value.getEventsPerWindow());
-            output.writeDouble(value.getSumPerWindow());
+            fury.serializeJavaObject(output, value);
         }
 
         @Override
         public WindowedMeasurements read(Kryo kryo, Input input, Class<WindowedMeasurements> type) {
-            WindowedMeasurements result = new WindowedMeasurements();
-            result.setWindowStart(input.readLong());
-            result.setWindowEnd(input.readLong());
-            result.setLocation(input.readString());
-            result.setEventsPerWindow(input.readLong());
-            result.setSumPerWindow(input.readDouble());
-            return result;
+            return fury.deserializeJavaObject(input, WindowedMeasurements.class);
         }
     }
 
     public static class WindowedMeasurementsForAreaSerializer extends Serializer<WindowedMeasurementsForArea> {
 
+        private Fury fury;
+
+        public WindowedMeasurementsForAreaSerializer() {
+            fury = Fury.builder().withLanguage(Language.JAVA)
+                    // Allow to deserialize objects unknown types, more flexible
+                    // but may be insecure if the classes contains malicious code.
+                    .requireClassRegistration(true)
+                    .build();
+            fury.register(WindowedMeasurementsForArea.class);
+        }
+
         @Override
         public void write(Kryo kryo, Output output, WindowedMeasurementsForArea value) {
-            output.writeLong(value.getWindowStart());
-            output.writeLong(value.getWindowEnd());
-            output.writeString(value.getArea());
-            output.writeInt(value.getLocations().size());
-            for (String location : value.getLocations()) {
-                output.writeString(location);
-            }
-            output.writeLong(value.getEventsPerWindow());
-            output.writeDouble(value.getSumPerWindow());
+            fury.serializeJavaObject(output, value);
         }
 
         @Override
         public WindowedMeasurementsForArea read(Kryo kryo, Input input, Class<WindowedMeasurementsForArea> type) {
-            WindowedMeasurementsForArea result = new WindowedMeasurementsForArea();
-            result.setWindowStart(input.readLong());
-            result.setWindowEnd(input.readLong());
-            result.setArea(input.readString());
-
-            final int numLocations = input.readInt();
-            for (int i = 0; i < numLocations; i++) {
-                result.addLocation(input.readString());
-            }
-
-            result.setEventsPerWindow(input.readLong());
-            result.setSumPerWindow(input.readDouble());
-            return result;
+            return fury.deserializeJavaObject(input, WindowedMeasurementsForArea.class);
         }
     }
-    
 }
