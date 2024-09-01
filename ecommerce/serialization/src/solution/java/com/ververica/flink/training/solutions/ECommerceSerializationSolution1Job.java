@@ -19,20 +19,19 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
-import com.ververica.flink.training.common.ShoppingCartSource;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 
-public class ECommerceWindowingSolution3Job {
+public class ECommerceSerializationSolution1Job {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
 
-        new ECommerceWindowingSolution3Workflow()
-                .setCartStream(env.fromSource(new ShoppingCartSource(),
+        new ECommerceSerializationSolutionWorkflow()
+                .setCartStream(env.fromSource(new BetterShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
                 .setOneMinuteSink(new PrintSink<>("1m count"))
@@ -40,6 +39,6 @@ public class ECommerceWindowingSolution3Job {
                 .setLongestTransactionsSink(new PrintSink<>("5m longest"))
                 .build();
 
-        env.execute("ECommerceWindowing3SolutionJob");
+        env.execute("ECommerceSerializationSolution1Job");
     }
 }

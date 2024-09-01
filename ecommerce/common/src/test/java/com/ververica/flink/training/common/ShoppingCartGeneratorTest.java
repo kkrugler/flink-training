@@ -15,7 +15,7 @@ class ShoppingCartGeneratorTest {
 
         int numCompleted = 0;
         for (int i = 0; i < 10000; i++) {
-            ShoppingCartRecord r = generator.apply((long)i);
+            ShoppingCartRecord r = (ShoppingCartRecord)generator.apply((long)i);
             if (r.isTransactionCompleted()) {
                 numCompleted++;
             }
@@ -31,7 +31,7 @@ class ShoppingCartGeneratorTest {
         int numUpdates = 0;
         Set<String> pendingTransactions = new HashSet<>();
         for (int i = 0; i < 10000; i++) {
-            ShoppingCartRecord r = generator.apply((long)i);
+            ShoppingCartRecord r = (ShoppingCartRecord)generator.apply((long)i);
             if (pendingTransactions.add(r.getTransactionId())) {
                 numUpdates++;
             }
@@ -45,7 +45,7 @@ class ShoppingCartGeneratorTest {
 
         Set<String> completedTransactions = new HashSet<>();
         for (int i = 0; i < 100_000; i++) {
-            ShoppingCartRecord r = generator.apply((long)i);
+            ShoppingCartRecord r = (ShoppingCartRecord)generator.apply((long)i);
             if (r.isTransactionCompleted()) {
                 assertTrue(completedTransactions.add(r.getTransactionId()));
             } else {

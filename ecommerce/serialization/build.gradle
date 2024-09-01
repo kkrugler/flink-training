@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.ECommerceWindowing1Job'
+ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.ECommerceSerialization1Job'
 
 apply plugin: 'application'
 

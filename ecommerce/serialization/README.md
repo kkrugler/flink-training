@@ -17,22 +17,22 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Lab: eCommerce Windowing
+# Lab: eCommerce Serialization
 
 ## Introduction
 
-This lab is the hands-on part of the "Apache Flink Bootcamp" Windowing
-training by Ververica. Please follow the [Setup Instructions](../../README-Bootcamp.md#setup-your-development-environment) first
+This lab provides the basis of the hands-on part of the "Apache Flink Bootcamp"
+training by Ververica. Please follow the [Setup Instructions](../../README.md#setup-your-development-environment) first
 and then continue reading here.
 
 ### Infrastructure
 
-During the training, participants will be asked to run the Flink job `ECommerceWindowing1Job` locally as well as on
+During the training, participants will be asked to run the Flink job `AnalysisJob` locally as well as on
 Ververica Platform.
 
 ### Running Locally
 
-Executing `com.ververica.flink.training.exercises.ECommerceWindowing1Job#main()` should create a local Flink cluster
+Executing `com.ververica.flink.training.exercises.AnalysisJob#main()` should create a local Flink cluster
 running the analysis job and serving Flink's Web UI at http://localhost:8081.
 If port 8081 is blocked and Flink won't start, or if the Web UI is not showing up, you can also configure and force
 the local mode via the `--local` program argument and set the port the Web UI is listening on:
