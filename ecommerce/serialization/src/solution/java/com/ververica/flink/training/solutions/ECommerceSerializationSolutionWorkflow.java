@@ -112,7 +112,7 @@ public class ECommerceSerializationSolutionWorkflow {
                 // Key by transaction id, window by transaction (session) and calculate duration.
                 // Generate result as Tuple3<transaction id, time, duration>
                 .keyBy(r -> r.getTransactionId())
-                .window(EventTimeSessionWindows.withGap(Duration.ofMillis(1)))
+                .window(EventTimeSessionWindows.withGap(Duration.ofMinutes(1)))
                 .aggregate(new FindTransactionBoundsFunction(), new SetDurationAndTimeFunction())
 
                 // Key by transaction id, window by configurable time, aggregate using PriorityQueue

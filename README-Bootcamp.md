@@ -102,7 +102,7 @@ If you are in China, we recommend configuring the Maven repository to use a mirr
 
 The project needs to be imported as a gradle project into your IDE.
 
-Then you should be able to open [`RideCleansingIntegrationTest`](ride-cleansing/src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java) and run this test.
+Then you should be able to open [`ECommerceWindowing1WorkflowTest`](ecommerce/windowing/src/test/java/com/ververica/flink/training/exercises/ridecleansing/ECommerceWindowing1WorkflowTest.java) and run this test.
 
 > **:information_source: Note for Eclipse users:** Several Gradle projects in this repo 
 > depend on the Gradle project `common`. In order for Eclipse to detect the Gradle project dependencies correctly:

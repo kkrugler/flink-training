@@ -26,6 +26,15 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 
+/**
+ * This is the main() method that sets up the ECommerceWindowing2Workflow and
+ * runs it. For the exercise, you should be running the tests found in
+ * ECommerceWindowing2WorkflowTest.
+ *
+ * Note that when this is running, you can view it via your browser at
+ * http://localhost:8081
+ */
+
 public class ECommerceWindowing2Job {
 
     public static void main(String[] args) throws Exception {
