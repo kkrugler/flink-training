@@ -33,7 +33,7 @@ public class ECommerceWindowingSolution1Job {
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
 
         new ECommerceWindowingSolution1Workflow()
-                .setCartStream(env.fromSource(new ShoppingCartSource(2),
+                .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
                 .setResultSink(new PrintSink<>())

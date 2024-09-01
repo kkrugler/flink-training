@@ -32,12 +32,12 @@ public class ECommerceWindowingSolution3Job {
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
 
         new ECommerceWindowingSolution3Workflow()
-                .setCartStream(env.fromSource(new ShoppingCartSource(2),
+                .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                .setOneMinuteSink(new PrintSink<>("1m"))
-                .setFiveMinuteSink(new PrintSink<>("5m"))
-                .setTopProductsSink(new PrintSink<>())
+                .setOneMinuteSink(new PrintSink<>("1m count"))
+                .setFiveMinuteSink(new PrintSink<>("5m count"))
+                .setLongestTransactionsSink(new PrintSink<>("5m longest"))
                 .build();
 
         env.execute("ECommerceWindowing2SolutionJob");

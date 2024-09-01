@@ -29,28 +29,24 @@ public class FakeParallelSource<T>
     private static final long DEFAULT_DELAY = 0;
     private static final boolean DEFAULT_BOUNDED = false;
 
-    private final int parallelism;
     private final long numRecords;
     private final SerializableFunction<Long, T> recordProvider;
     private final long delay;
     private final boolean bounded;
 
     private transient long curRecordIndex;
-    private transient long nextRecordIndex;
     private transient long recordIndexDelta;
     private transient long numRemainingRecords;
 
-    public FakeParallelSource(int parallelism, long numRecords, SerializableFunction<Long, T> recordProvider) {
-        this(parallelism, numRecords, DEFAULT_DELAY, DEFAULT_BOUNDED, recordProvider);
+    public FakeParallelSource(long numRecords, SerializableFunction<Long, T> recordProvider) {
+        this(numRecords, DEFAULT_DELAY, DEFAULT_BOUNDED, recordProvider);
     }
 
-    public FakeParallelSource(int parallelism, long numRecords, long delay, boolean bounded, SerializableFunction<Long, T> recordProvider) {
-        Preconditions.checkArgument(parallelism > 0);
+    public FakeParallelSource(long numRecords, long delay, boolean bounded, SerializableFunction<Long, T> recordProvider) {
         Preconditions.checkArgument(numRecords >= 0);
         Preconditions.checkArgument(delay >= 0);
         Preconditions.checkNotNull(recordProvider);
 
-        this.parallelism = parallelism;
         this.numRecords = numRecords;
         this.recordProvider = recordProvider;
         this.delay = delay;
@@ -59,7 +55,7 @@ public class FakeParallelSource<T>
 
     @Override
     public Boundedness getBoundedness() {
-        return Boundedness.CONTINUOUS_UNBOUNDED;
+        return bounded ? Boundedness.BOUNDED : Boundedness.CONTINUOUS_UNBOUNDED;
     }
 
     @Override
@@ -68,29 +64,20 @@ public class FakeParallelSource<T>
 
         // If we're unbounded, and unending, then just propagate the max count
         int subtaskIndex = readerContext.getIndexOfSubtask();
+        int parallelism = readerContext.currentParallelism();
+
         if (!bounded && (numRecords == Long.MAX_VALUE)) {
             numRemainingRecords = numRecords;
         } else {
-            long numRecordsRemaining = numRecords;
-            int numSubtasksRemaining = parallelism;
-
-            for (int i = 0; i <= subtaskIndex; i++) {
-                if (numSubtasksRemaining == 0) {
-                    throw new RuntimeException("WTF");
-                }
-                long subtaskRecords = numRecordsRemaining / numSubtasksRemaining;
-
-                if (i == subtaskIndex) {
-                    numRemainingRecords = subtaskRecords;
-                } else {
-                    numRecordsRemaining -= subtaskRecords;
-                    numSubtasksRemaining -= 1;
-                }
+            numRemainingRecords = numRecords / parallelism;
+            long extraRecords = numRecords % parallelism;
+            if (subtaskIndex < extraRecords) {
+                numRemainingRecords++;
             }
         }
 
-        curRecordIndex = 0;
-        nextRecordIndex = subtaskIndex;
+        // So each sub-task returns a different set of records
+        curRecordIndex = subtaskIndex;
         recordIndexDelta = parallelism;
 
         return new SourceReader<>() {
@@ -111,18 +98,15 @@ public class FakeParallelSource<T>
                         return InputStatus.NOTHING_AVAILABLE;
                     }
 
-                    if (curRecordIndex == nextRecordIndex) {
-                        if (delay > 0) {
-                            Thread.sleep(delay);
-                        }
+                    output.collect(nextRecord);
 
-                        output.collect(nextRecord);
+                    numRemainingRecords--;
+                    curRecordIndex += recordIndexDelta;
 
-                        numRemainingRecords--;
-                        nextRecordIndex += recordIndexDelta;
+                    if (delay > 0) {
+                        Thread.sleep(delay);
                     }
 
-                    curRecordIndex++;
                     return InputStatus.MORE_AVAILABLE;
                 } else if (bounded) {
                     return InputStatus.END_OF_INPUT;
