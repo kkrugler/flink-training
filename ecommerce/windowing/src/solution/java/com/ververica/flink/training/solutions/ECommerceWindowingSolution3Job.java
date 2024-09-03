@@ -24,6 +24,7 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
+import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
 public class ECommerceWindowingSolution3Job {
 
@@ -31,13 +32,15 @@ public class ECommerceWindowingSolution3Job {
         ParameterTool parameters = ParameterTool.fromArgs(args);
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
 
+        final boolean discarding = parameters.has("discard");
+
         new ECommerceWindowingSolution3Workflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                .setOneMinuteSink(new PrintSink<>("1m count"))
-                .setFiveMinuteSink(new PrintSink<>("5m count"))
-                .setLongestTransactionsSink(new PrintSink<>("5m longest"))
+                .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m count"))
+                .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m count"))
+                .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
                 .build();
 
         env.execute("ECommerceWindowing3SolutionJob");

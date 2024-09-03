@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ShoppingCartRecord;
@@ -41,13 +41,12 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Solution to the third exercise in the eCommerce windowing lab.
- * We add a configurable window with the top 2 longest transactions
- * as a new result. By "longest transaction" we mean a transaction's
+ * Return a new stream with the two longest transactions per a
+ * configurable window. By "longest transaction" we mean a transaction's
  * duration, calculated as delta from the completed record to the
  * first record. This result is a Tuple3(transactionId, time, duration)
  */
-public class ECommerceWindowingSolution3Workflow {
+public class ECommerceWindowing3Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<Tuple3<String, Long, Integer>> oneMinuteSink;
@@ -55,30 +54,30 @@ public class ECommerceWindowingSolution3Workflow {
     private Sink<Tuple3<String, Long, Long>> longestTransactionsSink;
     private int transactionWindowInMinutes = 5;
 
-    public ECommerceWindowingSolution3Workflow() {
+    public ECommerceWindowing3Workflow() {
     }
 
-    public ECommerceWindowingSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public ECommerceWindowing3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setOneMinuteSink(Sink<Tuple3<String, Long, Integer>> oneMinuteSink) {
+    public ECommerceWindowing3Workflow setOneMinuteSink(Sink<Tuple3<String, Long, Integer>> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setFiveMinuteSink(Sink<Tuple2<Long, Integer>> fiveMinuteSink) {
+    public ECommerceWindowing3Workflow setFiveMinuteSink(Sink<Tuple2<Long, Integer>> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setLongestTransactionsSink(Sink<Tuple3<String, Long, Long>> longestTransactionsSink) {
+    public ECommerceWindowing3Workflow setLongestTransactionsSink(Sink<Tuple3<String, Long, Long>> longestTransactionsSink) {
         this.longestTransactionsSink = longestTransactionsSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
+    public ECommerceWindowing3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
         this.transactionWindowInMinutes = transactionWindowInMinutes;
         return this;
     }
@@ -115,15 +114,8 @@ public class ECommerceWindowingSolution3Workflow {
 
         // Find the top 2 transactions (by duration) per configurable window size.
         watermarkedStream
-                // Key by transaction id, window by transaction (session) and calculate duration.
-                // Generate result as Tuple3<transaction id, time, duration>
-                .keyBy(r -> r.getTransactionId())
-                .window(EventTimeSessionWindows.withGap(Duration.ofMillis(1)))
-                .aggregate(new FindTransactionBoundsFunction(), new SetDurationAndTimeFunction())
-
-                // Window by configurable window size, aggregate using PriorityQueue
-                .windowAll(TumblingEventTimeWindows.of(Duration.ofMinutes(transactionWindowInMinutes)))
-                .aggregate(new FindLongestTransactions(), new EmitLongestTransactions())
+                // TODO - make it so...placeholder map() call to get it to compile.
+                .map(r -> Tuple3.of(r.getTransactionId(), r.getTransactionTime(), 0L))
                 .sinkTo(longestTransactionsSink);
 
     }

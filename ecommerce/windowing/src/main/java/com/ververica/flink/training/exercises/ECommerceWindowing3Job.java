@@ -16,18 +16,26 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
+import com.ververica.flink.training.common.ShoppingCartSource;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.connector.sink2.Sink;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class ECommerceSerializationSolution1Job {
+/**
+ * This is the main() method that sets up the ECommerceWindowing3Workflow and
+ * runs it. For the exercise, you should be running the tests found in
+ * ECommerceWindowing3WorkflowTest.
+ *
+ * Note that when this is running, you can view it via your browser at
+ * http://localhost:8081
+ */
+
+public class ECommerceWindowing3Job {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -35,16 +43,14 @@ public class ECommerceSerializationSolution1Job {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceSerializationSolutionWorkflow()
-                .setCartStream(env.fromSource(new BetterShoppingCartSource(),
+        new ECommerceWindowing3Workflow()
+                .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m count"))
-                .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m count"))
-                .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
+                .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m"))
+                .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m"))
                 .build();
 
-        env.execute("ECommerceSerializationSolution1Job");
+        env.execute("ECommerceWindowing3Job");
     }
-
 }

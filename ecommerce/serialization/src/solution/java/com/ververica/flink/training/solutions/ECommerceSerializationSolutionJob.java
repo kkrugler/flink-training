@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
@@ -26,15 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-/**
- * This is the main() method that sets up the ECommerceWindowing1Workflow and
- * runs it. For the exercise, you should be running the tests found in
- * ECommerceWindowing1WorkflowTest.
- *
- * Note that when this is running, you can view it via your browser at
- * http://localhost:8081
- */
-public class ECommerceWindowing1Job {
+public class ECommerceSerializationSolutionJob {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -42,13 +34,16 @@ public class ECommerceWindowing1Job {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceWindowing1Workflow()
+        new ECommerceSerializationSolutionWorkflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
-                        WatermarkStrategy.noWatermarks(),
-                        "Shopping Cart Stream"))
-                .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
+                                WatermarkStrategy.noWatermarks(),
+                                "Shopping Cart Stream"))
+                .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m count"))
+                .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m count"))
+                .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
                 .build();
 
-        env.execute("ECommerceWindowingJob");
+        env.execute("ECommerceSerializationSolutionJob");
     }
+
 }

@@ -1,7 +1,5 @@
 package com.ververica.flink.training;
 
-import com.ververica.flink.training.common.BaseShoppingCartGenerator;
-import com.ververica.flink.training.common.BaseShoppingCartRecord;
 import com.ververica.flink.training.common.ShoppingCartGenerator;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 

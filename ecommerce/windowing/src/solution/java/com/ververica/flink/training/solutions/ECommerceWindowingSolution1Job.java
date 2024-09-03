@@ -32,11 +32,13 @@ public class ECommerceWindowingSolution1Job {
         ParameterTool parameters = ParameterTool.fromArgs(args);
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
 
+        final boolean discarding = parameters.has("discard");
+
         new ECommerceWindowingSolution1Workflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                .setResultSink(new PrintSink<>())
+                .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
         env.execute("ECommerceWindowing1SolutionJob");
