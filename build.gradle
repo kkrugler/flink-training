@@ -85,7 +85,7 @@ allprojects {
 }
 
 subprojects {
-    if (project == project(":troubleshooting") || project == project(":troubleshooting:state-migration")) {
+    if (project == project(":troubleshooting") || project == project(":ecommerce") || project == project(":troubleshooting:state-migration")) {
         // this is just an additional grouping layer, not a project!
         return
     }
@@ -103,7 +103,7 @@ subprojects {
         flinkVersion = '1.19.1'
         scalaBinaryVersion = '2.12'
         jacksonVersion = '2.11.2'
-        log4jVersion = '2.12.1'
+        log4jVersion = '2.17.1'
         junitVersion = '4.13'
     }
 
