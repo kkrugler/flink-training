@@ -12,7 +12,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
 
     private static final long PER_TRANSACTION_GAP_MS = 10;
 
-    private static final String[] COUNTRIES = new String[]{
+    public static final String[] COUNTRIES = new String[]{
             "US",
             "JP",
             "CN",
