@@ -39,7 +39,8 @@ class ECommerceWindowingSolution1WorkflowTest {
         CartItem c31 = r3.getItems().get(0);
         c31.setQuantity(2);
         r3.getItems().add(generator.createCartItem("US"));
-
+        CartItem c32 = r3.getItems().get(1);
+        c32.setQuantity(1);
         r3.setTransactionTime(2000);
         r3.setTransactionCompleted(true);
         records.add(r3);
@@ -47,6 +48,8 @@ class ECommerceWindowingSolution1WorkflowTest {
         // Create a completed record, in a future window - since our windows
         // are in 1 minute intervals (tumbling).
         ShoppingCartRecord r4 = createShoppingCart(generator, "US");
+        CartItem c41 = r4.getItems().get(0);
+        c41.setQuantity(1);
         r4.setTransactionTime(Duration.ofMinutes(5).toMillis());
         r4.setTransactionCompleted(true);
         records.add(r4);

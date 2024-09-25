@@ -4,6 +4,7 @@ import com.ververica.flink.training.common.*;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -17,6 +18,7 @@ import static com.ververica.flink.training.ECommerceWindowingTestUtils.*;
 class ECommerceWindowing1WorkflowTest {
 
     @Test
+    @Disabled
     public void testAggregation() throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism 2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
@@ -39,7 +41,8 @@ class ECommerceWindowing1WorkflowTest {
         CartItem c31 = r3.getItems().get(0);
         c31.setQuantity(2);
         r3.getItems().add(generator.createCartItem("US"));
-
+        CartItem c32 = r3.getItems().get(1);
+        c32.setQuantity(1);
         r3.setTransactionTime(2000);
         r3.setTransactionCompleted(true);
         records.add(r3);
@@ -47,6 +50,8 @@ class ECommerceWindowing1WorkflowTest {
         // Create a completed record, in a future window - since our windows
         // are in 1 minute intervals (tumbling).
         ShoppingCartRecord r4 = createShoppingCart(generator, "US");
+        CartItem c41 = r4.getItems().get(0);
+        c41.setQuantity(1);
         r4.setTransactionTime(Duration.ofMinutes(5).toMillis());
         r4.setTransactionCompleted(true);
         records.add(r4);

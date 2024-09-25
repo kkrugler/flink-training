@@ -35,19 +35,22 @@ class ECommerceWindowingSolution2WorkflowTest {
         r2.setTransactionTime(1000);
         records.add(r2);
 
-        // Create a completed record, with two items.
+        // Create a completed record, with two items, and a total quantity of 3.
         ShoppingCartRecord r3 = createShoppingCart(generator, "US");
         CartItem c31 = r3.getItems().get(0);
         c31.setQuantity(2);
         r3.getItems().add(generator.createCartItem("US"));
-
+        CartItem c32 = r3.getItems().get(1);
+        c32.setQuantity(1);
         r3.setTransactionTime(2000);
         r3.setTransactionCompleted(true);
         records.add(r3);
 
         // Create a completed record, in a future window - since our windows
-        // are in 1 minute intervals (tumbling).
+        // are in 1 minute intervals (tumbling). Make sure it has quantity == 1
         ShoppingCartRecord r4 = createShoppingCart(generator, "US");
+        CartItem c41 = r4.getItems().get(0);
+        c41.setQuantity(1);
         r4.setTransactionTime(Duration.ofMinutes(5).toMillis());
         r4.setTransactionCompleted(true);
         records.add(r4);
