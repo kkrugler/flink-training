@@ -38,7 +38,7 @@ public class ECommerceEnrichmentSolution1Job {
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                // TODO - set up rest of config
+                .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
         env.execute("ECommerceEnrichmentSolution1Job");

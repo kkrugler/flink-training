@@ -39,7 +39,7 @@ class ECommerceWindowing2WorkflowTest {
         ShoppingCartRecord r3 = createShoppingCart(generator, "US");
         CartItem c31 = r3.getItems().get(0);
         c31.setQuantity(2);
-        r3.getItems().add(generator.createCartItem());
+        r3.getItems().add(generator.createCartItem("US"));
 
         r3.setTransactionTime(2000);
         r3.setTransactionCompleted(true);

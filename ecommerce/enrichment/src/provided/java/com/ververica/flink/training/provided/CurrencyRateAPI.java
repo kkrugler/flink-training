@@ -1,5 +1,6 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.ExchangeRates;
 import org.apache.flink.annotation.VisibleForTesting;
 
 import java.time.Duration;
@@ -12,13 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CurrencyRateAPI {
 
-    private static final Map<String, Double> STARTING_RATES = new HashMap<String, Double>() {{
-        put("JP", 0.0070);
-        put("CN", 0.14);
-        put("CA", 0.74);
-        put("MX", 0.051);
-    }};
-
     /**
      * Map from country to historical exchange rates. Each entry in the rate is for a sequential one minute
      * window from the starting time to that window's start time.
@@ -29,7 +23,11 @@ public class CurrencyRateAPI {
     private AtomicInteger activeRequests;
 
     public CurrencyRateAPI() {
-        this(666L, System.currentTimeMillis());
+        this(666L, System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+    }
+
+    public CurrencyRateAPI(long startTime) {
+        this(666L, startTime);
     }
 
     @VisibleForTesting
@@ -39,9 +37,9 @@ public class CurrencyRateAPI {
         this.activeRequests = new AtomicInteger(0);
 
         this.exchangeRates = new HashMap<>();
-        for (String country : STARTING_RATES.keySet()) {
+        for (String country : ExchangeRates.STARTING_RATES.keySet()) {
             List<Double> historicalRates = new ArrayList<>();
-            historicalRates.add(STARTING_RATES.get(country));
+            historicalRates.add(ExchangeRates.STARTING_RATES.get(country));
             exchangeRates.put(country, historicalRates);
         }
     }
@@ -59,7 +57,7 @@ public class CurrencyRateAPI {
 
         try {
             int numActive = activeRequests.incrementAndGet();
-            Thread.sleep(getSleepTime(numActive));
+            sleepBasedOnActiveRequests(numActive);
 
             if (time < startTime) {
                 throw new IllegalArgumentException("Time must be after startTime");
@@ -101,17 +99,21 @@ public class CurrencyRateAPI {
         }
     }
 
-    private long getSleepTime(int numActive) {
-        long msDelayPerActive;
+    private void sleepBasedOnActiveRequests(int numActive) throws InterruptedException {
+        double msDelayPerActive;
         if (numActive < 10) {
-            msDelayPerActive = 1;
+            msDelayPerActive = 0.1;
         } else if (numActive < 100) {
-            msDelayPerActive = 10;
+            msDelayPerActive = 1.0;
         } else {
-            msDelayPerActive = 100;
+            msDelayPerActive = 10.0;
         }
 
-        return numActive * msDelayPerActive;
+        double delayInMS = msDelayPerActive * numActive;
+        long millisecondsOnly = (long)delayInMS;
+        int nanosecondsOnly = (int)((delayInMS - millisecondsOnly) * 1_000_000);
+
+        Thread.sleep(millisecondsOnly, nanosecondsOnly);
     }
 
 }

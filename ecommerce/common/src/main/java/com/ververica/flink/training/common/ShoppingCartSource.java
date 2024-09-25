@@ -15,8 +15,8 @@ public class ShoppingCartSource extends FakeParallelSource<ShoppingCartRecord> {
     }
 
     private static SerializableFunction<Long, ShoppingCartRecord> getShoppingCartGenerator() {
-        // Set starting time to be 10 days ago
-        return new ShoppingCartGenerator(System.currentTimeMillis() - Duration.ofDays(10).toMillis());
+        // Set starting time to be 1 day ago
+        return new ShoppingCartGenerator(System.currentTimeMillis() - Duration.ofDays(1).toMillis());
     }
 
 }

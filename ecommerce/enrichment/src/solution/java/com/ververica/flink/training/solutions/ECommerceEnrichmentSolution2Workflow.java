@@ -25,14 +25,11 @@ import com.ververica.flink.training.provided.CurrencyRateAPI;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.connector.sink2.Sink;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -43,26 +40,33 @@ import java.time.Duration;
 /**
  * Solution to the first exercise in the eCommerce enrichment lab.
  * 1. Call API to get exchange rate
- * 2. Key by product id, window per minute
- * 3. Generate per-product/per minute sales in US$
+ * 2. Key by store, window per minute
+ * 3. Generate per-store/per-minute sales in US$
  */
-public class ECommerceEnrichmentSolution1Workflow {
+public class ECommerceEnrichmentSolution2Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<Tuple3<String, Long, Double>> resultSink;
+    private DataStream<ProductInfoRecord> productInfoStream;
+    private Sink<Tuple3<String, Long, Integer>> resultSink;
 
-    public ECommerceEnrichmentSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public ECommerceEnrichmentSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceEnrichmentSolution1Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
+    public ECommerceEnrichmentSolution2Workflow setProductInfoStream(DataStream<ProductInfoRecord> productInfoStream) {
+        this.productInfoStream = productInfoStream;
+        return this;
+    }
+
+    public ECommerceEnrichmentSolution2Workflow setResultSink(Sink<Tuple3<String, Long, Integer>> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
 
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
+        Preconditions.checkNotNull(productInfoStream, "productInfoStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
 
         // Assign timestamps & watermarks, and filter out pending carts
@@ -72,64 +76,69 @@ public class ECommerceEnrichmentSolution1Workflow {
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
                 .filter(r -> r.isTransactionCompleted());
 
-        // Enrich by adding US$ price, break into per-item records so we can group
-        // by the product id
-        DataStream<Tuple2<String, Double>> withUSPrices = filtered
-                .flatMap(new AddUSDollarPriceFunction())
-                .name("Add US dollar price, explode records");
+        // Enrich by adding US$ price
+        DataStream<ShoppingCartRecord> withUSPrices = cartStream
+                .map(new AddUSDollarPriceFunction())
+                .name("Add US dollar price");
 
-        // Key by product id, tumbling window per minute
-        withUSPrices.keyBy(t -> t.f0)
+        // Key by country, tumbling window per minute
+        filtered.keyBy(r -> r.getCountry())
                 .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
-                .aggregate(new SumDollarsAggregator(), new SetKeyAndTimeFunction())
+                .aggregate(new CountItemsAggregator(), new SetKeyAndTimeFunction())
                 .sinkTo(resultSink);
     }
 
-    private static class AddUSDollarPriceFunction extends RichFlatMapFunction<ShoppingCartRecord, Tuple2<String, Double>> {
+    private static class AddUSDollarPriceFunction extends RichMapFunction<ShoppingCartRecord, ShoppingCartRecord> {
 
         private transient CurrencyRateAPI api;
 
         @Override
         public void open(OpenContext openContext) throws Exception {
-            api = new CurrencyRateAPI(System.currentTimeMillis() - Duration.ofDays(2).toMillis());
+            api = new CurrencyRateAPI();
         }
 
         @Override
-        public void flatMap(ShoppingCartRecord in, Collector<Tuple2<String, Double>> out) throws Exception {
+        public ShoppingCartRecord map(ShoppingCartRecord in) throws Exception {
             String country = in.getCountry();
 
             for (CartItem item : in.getItems()) {
                 double usdPrice = api.getRate(country, in.getTransactionTime()) * item.getPrice();
-                out.collect(Tuple2.of(item.getProductId(), usdPrice));
+                item.setUsDollarEquivalent(usdPrice);
             }
 
+            return in;
         }
+
     }
-    private static class SumDollarsAggregator implements AggregateFunction<Tuple2<String, Double>, Double, Double> {
+    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Integer, Integer> {
         @Override
-        public Double createAccumulator() {
-            return 0.0;
+        public Integer createAccumulator() {
+            return 0;
         }
 
         @Override
-        public Double add(Tuple2<String, Double> value, Double acc) {
-            return acc + value.f1;
-        }
+        public Integer add(ShoppingCartRecord value, Integer acc) {
+            for (CartItem item : value.getItems()) {
+                acc += item.getQuantity();
+            }
 
-        @Override
-        public Double getResult(Double acc) {
             return acc;
         }
 
         @Override
-        public Double merge(Double a, Double b) {
+        public Integer getResult(Integer acc) {
+            return acc;
+        }
+
+        @Override
+        public Integer merge(Integer a, Integer b) {
             return a + b;
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Double, Tuple3<String, Long, Double>, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, Tuple3<String, Long, Integer>, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Double> elements, Collector<Tuple3<String, Long, Double>> out) throws Exception {
+        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<Tuple3<String, Long, Integer>> out) throws Exception {
             out.collect(Tuple3.of(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }
