@@ -87,8 +87,6 @@ class ShoppingCartGeneratorTest {
     // Verify that we get the same shipping address for the same customer id
     @Test
     public void testFakeAddresses() {
-        assertTrue(false);
-
         ShoppingCartGenerator generator = new ShoppingCartGenerator(0);
         Map<String, String> addresses = new HashMap<>();
 
