@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static com.ververica.flink.training.ECommerceWindowingTestUtils.*;
+import static com.ververica.flink.training.common.ECommerceTestUtils.*;
 
 class ECommerceWindowingSolution1WorkflowTest {
 
@@ -82,7 +82,7 @@ class ECommerceWindowingSolution1WorkflowTest {
 
     private static class ResultsSink extends MockSink<Tuple3<String, Long, Integer>> {
 
-        private static ConcurrentLinkedQueue<Tuple3<String, Long, Integer>> QUEUE = new ConcurrentLinkedQueue<>();
+        private static final ConcurrentLinkedQueue<Tuple3<String, Long, Integer>> QUEUE = new ConcurrentLinkedQueue<>();
 
         @Override
         public ConcurrentLinkedQueue<Tuple3<String, Long, Integer>> getSink() {

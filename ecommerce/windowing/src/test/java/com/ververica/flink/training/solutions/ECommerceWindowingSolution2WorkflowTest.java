@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static com.ververica.flink.training.ECommerceWindowingTestUtils.*;
+import static com.ververica.flink.training.common.ECommerceTestUtils.*;
 
 class ECommerceWindowingSolution2WorkflowTest {
 

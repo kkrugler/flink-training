@@ -43,13 +43,14 @@ import java.time.Duration;
 /**
  * Solution to the first exercise in the eCommerce enrichment lab.
  * 1. Call API to get exchange rate
- * 2. Key by product id, window per minute
- * 3. Generate per-product/per minute sales in US$
+ * 2. Key by country, window per minute
+ * 3. Generate per-country/per minute sales in US$
  */
 public class ECommerceEnrichmentSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<Tuple3<String, Long, Double>> resultSink;
+    private long startTime = System.currentTimeMillis() - Duration.ofDays(2).toMillis();
 
     public ECommerceEnrichmentSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
@@ -58,6 +59,11 @@ public class ECommerceEnrichmentSolution1Workflow {
 
     public ECommerceEnrichmentSolution1Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
         this.resultSink = resultSink;
+        return this;
+    }
+
+    public ECommerceEnrichmentSolution1Workflow setStartTime(long startTime) {
+        this.startTime = startTime;
         return this;
     }
 
@@ -75,7 +81,7 @@ public class ECommerceEnrichmentSolution1Workflow {
         // Enrich by adding US$ price, break into per-item records so we can group
         // by the product id
         DataStream<Tuple2<String, Double>> withUSPrices = filtered
-                .flatMap(new AddUSDollarPriceFunction())
+                .flatMap(new AddUSDollarPriceFunction(startTime))
                 .name("Add US dollar price, explode records");
 
         // Key by product id, tumbling window per minute
@@ -87,11 +93,16 @@ public class ECommerceEnrichmentSolution1Workflow {
 
     private static class AddUSDollarPriceFunction extends RichFlatMapFunction<ShoppingCartRecord, Tuple2<String, Double>> {
 
+        private long startTime;
         private transient CurrencyRateAPI api;
+
+        public AddUSDollarPriceFunction(long startTime) {
+            this.startTime = startTime;
+        }
 
         @Override
         public void open(OpenContext openContext) throws Exception {
-            api = new CurrencyRateAPI(System.currentTimeMillis() - Duration.ofDays(2).toMillis());
+            api = new CurrencyRateAPI(startTime);
         }
 
         @Override

@@ -1,9 +1,6 @@
-package com.ververica.flink.training;
+package com.ververica.flink.training.common;
 
-import com.ververica.flink.training.common.ShoppingCartGenerator;
-import com.ververica.flink.training.common.ShoppingCartRecord;
-
-public class ECommerceWindowingTestUtils {
+public class ECommerceTestUtils {
     public static ShoppingCartRecord createShoppingCart(ShoppingCartGenerator generator, String country) {
         ShoppingCartRecord result = (ShoppingCartRecord)generator.createShoppingCart();
         result.setCountry(country);
