@@ -59,15 +59,7 @@ public class CurrencyRateAPI {
             int numActive = activeRequests.incrementAndGet();
             sleepBasedOnActiveRequests(numActive);
 
-            if (time < startTime) {
-                throw new IllegalArgumentException("Time must be after startTime");
-            }
-
-            long rateIndexAsLong = (time - startTime) / (60 * 1000L);
-            if (rateIndexAsLong > Integer.MAX_VALUE) {
-                throw new IllegalArgumentException("Time is too far in the future");
-            }
-            int rateIndex = (int) rateIndexAsLong;
+            int rateIndex = getRateTimeAsIndex(time);
 
             if (country.equals("US")) {
                 return 1.0;
@@ -114,6 +106,19 @@ public class CurrencyRateAPI {
         int nanosecondsOnly = (int)((delayInMS - millisecondsOnly) * 1_000_000);
 
         Thread.sleep(millisecondsOnly, nanosecondsOnly);
+    }
+
+    public int getRateTimeAsIndex(long time) {
+        if (time < startTime) {
+            throw new IllegalArgumentException("Time must be after start time");
+        }
+
+        long rateIndexAsLong = (time - startTime) / (60 * 1000L);
+        if (rateIndexAsLong > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Time is too far in the future");
+        }
+
+        return (int) rateIndexAsLong;
     }
 
 }

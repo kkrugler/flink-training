@@ -20,15 +20,22 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ProductInfoRecord;
+import com.ververica.flink.training.common.ProductRecord;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.CurrencyRateAPI;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -38,16 +45,18 @@ import org.apache.flink.util.Preconditions;
 import java.time.Duration;
 
 /**
- * Solution to the first exercise in the eCommerce enrichment lab.
- * 1. Call API to get exchange rate
- * 2. Key by store, window per minute
- * 3. Generate per-store/per-minute sales in US$
+ * Solution to the second exercise in the eCommerce enrichment lab.
+ * 1. Convert shopping cart records into separate ProductRecords
+ * 2. Join the product info stream with the product stream
+ * 3. Add product information to the product records
+ * 2. Key by country, window per minute
+ * 3. Generate per-product/per-minute shipping weight
  */
 public class ECommerceEnrichmentSolution2Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private DataStream<ProductInfoRecord> productInfoStream;
-    private Sink<Tuple3<String, Long, Integer>> resultSink;
+    private Sink<Tuple3<String, Long, Double>> resultSink;
 
     public ECommerceEnrichmentSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
@@ -59,7 +68,7 @@ public class ECommerceEnrichmentSolution2Workflow {
         return this;
     }
 
-    public ECommerceEnrichmentSolution2Workflow setResultSink(Sink<Tuple3<String, Long, Integer>> resultSink) {
+    public ECommerceEnrichmentSolution2Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -76,69 +85,108 @@ public class ECommerceEnrichmentSolution2Workflow {
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
                 .filter(r -> r.isTransactionCompleted());
 
-        // Enrich by adding US$ price
-        DataStream<ShoppingCartRecord> withUSPrices = cartStream
-                .map(new AddUSDollarPriceFunction())
-                .name("Add US dollar price");
+        // Turn into a per-product stream
+        DataStream<ProductRecord> productStream = filtered
+                .flatMap(new ExplodeShoppingCartFunction())
+                .name("Explode shopping cart");
+
+        // Assign timestamps & watermarks
+        DataStream<ProductInfoRecord> watermarkedProduct = productInfoStream
+                .assignTimestampsAndWatermarks(
+                        WatermarkStrategy.<ProductInfoRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                                .withTimestampAssigner((element, timestamp) -> element.getInfoTime()));
+
+        // Connect products with the product info stream, using product ID,
+        // and enrich the product records.
+        DataStream<ProductRecord> enrichedStream = productStream
+                .keyBy(r -> r.getProductId())
+                .connect(watermarkedProduct.keyBy(r -> r.getProductId()))
+                .process(new AddProductInfoFunction())
+                .name("Enrich products");
 
         // Key by country, tumbling window per minute
-        filtered.keyBy(r -> r.getCountry())
+        enrichedStream.keyBy(r -> r.getCountry())
                 .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
-                .aggregate(new CountItemsAggregator(), new SetKeyAndTimeFunction())
+                .aggregate(new SumWeightAggregator(), new SetKeyAndTimeFunction())
                 .sinkTo(resultSink);
     }
 
-    private static class AddUSDollarPriceFunction extends RichMapFunction<ShoppingCartRecord, ShoppingCartRecord> {
-
-        private transient CurrencyRateAPI api;
+    private static class ExplodeShoppingCartFunction implements FlatMapFunction<ShoppingCartRecord, ProductRecord> {
 
         @Override
-        public void open(OpenContext openContext) throws Exception {
-            api = new CurrencyRateAPI();
-        }
-
-        @Override
-        public ShoppingCartRecord map(ShoppingCartRecord in) throws Exception {
-            String country = in.getCountry();
-
+        public void flatMap(ShoppingCartRecord in, Collector<ProductRecord> out) throws Exception {
             for (CartItem item : in.getItems()) {
-                double usdPrice = api.getRate(country, in.getTransactionTime()) * item.getPrice();
-                item.setUsDollarEquivalent(usdPrice);
+                out.collect(new ProductRecord(in, item));
             }
-
-            return in;
         }
-
     }
-    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Integer, Integer> {
+
+    private static class AddProductInfoFunction extends KeyedCoProcessFunction<String, ProductRecord, ProductInfoRecord, ProductRecord> {
+
+        private transient ListState<ProductRecord> pendingLeft;
+        private transient ValueState<ProductInfoRecord> pendingRight;
+
         @Override
-        public Integer createAccumulator() {
-            return 0;
+        public void open(OpenContext ctx) throws Exception {
+            pendingLeft = getRuntimeContext().getListState(new ListStateDescriptor<>("left", ProductRecord.class));
+            pendingRight = getRuntimeContext().getState(new ValueStateDescriptor<>("right", ProductInfoRecord.class));
         }
 
         @Override
-        public Integer add(ShoppingCartRecord value, Integer acc) {
-            for (CartItem item : value.getItems()) {
-                acc += item.getQuantity();
+        public void processElement1(ProductRecord left, Context ctx, Collector<ProductRecord> out) throws Exception {
+            ProductInfoRecord right = pendingRight.value();
+            if (right != null) {
+                left.setCategory(right.getCategory());
+                left.setWeightKg(right.getWeightKg());
+                left.setProductName(right.getProductName());
+                out.collect(left);
+            } else {
+                // We need to wait for the product info record to arrive.
+                pendingLeft.add(left);
+            }
+        }
+
+        @Override
+        public void processElement2(ProductInfoRecord right, Context ctx, Collector<ProductRecord> out) throws Exception {
+            pendingRight.update(right);
+
+            // If there are any pending left-side records, output the enriched version now.
+            for (ProductRecord left : pendingLeft.get()) {
+                left.setCategory(right.getCategory());
+                left.setWeightKg(right.getWeightKg());
+                left.setProductName(right.getProductName());
+                out.collect(left);
             }
 
+            pendingLeft.clear();
+        }
+    }
+
+    private static class SumWeightAggregator implements AggregateFunction<ProductRecord, Double, Double> {
+        @Override
+        public Double createAccumulator() {
+            return 0.0;
+        }
+
+        @Override
+        public Double add(ProductRecord value, Double acc) {
+            return acc + (value.getWeightKg() * value.getQuantity());
+        }
+
+        @Override
+        public Double getResult(Double acc) {
             return acc;
         }
 
         @Override
-        public Integer getResult(Integer acc) {
-            return acc;
-        }
-
-        @Override
-        public Integer merge(Integer a, Integer b) {
+        public Double merge(Double a, Double b) {
             return a + b;
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, Tuple3<String, Long, Integer>, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Double, Tuple3<String, Long, Double>, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<Tuple3<String, Long, Integer>> out) throws Exception {
+        public void process(String key, Context ctx, Iterable<Double> elements, Collector<Tuple3<String, Long, Double>> out) throws Exception {
             out.collect(Tuple3.of(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }

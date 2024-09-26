@@ -8,6 +8,10 @@ public class ShoppingCartSource extends FakeParallelSource<ShoppingCartRecord> {
     public ShoppingCartSource(long numRecords) {
         super(numRecords, 10L, true, getShoppingCartGenerator());
     }
+    
+    public ShoppingCartSource(long numRecords, long delay) {
+        super(numRecords, delay, true, getShoppingCartGenerator());
+    }
 
     // Create an unbounded source that sends records as fast as possible.
     public ShoppingCartSource() {

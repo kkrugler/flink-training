@@ -36,30 +36,32 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Solution to the first exercise in the eCommerce enrichment lab.
- * 1. Call API to get exchange rate
+ * 1. Call API to get exchange rate - cache results
  * 2. Key by country, window per minute
  * 3. Generate per-country/per minute sales in US$
  */
-public class ECommerceEnrichmentSolution1Workflow {
+public class ECommerceEnrichmentSolution3Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<Tuple3<String, Long, Double>> resultSink;
     private long startTime = System.currentTimeMillis() - Duration.ofDays(2).toMillis();
 
-    public ECommerceEnrichmentSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public ECommerceEnrichmentSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceEnrichmentSolution1Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
+    public ECommerceEnrichmentSolution3Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
 
-    public ECommerceEnrichmentSolution1Workflow setStartTime(long startTime) {
+    public ECommerceEnrichmentSolution3Workflow setStartTime(long startTime) {
         this.startTime = startTime;
         return this;
     }
@@ -97,6 +99,7 @@ public class ECommerceEnrichmentSolution1Workflow {
 
         private long startTime;
         private transient CurrencyRateAPI api;
+        private transient Map<String, Double> cachedRates;
 
         public CalcTotalUSDollarPriceFunction(long startTime) {
             this.startTime = startTime;
@@ -107,12 +110,24 @@ public class ECommerceEnrichmentSolution1Workflow {
             // Since the CurrencyRateAPI isn't serializable (like many external APIs),
             // we create it in the open call.
             api = new CurrencyRateAPI(startTime);
+
+            cachedRates = new HashMap<>();
         }
 
         @Override
         public Tuple2<String, Double> map(ShoppingCartRecord in) throws Exception {
             String country = in.getCountry();
-            double rate = api.getRate(country, in.getTransactionTime());
+            long transactionTime = in.getTransactionTime();
+            String cacheKey = String.format("%s-%d", country, api.getRateTimeAsIndex(transactionTime));
+
+            double rate;
+            if (cachedRates.containsKey(cacheKey)) {
+                rate = cachedRates.get(cacheKey);
+            } else {
+                rate = api.getRate(country, transactionTime);
+                cachedRates.put(cacheKey, rate);
+            }
+
             double usdEquivalentTotal = 0.0;
 
             for (CartItem item : in.getItems()) {

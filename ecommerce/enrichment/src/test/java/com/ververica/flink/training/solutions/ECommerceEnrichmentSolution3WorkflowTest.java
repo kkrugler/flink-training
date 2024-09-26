@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.ververica.flink.training.common.ECommerceTestUtils.createShoppingCart;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static com.ververica.flink.training.common.ECommerceTestUtils.*;
 
-class ECommerceEnrichmentSolution1WorkflowTest {
+class ECommerceEnrichmentSolution3WorkflowTest {
 
     // The beginning time for our workflow, for events
     private static final long START_TIME = 0;
@@ -60,7 +60,7 @@ class ECommerceEnrichmentSolution1WorkflowTest {
 
         // Set starting time for calls to currency convertor
         // So it can be set to 0.
-        new ECommerceEnrichmentSolution1Workflow()
+        new ECommerceEnrichmentSolution3Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setResultSink(sink)
                 // Set up start time used by currency exchange rate API

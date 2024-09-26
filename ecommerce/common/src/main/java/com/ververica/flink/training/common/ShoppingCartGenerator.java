@@ -9,7 +9,6 @@ import java.util.Random;
 
 public class ShoppingCartGenerator implements SerializableFunction<Long, ShoppingCartRecord> {
 
-    public static final int NUM_UNIQUE_PRODUCTS = 20;
     private static final int MAX_ACTIVE_CARTS = 100;
     private static final long PER_TRANSACTION_GAP_MS = 10;
 
@@ -145,7 +144,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
         // Set quantity, exp decay from 1 to N
         newItem.setQuantity(makeExpDecayValue(1, MAX_PRODUCT_QUANTITY));
         // Set product randomly to 1 of 20
-        newItem.setProductId(String.format("P%04d", rand.nextInt(NUM_UNIQUE_PRODUCTS)));
+        newItem.setProductId(String.format("P%04d", rand.nextInt(ProductInfoGenerator.NUM_UNIQUE_PRODUCTS)));
         // Set price based on product id & country
         newItem.setPrice(makePrice(newItem.getProductId(), country));
         // Unenriched record doesn't have this data yet

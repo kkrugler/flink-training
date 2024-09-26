@@ -1,6 +1,8 @@
 package com.ververica.flink.training.common;
 
 public class ProductInfoRecord {
+    private long infoTime;
+
     private String productId;
     private String productName;
     private String category;
@@ -8,12 +10,12 @@ public class ProductInfoRecord {
 
     public ProductInfoRecord() {}
 
-    // Constructor
-    public ProductInfoRecord(String productId, String productName, String category, double weightKg) {
-        this.productId = productId;
-        this.productName = productName;
-        this.category = category;
-        this.weightKg = weightKg;
+    public long getInfoTime() {
+        return infoTime;
+    }
+
+    public void setInfoTime(long infoTime) {
+        this.infoTime = infoTime;
     }
 
     public String getProductId() {
