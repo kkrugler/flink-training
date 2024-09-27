@@ -19,13 +19,19 @@ plugins {
     id 'java-library'
 }
 
+java {
+    registerFeature('test') {
+        usingSourceSet(sourceSets.test)
+    }
+}
+
 // common set of dependencies
 dependencies {
-    // --------------------------------------------------------------
-    // Compile-time dependencies that should NOT be part of the
-    // shadow jar and are provided in the lib folder of Flink
-    // --------------------------------------------------------------
+    implementation 'org.assertj:assertj-core:3.20.2'
 
-    api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    api "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    testApi "junit:junit:${junitVersion}"
+    testApi "org.apache.flink:flink-streaming-java:${flinkVersion}:tests"
+    testApi "org.apache.flink:flink-runtime:${flinkVersion}:tests"
+    testApi "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
+    testApi "org.apache.flink:flink-test-utils:${flinkVersion}"
 }

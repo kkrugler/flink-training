@@ -19,10 +19,7 @@
 package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.*;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.connector.sink2.Sink;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.util.Preconditions;
 
@@ -36,7 +33,7 @@ import org.apache.flink.util.Preconditions;
 public class ECommerceWindowing1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<Tuple3<String, Long, Integer>> resultSink;
+    private Sink<KeyedWindowResult> resultSink;
 
     public ECommerceWindowing1Workflow() {
     }
@@ -46,7 +43,7 @@ public class ECommerceWindowing1Workflow {
         return this;
     }
 
-    public ECommerceWindowing1Workflow setResultSink(Sink<Tuple3<String, Long, Integer>> resultSink) {
+    public ECommerceWindowing1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -64,15 +61,13 @@ public class ECommerceWindowing1Workflow {
 
         // TODO - aggregate the count of items (don't forget about CartItem.quantity!)
 
-        // TODO - use a WindowProcessFunction to emit the desired Tuple3(country, window start time, count)
+        // TODO - use a WindowProcessFunction to emit the desired KeyedWindowResult(country, window start time, count)
 
         // ==================================================================
         // Placeholder to get code to compile
         // ==================================================================
-        TypeInformation<Tuple3<String, Long, Integer>> resultType
-                = TypeInformation.of(new TypeHint<Tuple3<String, Long, Integer>>(){});
 
-        cartStream.map(r -> Tuple3.of("US", 0L, 0), resultType)
+        cartStream.map(r -> new KeyedWindowResult("US", 0L, 0))
                 .sinkTo(resultSink);
     }
 }

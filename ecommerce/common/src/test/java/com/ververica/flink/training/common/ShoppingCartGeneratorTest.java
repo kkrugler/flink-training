@@ -64,7 +64,7 @@ class ShoppingCartGeneratorTest {
             }
         }
 
-        assertEquals(ShoppingCartGenerator.NUM_UNIQUE_PRODUCTS, productIds.size());
+        assertEquals(ProductInfoGenerator.NUM_UNIQUE_PRODUCTS, productIds.size());
     }
 
     @Test

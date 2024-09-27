@@ -20,10 +20,10 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.common.KeyedWindowResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -41,7 +41,7 @@ import java.time.Duration;
 public class ECommerceWindowingSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<Tuple3<String, Long, Integer>> resultSink;
+    private Sink<KeyedWindowResult> resultSink;
 
     public ECommerceWindowingSolution1Workflow() {
     }
@@ -51,7 +51,7 @@ public class ECommerceWindowingSolution1Workflow {
         return this;
     }
 
-    public ECommerceWindowingSolution1Workflow setResultSink(Sink<Tuple3<String, Long, Integer>> resultSink) {
+    public ECommerceWindowingSolution1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -100,10 +100,10 @@ public class ECommerceWindowingSolution1Workflow {
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, Tuple3<String, Long, Integer>, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<Tuple3<String, Long, Integer>> out) throws Exception {
-            out.collect(Tuple3.of(key, ctx.window().getStart(), elements.iterator().next()));
+        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<KeyedWindowResult> out) throws Exception {
+            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }
 }

@@ -20,12 +20,9 @@ plugins {
 }
 
 rootProject.name = 'flink-training'
-include 'common'
-include 'ride-cleansing'
-include 'rides-and-fares'
-include 'hourly-tips'
-include 'long-ride-alerts'
+
 include 'state-processor'
+
 include 'troubleshooting:checkpointing'
 include 'troubleshooting:common'
 include 'troubleshooting:external-enrichment'
@@ -37,6 +34,7 @@ include 'troubleshooting:state-migration:exercise'
 include 'troubleshooting:state-migration:solution'
 include 'troubleshooting:state-migration:solution-custom-to-avro'
 include 'troubleshooting:throughput'
+
 include 'ecommerce:common'
 include 'ecommerce:windowing'
 include 'ecommerce:serialization'

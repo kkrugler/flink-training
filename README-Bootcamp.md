@@ -45,12 +45,12 @@ You will need to set up your environment in order to develop, debug, and execute
 Flink supports Linux, OS X, and Windows as development environments for Flink programs and local execution. The following software is required for a Flink development setup and should be installed on your system:
 
 - Git
-- a JDK for Java 11 or Java 17 (a JRE is not sufficient; other versions of Java are currently not supported)
+- a JDK for Java 17 (a JRE is not sufficient; other versions of Java are currently not supported)
 - an IDE for Java development with Gradle support
   - We recommend [IntelliJ](https://www.jetbrains.com/idea/), but [Eclipse](https://www.eclipse.org/downloads/) or 
     [Visual Studio Code](https://code.visualstudio.com/) (with the [Java extension pack](https://code.visualstudio.
     com/docs/java/java-tutorial)) can also be used so long as you stick to Java. 
-  - The recent Eclipse comes with Java 21, make sure you configure the Gradle plugin to use Java 11 or Java 17.
+  - The recent Eclipse comes with Java 21, make sure you configure the Gradle plugin to use Java 17.
 
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
@@ -138,7 +138,9 @@ If you have an IDE with this `flink-training` project imported, you can run (or 
 Each of these exercises include:
 - an `...Exercise` class with most of the necessary boilerplate code for getting started
 - a JUnit Test class (`...Test`) with a few tests for your implementation
-- a `...Solution` class with a complete solution
+- a `...Solution` class with a complete solution.
+
+If there are multiple exercises, the class name will be `...1Exercise`, `...2Exercise`, and so on.
 
 There are Java versions of all the exercise, test, and solution classes. They can each be run from IntelliJ.
 
@@ -151,7 +153,7 @@ To run tests:
 ./gradlew :<subproject>:test
 ```
 
-For Java exercises and solutions, we provide special tasks that can be listed with:
+For exercises and solutions, we provide special tasks that can be listed with:
 
 ```bash
 ./gradlew printRunTasks
@@ -161,15 +163,21 @@ For Java exercises and solutions, we provide special tasks that can be listed wi
 
 ## Lab exercises
 
-TODO - update this list
-
-1. [Filtering a Stream (Ride Cleansing)](ride-cleansing)
-1. [Stateful Enrichment (Rides and Fares)](rides-and-fares)
-1. [Windowed Analytics (Hourly Tips)](hourly-tips)
-   - [Exercise](hourly-tips/README.md)
-   - [Discussion](hourly-tips/DISCUSSION.md)
-1. [`ProcessFunction` and Timers (Long Ride Alerts)](long-ride-alerts)
-   - [Exercise](long-ride-alerts/README.md)
-   - [Discussion](long-ride-alerts/DISCUSSION.md)
-1. [Tuning & Troubleshooting Labs](troubleshooting)
-
+1. [Stream analytics via windowing](ecommerce/windowing)
+   - [Exercise](ecommerce/windowing/README.md)
+   - [Discussion](ecommerce/windowing/DISCUSSION.md)
+1. [Optimizing serialization](ecommerce/serialization)
+   - [Exercise](ecommerce/serialization/README.md)
+   - [Discussion](ecommerce/serialization/DISCUSSION.md)
+1. [Exactly-once and failure handling](ecommerce/failures)
+    - [Exercise](ecommerce/failures/README.md)
+    - [Discussion](ecommerce/failures/DISCUSSION.md)
+1. [Enrichment and scalability](ecommerce/enrichment)
+    - [Exercise](ecommerce/enrichment/README.md)
+    - [Discussion](ecommerce/enrichment/DISCUSSION.md)
+1. [Flink SQL and Table API](ecommerce/tables)
+    - [Exercise](ecommerce/tables/README.md)
+    - [Discussion](ecommerce/tables/DISCUSSION.md)
+1. [Workflow design and Paimon](ecommerce/paimon)
+    - [Exercise](ecommerce/paimon/README.md)
+    - [Discussion](ecommerce/paimon/DISCUSSION.md)

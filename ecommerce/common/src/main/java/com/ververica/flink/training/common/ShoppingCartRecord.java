@@ -24,14 +24,15 @@ public class ShoppingCartRecord {
     }
 
     public ShoppingCartRecord(ShoppingCartRecord clone) {
-        setCustomerId(clone.getCustomerId());
+        setTransactionId(clone.getTransactionId());
         setCountry(clone.getCountry());
-        setCouponCode(clone.getCouponCode());
+        setTransactionCompleted(clone.isTransactionCompleted());
+        setTransactionTime(clone.getTransactionTime());
+        setCustomerId(clone.getCustomerId());
         setPaymentMethod(clone.getPaymentMethod());
         setShippingAddress(clone.getShippingAddress());
         setShippingCost(clone.getShippingCost());
-        setTransactionCompleted(clone.isTransactionCompleted());
-        setTransactionTime(clone.getTransactionTime());
+        setCouponCode(clone.getCouponCode());
 
         setItems(new ArrayList<>());
         for (CartItem item : clone.getItems()) {
