@@ -21,8 +21,7 @@ package com.ververica.flink.training.common;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.*;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.state.StateBackend;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
@@ -50,6 +50,8 @@ import static org.apache.flink.configuration.TaskManagerOptions.TASK_OFF_HEAP_ME
 /** Common functionality to set up execution environments for the eCommerce training. */
 public class EnvironmentUtils {
     public static final Logger LOG = LoggerFactory.getLogger(EnvironmentUtils.class);
+
+    private static final String NO_WEBUI_PORT = "-1";
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
@@ -66,12 +68,13 @@ public class EnvironmentUtils {
              */
     public static StreamExecutionEnvironment createConfiguredEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
+        // TODO - use isLocal(parameters)
         final String localMode =
                 parameters.get(
                         "local",
                         System.getenv("FLINK_TRAINING_LOCAL") != null
                                 ? BIND_PORT.defaultValue()
-                                : "-1");
+                                : NO_WEBUI_PORT);
 
         return createEnvironment(parameters, localMode);
     }
@@ -79,7 +82,7 @@ public class EnvironmentUtils {
     private static StreamExecutionEnvironment createEnvironment(
             final ParameterTool parameters, String uiPort) throws IOException, URISyntaxException {
         final StreamExecutionEnvironment env;
-        if (uiPort.equals("-1")) {
+        if (uiPort.equals(NO_WEBUI_PORT)) {
             // cluster mode or disabled web UI
             env = StreamExecutionEnvironment.getExecutionEnvironment();
         } else {
@@ -94,7 +97,9 @@ public class EnvironmentUtils {
             // Enable Flamegraphs
             flinkConfig.set(ENABLE_FLAMEGRAPH, true);
 
-            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
+            // configure directory for JobManager log files
+            Files.createTempDirectory("flink-logfiles");
+            System.setProperty("log.file", Files.createTempDirectory("flink-logfiles").toString());
 
             // configure filesystem state backend
             String statePath = parameters.get("fsStatePath");
@@ -104,23 +109,25 @@ public class EnvironmentUtils {
                 checkpointPath = Path.fromLocalFile(new File(new URI(statePath)));
             } else {
                 checkpointPath =
-                        Path.fromLocalFile(Files.createTempDirectory("checkpoints").toFile());
+                        Path.fromLocalFile(Files.createTempDirectory("flink-checkpoints").toFile());
             }
 
-            final StateBackend stateBackend;
             if (parameters.has("useRocksDB")) {
-                stateBackend = new RocksDBStateBackend(checkpointPath.toUri());
+                flinkConfig.set(StateBackendOptions.STATE_BACKEND, "rocksdb");
             } else {
-                stateBackend = new FsStateBackend(checkpointPath);
+                flinkConfig.set(StateBackendOptions.STATE_BACKEND, "hashmap");
             }
+
             LOG.info("Writing checkpoints to {}", checkpointPath);
-            env.setStateBackend(stateBackend);
+            flinkConfig.set(CheckpointingOptions.CHECKPOINT_STORAGE, "filesystem");
+            flinkConfig.set(CheckpointingOptions.CHECKPOINTS_DIRECTORY, checkpointPath.toString());
 
             // set a restart strategy for better IDE debugging
-            env.setRestartStrategy(
-                    RestartStrategies.fixedDelayRestart(
-                            Integer.MAX_VALUE, Time.of(15, TimeUnit.SECONDS) // delay
-                            ));
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS, Integer.MAX_VALUE);
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, Duration.ofSeconds(15));
+
+            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
         }
 
         final int parallelism = parameters.getInt("parallelism", -1);
@@ -138,7 +145,7 @@ public class EnvironmentUtils {
         if (localMode == null) {
             return System.getenv("FLINK_TRAINING_LOCAL") != null;
         } else {
-            return !localMode.equals("-1");
+            return !localMode.equals(NO_WEBUI_PORT);
         }
     }
 }
