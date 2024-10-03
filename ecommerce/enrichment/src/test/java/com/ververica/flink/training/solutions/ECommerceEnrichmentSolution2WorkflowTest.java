@@ -30,7 +30,7 @@ class ECommerceEnrichmentSolution2WorkflowTest {
 
         ResultsSink sink = new ResultsSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism 2"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
         new ECommerceEnrichmentSolution2Workflow()
                 .setCartStream(env.fromData(carts).setParallelism(1))

@@ -16,7 +16,7 @@ class ECommerceWindowing1WorkflowTest {
 
         ResultsSink sink = new ResultsSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism 2"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
         new ECommerceWindowing1Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))

@@ -13,6 +13,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.CloseableIterator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -49,8 +50,7 @@ class ECommerceFailuresSolution1WorkflowTest {
         loggerConfig.setLevel(Level.WARN);
         ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{
-                "--parallelism 1"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "1"});
         final StreamExecutionEnvironment env1 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
         // Set up for exactly once mode.
         // TODO - env.enableCheckpointing(Duration.ofSeconds(5).toMillis(), CheckpointingMode.EXACTLY_ONCE);
@@ -76,7 +76,7 @@ class ECommerceFailuresSolution1WorkflowTest {
         // Run job to get results.
         LOGGER.warn("Reading results");
         final StreamExecutionEnvironment env2 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
-        Iterator<KeyedWindowResult> results = env2.fromSource(ShoppingCartFiles.makeResultFilesSource(destDir),
+        CloseableIterator<KeyedWindowResult> results = env2.fromSource(ShoppingCartFiles.makeResultFilesSource(destDir),
                         WatermarkStrategy.noWatermarks(),
                         "KeyedWindowResult Text Stream")
                 .map(s -> KeyedWindowResult.fromString(s))
@@ -84,6 +84,7 @@ class ECommerceFailuresSolution1WorkflowTest {
 
         List<KeyedWindowResult> resultsList = new ArrayList<>();
         results.forEachRemaining(resultsList::add);
+        results.close();
 
         LOGGER.info("Validating results");
         assertThat(resultsList).containsExactlyInAnyOrder(

@@ -32,6 +32,7 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Solution to the first exercise in the eCommerce windowing lab.
@@ -67,10 +68,15 @@ public class ECommerceFailuresSolution1Workflow {
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
                 .filter(r -> r.isTransactionCompleted());
 
+        // We have a special version of the SetKeyAndTimeFunction(), which will fail on the N-th
+        // call to generate results, but only once.
+        FailingSetKeyAndTimeFunction setKeyAndTimeFunction = new FailingSetKeyAndTimeFunction();
+        setKeyAndTimeFunction.reset(8);
+
         // Key by country, tumbling window per minute
         filtered.keyBy(r -> r.getCountry())
                 .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
-                .aggregate(new CountItemsAggregator(), new SetKeyAndTimeFunction())
+                .aggregate(new CountItemsAggregator(), setKeyAndTimeFunction)
                 .map(r -> r.toString())
                 .sinkTo(resultSink);
     }
@@ -101,24 +107,23 @@ public class ECommerceFailuresSolution1Workflow {
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
+    private static class FailingSetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
+
+        private static final AtomicInteger FAILURE_COUNTDOWN = new AtomicInteger(0);
+
+        public void reset(int numCallsBeforeFailure) {
+            FAILURE_COUNTDOWN.set(numCallsBeforeFailure);
+        }
+
         @Override
         public void process(String key, Context ctx, Iterable<Integer> elements, Collector<KeyedWindowResult> out) throws Exception {
+            if (FAILURE_COUNTDOWN.getAndDecrement() == 0) {
+                throw new IndexOutOfBoundsException("Some error in the workflow");
+            }
+
             out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }
 
-    private static class PunctuatedAssigner implements WatermarkGenerator<ShoppingCartRecord> {
-
-        @Override
-        public void onEvent(ShoppingCartRecord event, long eventTimestamp, WatermarkOutput output) {
-            output.emitWatermark(new Watermark(event.getTransactionTime()));
-        }
-
-        @Override
-        public void onPeriodicEmit(WatermarkOutput output) {
-            // don't need to do anything because we emit in reaction to events above
-        }
-    }
 
 }

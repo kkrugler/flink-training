@@ -17,7 +17,7 @@ class ECommerceWindowing2WorkflowTest {
         OneMinuteSink oneMinuteSink = new OneMinuteSink();
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism 2"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
         new ECommerceWindowing2Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))

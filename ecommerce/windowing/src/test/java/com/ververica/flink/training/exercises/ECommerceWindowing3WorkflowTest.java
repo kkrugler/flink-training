@@ -18,7 +18,7 @@ class ECommerceWindowing3WorkflowTest {
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
         LongestTransactionSink longestTransactionSink = new LongestTransactionSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism 2"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
         new ECommerceWindowing3Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
