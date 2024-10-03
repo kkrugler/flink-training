@@ -19,8 +19,8 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
-import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.KeyedWindowResult;
+import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;

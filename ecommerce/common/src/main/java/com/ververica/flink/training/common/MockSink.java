@@ -1,9 +1,10 @@
 package com.ververica.flink.training.common;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.connector.sink2.SinkWriter;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Base class for test sinks that save data to a thread-safe queue. This is based on the new Flink Sink interface, but

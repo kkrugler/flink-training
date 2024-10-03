@@ -10,7 +10,7 @@ import java.util.Random;
 public class ShoppingCartGenerator implements SerializableFunction<Long, ShoppingCartRecord> {
 
     private static final int MAX_ACTIVE_CARTS = 100;
-    private static final long PER_TRANSACTION_GAP_MS = 10;
+    private static final long DEFAULT_PER_TRANSACTION_GAP_MS = 10;
 
     public static final String[] COUNTRIES = new String[] {
             "US",
@@ -39,17 +39,24 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
 
     private long curTime;
 
-    private final Random rand = new Random();
+    private long transactionGap;
+
+    private Random rand = new Random();
+
     private final List<ShoppingCartRecord> activeCarts = new ArrayList<>();
 
     public ShoppingCartGenerator(long startingTime) {
+        this(startingTime, DEFAULT_PER_TRANSACTION_GAP_MS, System.currentTimeMillis());
+    }
+
+    public ShoppingCartGenerator(long startingTime, long transactionGap, long seed) {
         this.curTime = startingTime;
+        this.transactionGap = transactionGap;
+        this.rand = new Random(seed);
     }
 
     @Override
     public ShoppingCartRecord apply(Long recordIndex) {
-
-        rand.setSeed(recordIndex);
         ShoppingCartRecord result;
 
         switch (getAction()) {
@@ -103,7 +110,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
 
     private void updateTransactionTime(ShoppingCartRecord result) {
         long transTime = result.getTransactionTime();
-        transTime += Math.abs(rand.nextGaussian(PER_TRANSACTION_GAP_MS, PER_TRANSACTION_GAP_MS / 5.0));
+        transTime += Math.abs(rand.nextGaussian(transactionGap, transactionGap / 5.0));
         result.setTransactionTime(transTime);
 
         // Advance curTime so we get new records at a reasonable time.
@@ -115,7 +122,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
         ShoppingCartRecord result = new ShoppingCartRecord();
         result.setTransactionTime(curTime);
         // Advance transaction time.
-        curTime += Math.abs(rand.nextGaussian(PER_TRANSACTION_GAP_MS, PER_TRANSACTION_GAP_MS / 5.0));
+        curTime += Math.abs(rand.nextGaussian(transactionGap, transactionGap / 5.0));
 
         result.setCustomerId("C" + rand.nextInt(100000));
         result.setTransactionId("T" + rand.nextLong());
@@ -157,14 +164,12 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
     }
 
     private double makePrice(String productId, String country) {
-        rand.setSeed(productId.hashCode());
         double priceInUSD = makeExpDecayValue(MIN_PRICE, MAX_PRICE);
         return country.equals("US") ? priceInUSD : priceInUSD / ExchangeRates.STARTING_RATES.get(country);
     }
 
     @VisibleForTesting
     protected String generateFakeAddress(String customerId) {
-        rand.setSeed(customerId.hashCode());
 
         // Generate street number (1-9999)
         int streetNumber = rand.nextInt(9999) + 1;
@@ -199,14 +204,14 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
         double valueRange = maxVal - minVal + 1;
 
         // Generate a random value with exponential distribution
-        double lambda = 5;
+        double lambda = 4;
 
         double randomExp = -Math.log(1 - (1 - Math.exp(-lambda)) * rand.nextDouble()) / lambda;
         double scaledValue = (valueRange * randomExp);
         return minVal + scaledValue;
     }
 
-    // 5% of time it's an add, 95% it's an update, and 5% it's a completed
+    // 5% of time it's an add, 75% it's an update, and 20% it's a completed
     private CartAction getAction() {
         if (activeCarts.isEmpty()) {
             return CartAction.NEW;
@@ -217,7 +222,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
             return CartAction.NEW;
         }
 
-        if (actionVal < 0.95) {
+        if (actionVal < 0.75) {
             return CartAction.UPDATE;
         }
 

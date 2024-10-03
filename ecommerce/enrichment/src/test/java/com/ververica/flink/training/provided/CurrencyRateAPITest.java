@@ -3,10 +3,9 @@ package com.ververica.flink.training.provided;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CurrencyRateAPITest {
 

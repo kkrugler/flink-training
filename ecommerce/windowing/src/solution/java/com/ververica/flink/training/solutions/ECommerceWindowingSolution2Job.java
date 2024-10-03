@@ -42,6 +42,6 @@ public class ECommerceWindowingSolution2Job {
                 .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m"))
                 .build();
 
-        env.execute("ECommerceWindowing2SolutionJob");
+        env.execute("ECommerceWindowingSolution2Job");
     }
 }

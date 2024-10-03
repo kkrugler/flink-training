@@ -2,6 +2,11 @@ package com.ververica.flink.training.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.ververica.flink.training.common.TextParseUtils.getField;
+import static com.ververica.flink.training.common.TextParseUtils.getTextField;
 
 /**
  * A typical eCommerce shopping cart.
@@ -122,6 +127,94 @@ public class ShoppingCartRecord {
 
     @Override
     public String toString() {
-        return String.format("%s at %d with %d items", transactionId, transactionTime, getItems().size());
+        return "ShoppingCartRecord{" +
+                "transactionId='" + transactionId + '\'' +
+                ", country='" + country + '\'' +
+                ", transactionCompleted=" + transactionCompleted +
+                ", transactionTime=" + transactionTime +
+                ", customerId='" + customerId + '\'' +
+                ", paymentMethod='" + paymentMethod + '\'' +
+                ", shippingAddress='" + shippingAddress + '\'' +
+                ", shippingCost=" + shippingCost +
+                ", couponCode='" + couponCode + '\'' +
+                ", items=" + items +
+                '}';
+    }
+
+    public static ShoppingCartRecord fromString(String s) {
+        ShoppingCartRecord result = new ShoppingCartRecord();
+
+        result.setTransactionId(getTextField(s, "transactionId"));
+        result.setCountry(getTextField(s, "country"));
+        result.setTransactionCompleted(Boolean.parseBoolean(getField(s, "transactionCompleted")));
+        result.setTransactionTime(Long.parseLong(getField(s, "transactionTime")));
+        result.setCustomerId(getTextField(s, "customerId"));
+        result.setPaymentMethod(getTextField(s, "paymentMethod"));
+        result.setShippingAddress(getTextField(s, "shippingAddress"));
+        result.setShippingCost(Double.parseDouble(getField(s, "shippingCost")));
+        result.setCouponCode(getTextField(s, "couponCode"));
+        result.setItems(getItemsFromString(s));
+        return result;
+    }
+
+    private static List<CartItem> getItemsFromString(String s) {
+        List<CartItem> result = new ArrayList<>();
+
+        Pattern itemsPattern = Pattern.compile("items=\\[(.*)]}");
+        Matcher itemsMatcher = itemsPattern.matcher(s);
+        if (!itemsMatcher.find()) {
+            throw new RuntimeException("Can't find items field in " + s);
+        }
+
+        String itemsString = itemsMatcher.group(1);
+        if (itemsString.isEmpty()) {
+            return result;
+        }
+
+        Pattern p = Pattern.compile("CartItem\\{(.+?)\\}(, |$)");
+        Matcher m = p.matcher(itemsString);
+        while (m.find()) {
+            CartItem item = CartItem.fromString(m.group(1));
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ShoppingCartRecord that = (ShoppingCartRecord) o;
+
+        if (transactionCompleted != that.transactionCompleted) return false;
+        if (transactionTime != that.transactionTime) return false;
+        if (Double.compare(that.shippingCost, shippingCost) != 0) return false;
+        if (!transactionId.equals(that.transactionId)) return false;
+        if (!country.equals(that.country)) return false;
+        if (!customerId.equals(that.customerId)) return false;
+        if (!paymentMethod.equals(that.paymentMethod)) return false;
+        if (!shippingAddress.equals(that.shippingAddress)) return false;
+        if (!couponCode.equals(that.couponCode)) return false;
+        return items.equals(that.items);
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = transactionId.hashCode();
+        result = 31 * result + country.hashCode();
+        result = 31 * result + (transactionCompleted ? 1 : 0);
+        result = 31 * result + (int) (transactionTime ^ (transactionTime >>> 32));
+        result = 31 * result + customerId.hashCode();
+        result = 31 * result + paymentMethod.hashCode();
+        result = 31 * result + shippingAddress.hashCode();
+        temp = Double.doubleToLongBits(shippingCost);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + couponCode.hashCode();
+        result = 31 * result + items.hashCode();
+        return result;
     }
 }

@@ -19,7 +19,9 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
+import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.common.WindowAllResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.OpenContext;
@@ -27,7 +29,6 @@ import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
@@ -38,7 +39,8 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Solution to the exercises in the eCommerce serialization lab.
@@ -55,9 +57,9 @@ public class ECommerceSerializationSolutionWorkflow {
     private static final long MAX_SESSION_GAP = Duration.ofMinutes(5).toMillis();
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<Tuple3<String, Long, Integer>> oneMinuteSink;
-    private Sink<Tuple2<Long, Integer>> fiveMinuteSink;
-    private Sink<Tuple3<String, Long, Long>> longestTransactionsSink;
+    private Sink<KeyedWindowResult> oneMinuteSink;
+    private Sink<WindowAllResult> fiveMinuteSink;
+    private Sink<KeyedWindowResult> longestTransactionsSink;
     private int transactionWindowInMinutes = 5;
 
     public ECommerceSerializationSolutionWorkflow() {
@@ -68,17 +70,17 @@ public class ECommerceSerializationSolutionWorkflow {
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setOneMinuteSink(Sink<Tuple3<String, Long, Integer>> oneMinuteSink) {
+    public ECommerceSerializationSolutionWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setFiveMinuteSink(Sink<Tuple2<Long, Integer>> fiveMinuteSink) {
+    public ECommerceSerializationSolutionWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setLongestTransactionsSink(Sink<Tuple3<String, Long, Long>> longestTransactionsSink) {
+    public ECommerceSerializationSolutionWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
         this.longestTransactionsSink = longestTransactionsSink;
         return this;
     }
@@ -101,7 +103,7 @@ public class ECommerceSerializationSolutionWorkflow {
                         WatermarkStrategy.<TrimmedShoppingCart>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()));
 
-        DataStream<Tuple3<String, Long, Integer>> oneMinuteStream = watermarkedStream
+        DataStream<KeyedWindowResult> oneMinuteStream = watermarkedStream
                 // Filter out pending carts
                 .filter(r -> r.isTransactionCompleted())
                 // Key by country, tumbling window per minute
@@ -118,13 +120,13 @@ public class ECommerceSerializationSolutionWorkflow {
         // aggregation on the more-granular 1-minute results.
         oneMinuteStream
                 .windowAll(TumblingEventTimeWindows.of(Duration.ofMinutes(5)))
-                .aggregate(new CountTupleItemsAggregator(), new SetTimeFunction())
+                .aggregate(new OneMinuteWindowCountAggregator(), new SetTimeFunction())
                 .sinkTo(fiveMinuteSink);
 
         // Find the top 2 transactions (by duration) per configurable window size.
         watermarkedStream
                 // Key by transaction id, window by transaction (session) and calculate duration.
-                // Generate result as Tuple3<transaction id, time, duration>
+                // Generate result as KeyedWindowResult(transaction id, time, duration)
                 .keyBy(r -> r.getTransactionId())
                 .process(new FindTransactionBoundsFunction())
 
@@ -139,14 +141,14 @@ public class ECommerceSerializationSolutionWorkflow {
     // Classes for doing aggregation to calculate per-1 minute item counts.
     // ========================================================================================
 
-    private static class CountCartItemsAggregator implements AggregateFunction<TrimmedShoppingCart, Integer, Integer> {
+    private static class CountCartItemsAggregator implements AggregateFunction<TrimmedShoppingCart, Long, Long> {
         @Override
-        public Integer createAccumulator() {
-            return 0;
+        public Long createAccumulator() {
+            return 0L;
         }
 
         @Override
-        public Integer add(TrimmedShoppingCart value, Integer acc) {
+        public Long add(TrimmedShoppingCart value, Long acc) {
             for (CartItem item : value.getItems()) {
                 acc += item.getQuantity();
             }
@@ -155,21 +157,21 @@ public class ECommerceSerializationSolutionWorkflow {
         }
 
         @Override
-        public Integer getResult(Integer acc) {
+        public Long getResult(Long acc) {
             return acc;
         }
 
         @Override
-        public Integer merge(Integer a, Integer b) {
+        public Long merge(Long a, Long b) {
             return a + b;
         }
     }
 
-    private static class SetTimeFunction extends ProcessAllWindowFunction<Integer, Tuple2<Long, Integer>, TimeWindow> {
+    private static class SetTimeFunction extends ProcessAllWindowFunction<Long, WindowAllResult, TimeWindow> {
 
         @Override
-        public void process(Context ctx, Iterable<Integer> elements, Collector<Tuple2<Long, Integer>> out) throws Exception {
-            out.collect(Tuple2.of(ctx.window().getStart(), elements.iterator().next()));
+        public void process(Context ctx, Iterable<Long> elements, Collector<WindowAllResult> out) throws Exception {
+            out.collect(new WindowAllResult(ctx.window().getStart(), elements.iterator().next()));
         }
     }
 
@@ -178,32 +180,32 @@ public class ECommerceSerializationSolutionWorkflow {
     // of the 1-minute aggregation as input
     // ========================================================================================
 
-    private static class CountTupleItemsAggregator implements AggregateFunction<Tuple3<String, Long, Integer>, Integer, Integer> {
+    private static class OneMinuteWindowCountAggregator implements AggregateFunction<KeyedWindowResult, Long, Long> {
         @Override
-        public Integer createAccumulator() {
-            return 0;
+        public Long createAccumulator() {
+            return 0L;
         }
 
         @Override
-        public Integer add(Tuple3<String, Long, Integer> value, Integer acc) {
-            return acc + value.f2;
+        public Long add(KeyedWindowResult value, Long acc) {
+            return acc + value.getResult();
         }
 
         @Override
-        public Integer getResult(Integer acc) {
+        public Long getResult(Long acc) {
             return acc;
         }
 
         @Override
-        public Integer merge(Integer a, Integer b) {
+        public Long merge(Long a, Long b) {
             return a + b;
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, Tuple3<String, Long, Integer>, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<Tuple3<String, Long, Integer>> out) throws Exception {
-            out.collect(Tuple3.of(key, ctx.window().getStart(), elements.iterator().next()));
+        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
+            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }
 
@@ -266,9 +268,9 @@ public class ECommerceSerializationSolutionWorkflow {
         }
     }
 
-    private static class SetDurationAndTimeFunction extends ProcessWindowFunction<Tuple2<Long, Long>, Tuple3<String, Long, Long>, String, TimeWindow> {
+    private static class SetDurationAndTimeFunction extends ProcessWindowFunction<Tuple2<Long, Long>, KeyedWindowResult, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Tuple2<Long, Long>> elements, Collector<Tuple3<String, Long, Long>> out) throws Exception {
+        public void process(String key, Context ctx, Iterable<Tuple2<Long, Long>> elements, Collector<KeyedWindowResult> out) throws Exception {
             Tuple2<Long, Long> interval = elements.iterator().next();
 
             // If we didn't get a start (probably because the session window timed out, so all we got is
@@ -277,7 +279,7 @@ public class ECommerceSerializationSolutionWorkflow {
                 return;
             }
 
-            out.collect(Tuple3.of(key, ctx.window().getStart(), interval.f1 - interval.f0));
+            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), interval.f1 - interval.f0));
         }
     }
 
@@ -358,24 +360,16 @@ public class ECommerceSerializationSolutionWorkflow {
             }
         }
     }
-    private static class TransactionDurationComparator
-            implements Comparator<Tuple3<String, Long, Long>> {
-        @Override
-        public int compare(Tuple3<String, Long, Long> o1, Tuple3<String, Long, Long> o2) {
-            // Return inverse sort order, longest first
-            return Long.compare(o2.f2, o1.f2);
-        }
-    }
 
     private static class EmitLongestTransactions extends ProcessAllWindowFunction<List<Tuple2<String, Long>>,
-            Tuple3<String, Long, Long>, TimeWindow> {
+            KeyedWindowResult, TimeWindow> {
 
         @Override
         public void process(Context ctx, Iterable<List<Tuple2<String, Long>>> elements,
-                            Collector<Tuple3<String, Long, Long>> out) throws Exception {
+                            Collector<KeyedWindowResult> out) throws Exception {
             long windowStart = ctx.window().getStart();
             for (Tuple2<String, Long> e : elements.iterator().next()) {
-                out.collect(Tuple3.of(e.f0, windowStart, e.f1));
+                out.collect(new KeyedWindowResult(e.f0, windowStart, e.f1));
             }
         }
     }

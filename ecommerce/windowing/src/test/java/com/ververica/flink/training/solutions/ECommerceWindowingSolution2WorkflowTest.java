@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-
 class ECommerceWindowingSolution2WorkflowTest {
 
     @Test

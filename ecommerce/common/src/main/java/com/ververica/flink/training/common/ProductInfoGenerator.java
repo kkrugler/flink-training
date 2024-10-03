@@ -3,7 +3,9 @@ package com.ververica.flink.training.common;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.util.Preconditions;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class ProductInfoGenerator implements SerializableFunction<Long, ProductInfoRecord> {
 

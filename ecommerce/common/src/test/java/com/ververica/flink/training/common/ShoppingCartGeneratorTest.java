@@ -2,7 +2,10 @@ package com.ververica.flink.training.common;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -103,5 +106,31 @@ class ShoppingCartGeneratorTest {
                 addresses.put(customerId, shippinAddress);
             }
         }
+    }
+
+    @Test
+    public void testDistributionOfTransactions() {
+        ShoppingCartGenerator generator = new ShoppingCartGenerator(0);
+        Set<String> transactionIds = new HashSet<>();
+        Set<String> customerIds = new HashSet<>();
+        Set<String> countries = new HashSet<>();
+
+        final long numRequests = 1_000;
+        for (long i = 0; i < numRequests; i++) {
+            ShoppingCartRecord r = generator.apply(i);
+            transactionIds.add(r.getTransactionId());
+            customerIds.add(r.getCustomerId());
+            countries.add(r.getCountry());
+        }
+
+        System.out.format("%d customers with %d transactions in %d countries\n", customerIds.size(), transactionIds.size(),
+                countries.size());
+
+        // About 5% of the time, we get a new cart, unless we have too many
+        // active carts. So our count of unique transactions should be at least
+        // half of expected.
+        long targetTransactions = numRequests / 20;
+        assertTrue(transactionIds.size() >= targetTransactions / 2,
+                "Only got " + transactionIds.size() + " unique transaction(s)");
     }
 }

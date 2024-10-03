@@ -18,17 +18,11 @@
 
 package com.ververica.flink.training.common;
 
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.*;
-import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.FileUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,14 +32,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
-import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
 import static org.apache.flink.configuration.RestOptions.BIND_PORT;
-import static org.apache.flink.configuration.TaskManagerOptions.CPU_CORES;
-import static org.apache.flink.configuration.TaskManagerOptions.MANAGED_MEMORY_SIZE;
-import static org.apache.flink.configuration.TaskManagerOptions.TASK_HEAP_MEMORY;
-import static org.apache.flink.configuration.TaskManagerOptions.TASK_OFF_HEAP_MEMORY;
+import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
+import static org.apache.flink.configuration.TaskManagerOptions.*;
 
 /** Common functionality to set up execution environments for the eCommerce training. */
 public class EnvironmentUtils {

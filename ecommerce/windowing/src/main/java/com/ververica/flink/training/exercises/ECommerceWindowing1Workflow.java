@@ -18,7 +18,8 @@
 
 package com.ververica.flink.training.exercises;
 
-import com.ververica.flink.training.common.*;
+import com.ververica.flink.training.common.KeyedWindowResult;
+import com.ververica.flink.training.common.ShoppingCartRecord;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.util.Preconditions;

@@ -20,7 +20,6 @@ package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
-import com.ververica.flink.training.solutions.ECommerceWindowingSolution2Workflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

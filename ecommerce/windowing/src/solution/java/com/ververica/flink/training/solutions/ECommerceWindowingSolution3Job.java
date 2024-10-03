@@ -43,6 +43,6 @@ public class ECommerceWindowingSolution3Job {
                 .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
                 .build();
 
-        env.execute("ECommerceWindowing3SolutionJob");
+        env.execute("ECommerceWindowingSolution3Job");
     }
 }

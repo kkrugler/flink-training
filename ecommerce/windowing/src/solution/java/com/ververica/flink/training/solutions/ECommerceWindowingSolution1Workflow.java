@@ -19,8 +19,8 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
-import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.KeyedWindowResult;
+import com.ververica.flink.training.common.ShoppingCartRecord;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -42,9 +42,6 @@ public class ECommerceWindowingSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
-
-    public ECommerceWindowingSolution1Workflow() {
-    }
 
     public ECommerceWindowingSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;

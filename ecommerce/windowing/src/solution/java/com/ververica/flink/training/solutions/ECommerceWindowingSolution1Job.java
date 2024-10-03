@@ -41,6 +41,6 @@ public class ECommerceWindowingSolution1Job {
                 .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
-        env.execute("ECommerceWindowing1SolutionJob");
+        env.execute("ECommerceWindowingSolution1Job");
     }
 }

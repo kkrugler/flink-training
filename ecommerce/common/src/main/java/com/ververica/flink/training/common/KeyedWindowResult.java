@@ -1,5 +1,8 @@
 package com.ververica.flink.training.common;
 
+import static com.ververica.flink.training.common.TextParseUtils.getField;
+import static com.ververica.flink.training.common.TextParseUtils.getTextField;
+
 public class KeyedWindowResult {
 
     private String key;
@@ -65,5 +68,15 @@ public class KeyedWindowResult {
         result1 = 31 * result1 + (int) (time ^ (time >>> 32));
         result1 = 31 * result1 + (int) (result ^ (result >>> 32));
         return result1;
+    }
+
+    public static KeyedWindowResult fromString(String s) {
+        KeyedWindowResult result = new KeyedWindowResult();
+
+        result.setKey(getTextField(s, "key"));
+        result.setTime(Long.parseLong(getField(s, "time")));
+        result.setResult(Long.parseLong(getField(s, "result")));
+
+        return result;
     }
 }

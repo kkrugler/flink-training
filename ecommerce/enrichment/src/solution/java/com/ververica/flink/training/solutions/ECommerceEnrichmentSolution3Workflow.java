@@ -21,13 +21,13 @@ package com.ververica.flink.training.solutions;
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.provided.CurrencyRateAPI;
+import com.ververica.flink.training.provided.KeyedWindowDouble;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -48,7 +48,7 @@ import java.util.Map;
 public class ECommerceEnrichmentSolution3Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<Tuple3<String, Long, Double>> resultSink;
+    private Sink<KeyedWindowDouble> resultSink;
     private long startTime = System.currentTimeMillis() - Duration.ofDays(2).toMillis();
 
     public ECommerceEnrichmentSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
@@ -56,7 +56,7 @@ public class ECommerceEnrichmentSolution3Workflow {
         return this;
     }
 
-    public ECommerceEnrichmentSolution3Workflow setResultSink(Sink<Tuple3<String, Long, Double>> resultSink) {
+    public ECommerceEnrichmentSolution3Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -160,10 +160,10 @@ public class ECommerceEnrichmentSolution3Workflow {
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Double, Tuple3<String, Long, Double>, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Double, KeyedWindowDouble, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Double> elements, Collector<Tuple3<String, Long, Double>> out) throws Exception {
-            out.collect(Tuple3.of(key, ctx.window().getStart(), elements.iterator().next()));
+        public void process(String key, Context ctx, Iterable<Double> elements, Collector<KeyedWindowDouble> out) throws Exception {
+            out.collect(new KeyedWindowDouble(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }
 }
