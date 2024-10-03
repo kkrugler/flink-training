@@ -2,18 +2,16 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.KeyedWindowResult;
-import com.ververica.flink.training.common.MockSink;
 import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.provided.MemorySink;
+import com.ververica.flink.training.provided.TransactionalMemorySink;
 import com.ververica.flink.training.provided.ShoppingCartFiles;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.CloseableIterator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -23,14 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Files;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -50,10 +41,12 @@ class ECommerceFailuresSolution1WorkflowTest {
         loggerConfig.setLevel(Level.WARN);
         ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "1"});
+        ParameterTool parameters = ParameterTool.fromArgs(new String[]{
+                "--parallelism", "1",
+                "--restartdelay", "1"});
         final StreamExecutionEnvironment env1 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
         // Set up for exactly once mode.
-        // TODO - env.enableCheckpointing(Duration.ofSeconds(5).toMillis(), CheckpointingMode.EXACTLY_ONCE);
+        env1.enableCheckpointing(Duration.ofSeconds(1).toMillis(), CheckpointingMode.EXACTLY_ONCE);
 
         DataStream<ShoppingCartRecord> cartStream = env1.fromSource(ShoppingCartFiles.makeCartFilesSource(),
                         WatermarkStrategy.noWatermarks(),
@@ -62,42 +55,33 @@ class ECommerceFailuresSolution1WorkflowTest {
                 .name("Shopping Cart Stream")
                 .setParallelism(1);
 
-        Path destDir = new Path(Files.createTempDirectory("results").toUri());
-        Sink<String> resultsSink = ShoppingCartFiles.makeResultFilesSink(destDir);
+
+//         MemorySink resultsSink = new MemorySink();
+        TransactionalMemorySink resultsSink = new TransactionalMemorySink();
+        resultsSink.reset();
 
         new ECommerceFailuresSolution1Workflow()
                 .setCartStream(cartStream)
                 .setResultSink(resultsSink)
                 .build();
 
-        LOGGER.warn("Generating results to {}", destDir.getPath());
-        env1.execute("ECommerceFailuresSolution1WorkflowTest-generate results");
+        env1.execute("ECommerceFailuresSolution1WorkflowTest");
 
-        // Run job to get results.
-        LOGGER.warn("Reading results");
-        final StreamExecutionEnvironment env2 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
-        CloseableIterator<KeyedWindowResult> results = env2.fromSource(ShoppingCartFiles.makeResultFilesSource(destDir),
-                        WatermarkStrategy.noWatermarks(),
-                        "KeyedWindowResult Text Stream")
-                .map(s -> KeyedWindowResult.fromString(s))
-                .executeAndCollect("ECommerceFailuresSolution1WorkflowTest-validate results");
+        System.out.println(resultsSink.getSink());
 
-        List<KeyedWindowResult> resultsList = new ArrayList<>();
-        results.forEachRemaining(resultsList::add);
-        results.close();
-
-        LOGGER.info("Validating results");
-        assertThat(resultsList).containsExactlyInAnyOrder(
-                new KeyedWindowResult("CA", START_TIME, 80L),
-                new KeyedWindowResult("CN", START_TIME, 174L),
-                new KeyedWindowResult("CN", START_TIME + Duration.ofMinutes(1).toMillis(), 14L),
-                new KeyedWindowResult("JP", START_TIME, 8L),
-                new KeyedWindowResult("JP", START_TIME + Duration.ofMinutes(1).toMillis(), 8L),
-                new KeyedWindowResult("MX", START_TIME, 234L),
-                new KeyedWindowResult("MX", START_TIME + Duration.ofMinutes(1).toMillis(), 25L),
-                new KeyedWindowResult("US", START_TIME, 773L),
-                new KeyedWindowResult("US", START_TIME + Duration.ofMinutes(1).toMillis(), 104L)
+        assertThat(resultsSink.getSink()).containsExactlyInAnyOrder(
+                new KeyedWindowResult("CA", START_TIME, 80L).toString(),
+                new KeyedWindowResult("CN", START_TIME, 174L).toString(),
+                new KeyedWindowResult("CN", START_TIME + Duration.ofMinutes(1).toMillis(), 14L).toString(),
+                new KeyedWindowResult("JP", START_TIME, 8L).toString(),
+                new KeyedWindowResult("JP", START_TIME + Duration.ofMinutes(1).toMillis(), 8L).toString(),
+                new KeyedWindowResult("MX", START_TIME, 234L).toString(),
+                new KeyedWindowResult("MX", START_TIME + Duration.ofMinutes(1).toMillis(), 25L).toString(),
+                new KeyedWindowResult("US", START_TIME, 773L).toString(),
+                new KeyedWindowResult("US", START_TIME + Duration.ofMinutes(1).toMillis(), 104L).toString()
         );
+
+
     }
 
 }

@@ -115,7 +115,8 @@ public class EnvironmentUtils {
             // set a restart strategy for better IDE debugging
             flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
             flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS, Integer.MAX_VALUE);
-            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, Duration.ofSeconds(15));
+            Duration restartDelay = Duration.ofSeconds(parameters.getInt("restartdelay", 15));
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, restartDelay);
 
             env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
         }
