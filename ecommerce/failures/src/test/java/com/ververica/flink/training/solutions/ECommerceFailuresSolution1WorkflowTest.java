@@ -3,11 +3,9 @@ package com.ververica.flink.training.solutions;
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.MemorySink;
 import com.ververica.flink.training.provided.TransactionalMemorySink;
 import com.ververica.flink.training.provided.ShoppingCartFiles;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -43,6 +41,7 @@ class ECommerceFailuresSolution1WorkflowTest {
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{
                 "--parallelism", "1",
+                // reduce time between restarts
                 "--restartdelay", "1"});
         final StreamExecutionEnvironment env1 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
         // Set up for exactly once mode.
@@ -57,7 +56,8 @@ class ECommerceFailuresSolution1WorkflowTest {
 
 
 //         MemorySink resultsSink = new MemorySink();
-        TransactionalMemorySink resultsSink = new TransactionalMemorySink();
+        boolean exactlyOnce = true;
+        TransactionalMemorySink resultsSink = new TransactionalMemorySink(exactlyOnce);
         resultsSink.reset();
 
         new ECommerceFailuresSolution1Workflow()

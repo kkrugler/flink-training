@@ -51,7 +51,7 @@ class ShoppingCartGeneratorTest {
             if (r.isTransactionCompleted()) {
                 assertTrue(completedTransactions.add(r.getTransactionId()));
             } else {
-                assertFalse(completedTransactions.contains(r.getTransactionId()));
+                assertFalse(completedTransactions.contains(r.getTransactionId()), "Index: " + i);
             }
         }
     }
@@ -96,14 +96,14 @@ class ShoppingCartGeneratorTest {
         for (long i = 0; i < 100_000; i++) {
             ShoppingCartRecord r = generator.apply(i);
             String customerId = r.getCustomerId();
-            String shippinAddress = r.getShippingAddress();
-            assertNotNull(shippinAddress);
-            assertNotEquals("", shippinAddress);
+            String shippingAddress = r.getShippingAddress();
+            assertNotNull(shippingAddress);
+            assertNotEquals("", shippingAddress);
 
             if (addresses.containsKey(customerId)) {
-                assertEquals(addresses.get(customerId), shippinAddress);
+                assertEquals(addresses.get(customerId), shippingAddress);
             } else {
-                addresses.put(customerId, shippinAddress);
+                addresses.put(customerId, shippingAddress);
             }
         }
     }

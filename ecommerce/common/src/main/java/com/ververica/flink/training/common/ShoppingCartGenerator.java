@@ -57,6 +57,8 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
 
     @Override
     public ShoppingCartRecord apply(Long recordIndex) {
+        rand.setSeed(recordIndex * 104_729L);
+
         ShoppingCartRecord result;
 
         switch (getAction()) {
@@ -170,6 +172,7 @@ public class ShoppingCartGenerator implements SerializableFunction<Long, Shoppin
 
     @VisibleForTesting
     protected String generateFakeAddress(String customerId) {
+        rand.setSeed(customerId.hashCode());
 
         // Generate street number (1-9999)
         int streetNumber = rand.nextInt(9999) + 1;

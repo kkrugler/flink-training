@@ -8,6 +8,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/*
+ This implementation of a Flink sink maintains exactly-once semantics by:
+
+ - Storing write operations in transactions.
+ - Snapshotting the state of all transactions, including the current one.
+ - Restoring the state of all transactions when needed.
+ - Committing data during flush operations.
+ */
 public class TransactionalMemorySink implements StatefulSink<String, List<String>> {
 
     // This is a static class member, because it represents the persisted transactional
@@ -19,9 +27,15 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
     // re-started after a failure.
     private static final ConcurrentHashMap<Long, List<String>> TRANSACTIONS = new ConcurrentHashMap<>();
 
+    private boolean exactlyOnce;
+
+    public TransactionalMemorySink(boolean exactlyOnce) {
+        this.exactlyOnce = exactlyOnce;
+    }
+
     @Override
     public StatefulSinkWriter<String, List<String>> createWriter(InitContext context) throws IOException {
-        return new MemorySinkWriter(context.getSubtaskId());
+        return new MemorySinkWriter(context.getSubtaskId(), exactlyOnce);
     }
 
     @Override
@@ -33,15 +47,23 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
 
         private final int subtaskId;
         private long transactionId = 0;
+
+        private boolean exactlyOnce;
+
         private List<String> currentTransaction = new ArrayList<>();
 
-        public MemorySinkWriter(int subtaskId) {
+        public MemorySinkWriter(int subtaskId, boolean exactlyOnce) {
             this.subtaskId = subtaskId;
+            this.exactlyOnce = exactlyOnce;
         }
 
         @Override
         public void write(String element, Context context) throws IOException, InterruptedException {
-            currentTransaction.add(element);
+            if (exactlyOnce) {
+                currentTransaction.add(element);
+            } else {
+                QUEUE.add(element);
+            }
         }
 
         @Override
@@ -54,8 +76,11 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
         @Override
         public void flush(boolean endOfInput) throws IOException, InterruptedException {
             if (endOfInput || !currentTransaction.isEmpty()) {
-                TRANSACTIONS.put(transactionId++, new ArrayList<>(currentTransaction));
-                QUEUE.addAll(currentTransaction);
+                if (exactlyOnce) {
+                    TRANSACTIONS.put(transactionId++, new ArrayList<>(currentTransaction));
+                    QUEUE.addAll(currentTransaction);
+                }
+
                 currentTransaction.clear();
             }
         }
