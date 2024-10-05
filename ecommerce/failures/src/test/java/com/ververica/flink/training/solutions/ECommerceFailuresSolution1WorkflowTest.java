@@ -6,7 +6,9 @@ import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.provided.TransactionalMemorySink;
 import com.ververica.flink.training.provided.ShoppingCartFiles;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -36,7 +39,7 @@ class ECommerceFailuresSolution1WorkflowTest {
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
         LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(Level.WARN);
+        loggerConfig.setLevel(Level.INFO);
         ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{
@@ -45,12 +48,17 @@ class ECommerceFailuresSolution1WorkflowTest {
                 "--restartdelay", "1"});
         final StreamExecutionEnvironment env1 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
         // Set up for exactly once mode.
-        env1.enableCheckpointing(Duration.ofSeconds(1).toMillis(), CheckpointingMode.EXACTLY_ONCE);
+        env1.enableCheckpointing(Duration.ofSeconds(10).toMillis(), CheckpointingMode.EXACTLY_ONCE);
 
-        DataStream<ShoppingCartRecord> cartStream = env1.fromSource(ShoppingCartFiles.makeCartFilesSource(),
+        ConvertCartRecords function = new ConvertCartRecords();
+        function.reset();
+
+        // TODO - Have unbounded option for shopping cart source.
+        final boolean unbounded = true;
+        DataStream<ShoppingCartRecord> cartStream = env1.fromSource(ShoppingCartFiles.makeCartFilesSource(unbounded),
                         WatermarkStrategy.noWatermarks(),
                         "Shopping Cart Text Stream")
-                .map(s -> ShoppingCartRecord.fromString(s))
+                .map(function)
                 .name("Shopping Cart Stream")
                 .setParallelism(1);
 
@@ -65,9 +73,19 @@ class ECommerceFailuresSolution1WorkflowTest {
                 .setResultSink(resultsSink)
                 .build();
 
-        env1.execute("ECommerceFailuresSolution1WorkflowTest");
+        // TODO - execute async, then wait for count to reach target or there's
+        // an error
+        JobClient client = env1.executeAsync("ECommerceFailuresSolution1WorkflowTest");
+
+        int numRecords;
+        while ((numRecords = function.getNumRecords()) < NUM_RECORDS * 2)  {
+            System.out.println("Num records: " + numRecords);
+            Thread.sleep(100L);
+        }
+        client.cancel();
 
         System.out.println(resultsSink.getSink());
+        System.out.println(function.getNumRecords());
 
         assertThat(resultsSink.getSink()).containsExactlyInAnyOrder(
                 new KeyedWindowResult("CA", START_TIME, 80L).toString(),
@@ -82,6 +100,26 @@ class ECommerceFailuresSolution1WorkflowTest {
         );
 
 
+    }
+
+    private static class ConvertCartRecords implements MapFunction<String, ShoppingCartRecord> {
+
+        private static final AtomicInteger NUM_RECORDS = new AtomicInteger();
+
+        public static void reset() {
+            NUM_RECORDS.set(0);
+        }
+
+        @Override
+        public ShoppingCartRecord map(String s) throws Exception {
+            ShoppingCartRecord result = ShoppingCartRecord.fromString(s);
+            NUM_RECORDS.incrementAndGet();
+            return result;
+        }
+
+        public int getNumRecords() {
+            return NUM_RECORDS.get();
+        }
     }
 
 }

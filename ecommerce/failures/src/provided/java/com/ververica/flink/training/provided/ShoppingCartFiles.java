@@ -10,18 +10,26 @@ import org.apache.flink.core.fs.Path;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Duration;
 
 public class ShoppingCartFiles {
 
-    public static FileSource<String> makeCartFilesSource() throws URISyntaxException {
+    public static FileSource<String> makeCartFilesSource(boolean unbounded) throws URISyntaxException {
         URL srcPathAsURL = ShoppingCartFiles.class.getResource("/cart-files/file-001.txt");
         Path srcPath = new Path(srcPathAsURL.toURI());
 
         // Create a stream of ShoppingCartRecords from the directory we just filled with files.
-        return FileSource.forRecordStreamFormat(new TextLineInputFormat("UTF-8"),
-                        srcPath.getParent())
-                .processStaticFileSet()
-                .build();
+        FileSource.FileSourceBuilder<String> builder = FileSource.forRecordStreamFormat(
+                                new TextLineInputFormat("UTF-8"),
+                                srcPath.getParent());
+
+        if (unbounded) {
+            builder.monitorContinuously(Duration.ofSeconds(1));
+        } else {
+            builder.processStaticFileSet();
+        }
+
+        return builder.build();
     }
 
     public static Sink<String> makeResultFilesSink(Path resultsDir) {
