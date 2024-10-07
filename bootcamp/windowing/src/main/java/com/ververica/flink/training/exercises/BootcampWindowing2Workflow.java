@@ -38,26 +38,26 @@ import java.time.Duration;
  * Add a global per-5 minute window as a second result. This should generate
  * WindowAllResult(time, count) results that are for all countries.
  */
-public class ECommerceWindowing2Workflow {
+public class BootcampWindowing2Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> oneMinuteSink;
     private Sink<WindowAllResult> fiveMinuteSink;
 
-    public ECommerceWindowing2Workflow() {
+    public BootcampWindowing2Workflow() {
     }
 
-    public ECommerceWindowing2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowing2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowing2Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+    public BootcampWindowing2Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceWindowing2Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+    public BootcampWindowing2Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }

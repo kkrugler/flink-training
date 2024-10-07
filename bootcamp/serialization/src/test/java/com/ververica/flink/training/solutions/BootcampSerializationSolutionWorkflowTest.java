@@ -2,10 +2,10 @@ package com.ververica.flink.training.solutions;
 
 import org.junit.jupiter.api.Test;
 
-class ECommerceSerializationSolutionWorkflowTest {
+class BootcampSerializationSolutionWorkflowTest {
 
     @Test
-    public void testECommerceSerializationWorkflow() {
+    public void testBootcampSerializationWorkflow() {
 
     }
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-public class ECommerceTestUtils {
+public class BootcampTestUtils {
 
     public static final long START_TIME = 0;
     public static ShoppingCartRecord createShoppingCart(ShoppingCartGenerator generator, String country) {

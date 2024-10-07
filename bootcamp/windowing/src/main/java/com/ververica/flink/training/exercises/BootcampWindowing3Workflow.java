@@ -41,7 +41,7 @@ import java.time.Duration;
  * duration, calculated as delta from the completed record to the
  * first record. This result is a KeyedWindowResult(transactionId, time, duration)
  */
-public class ECommerceWindowing3Workflow {
+public class BootcampWindowing3Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> oneMinuteSink;
@@ -49,30 +49,30 @@ public class ECommerceWindowing3Workflow {
     private Sink<KeyedWindowResult> longestTransactionsSink;
     private int transactionWindowInMinutes = 5;
 
-    public ECommerceWindowing3Workflow() {
+    public BootcampWindowing3Workflow() {
     }
 
-    public ECommerceWindowing3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowing3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowing3Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+    public BootcampWindowing3Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceWindowing3Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+    public BootcampWindowing3Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }
 
-    public ECommerceWindowing3Workflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
+    public BootcampWindowing3Workflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
         this.longestTransactionsSink = longestTransactionsSink;
         return this;
     }
 
-    public ECommerceWindowing3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
+    public BootcampWindowing3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
         this.transactionWindowInMinutes = transactionWindowInMinutes;
         return this;
     }

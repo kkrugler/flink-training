@@ -39,26 +39,26 @@ import java.time.Duration;
  * Solution to the second exercise in the eCommerce windowing lab.
  * We add a global per-5 minute window as a second result.
  */
-public class ECommerceWindowingSolution2Workflow {
+public class BootcampWindowingSolution2Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> oneMinuteSink;
     private Sink<WindowAllResult> fiveMinuteSink;
 
-    public ECommerceWindowingSolution2Workflow() {
+    public BootcampWindowingSolution2Workflow() {
     }
 
-    public ECommerceWindowingSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowingSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowingSolution2Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+    public BootcampWindowingSolution2Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceWindowingSolution2Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+    public BootcampWindowingSolution2Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }

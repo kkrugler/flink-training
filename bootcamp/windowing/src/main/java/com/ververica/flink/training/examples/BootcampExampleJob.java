@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class ECommerceExampleJob {
+public class BootcampExampleJob {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -35,13 +35,13 @@ public class ECommerceExampleJob {
         final boolean discarding = parameters.has("discard");
         final long numRecords = parameters.getLong("numrecords", 1_000_000);
 
-        new ECommerceExampleWorkflow()
+        new BootcampExampleWorkflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(numRecords),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
                 .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
-        env.execute("ECommerceExampleJob");
+        env.execute("BootcampExampleJob");
     }
 }

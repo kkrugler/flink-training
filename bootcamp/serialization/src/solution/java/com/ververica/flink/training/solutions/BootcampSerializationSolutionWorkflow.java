@@ -50,7 +50,7 @@ import java.util.List;
  * 4. Use simple structure for top two aggregation, versus priority queue
  *
  */
-public class ECommerceSerializationSolutionWorkflow {
+public class BootcampSerializationSolutionWorkflow {
 
     // Maximum time between transactions where they will still be considered a
     // single session.
@@ -62,30 +62,30 @@ public class ECommerceSerializationSolutionWorkflow {
     private Sink<KeyedWindowResult> longestTransactionsSink;
     private int transactionWindowInMinutes = 5;
 
-    public ECommerceSerializationSolutionWorkflow() {
+    public BootcampSerializationSolutionWorkflow() {
     }
 
-    public ECommerceSerializationSolutionWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampSerializationSolutionWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+    public BootcampSerializationSolutionWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+    public BootcampSerializationSolutionWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
+    public BootcampSerializationSolutionWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
         this.longestTransactionsSink = longestTransactionsSink;
         return this;
     }
 
-    public ECommerceSerializationSolutionWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
+    public BootcampSerializationSolutionWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
         this.transactionWindowInMinutes = transactionWindowInMinutes;
         return this;
     }

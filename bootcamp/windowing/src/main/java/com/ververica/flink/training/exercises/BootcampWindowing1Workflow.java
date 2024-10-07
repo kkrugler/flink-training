@@ -31,20 +31,20 @@ import org.apache.flink.util.Preconditions;
  * to keep only records for completed transactions, and then calculate per-country/per-minute
  * aggregations of shopping cart item counts.
  */
-public class ECommerceWindowing1Workflow {
+public class BootcampWindowing1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
 
-    public ECommerceWindowing1Workflow() {
+    public BootcampWindowing1Workflow() {
     }
 
-    public ECommerceWindowing1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowing1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowing1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampWindowing1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

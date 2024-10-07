@@ -40,20 +40,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  * We calculate a per-country/per-minute count of items in completed
  * shopping carts.
  */
-public class ECommerceFailuresSolution1Workflow {
+public class BootcampFailuresSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<String> resultSink;
 
-    public ECommerceFailuresSolution1Workflow() {
+    public BootcampFailuresSolution1Workflow() {
     }
 
-    public ECommerceFailuresSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampFailuresSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceFailuresSolution1Workflow setResultSink(Sink<String> resultSink) {
+    public BootcampFailuresSolution1Workflow setResultSink(Sink<String> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

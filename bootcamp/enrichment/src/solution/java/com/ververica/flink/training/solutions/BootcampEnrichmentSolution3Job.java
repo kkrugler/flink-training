@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class ECommerceEnrichmentSolution3Job {
+public class BootcampEnrichmentSolution3Job {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -35,7 +35,7 @@ public class ECommerceEnrichmentSolution3Job {
         final boolean discarding = parameters.has("discard");
         final long numRecords = parameters.getLong("records", Long.MAX_VALUE);
 
-        new ECommerceEnrichmentSolution3Workflow()
+        new BootcampEnrichmentSolution3Workflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(numRecords, 0L),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
@@ -43,7 +43,7 @@ public class ECommerceEnrichmentSolution3Job {
                 .build();
 
         long startTime = System.currentTimeMillis();
-        env.execute("ECommerceEnrichmentSolution3Job");
+        env.execute("BootcampEnrichmentSolution3Job");
         long endTime = System.currentTimeMillis();
         System.out.println("Execution time in MS: " + (endTime - startTime));
     }

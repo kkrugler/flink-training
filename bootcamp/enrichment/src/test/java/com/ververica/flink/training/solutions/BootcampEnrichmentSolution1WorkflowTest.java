@@ -13,27 +13,27 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-class ECommerceEnrichmentSolution1WorkflowTest {
+class BootcampEnrichmentSolution1WorkflowTest {
 
     // The beginning time for our workflow, for events
     private static final long START_TIME = 0;
 
     @Test
     public void testAddingUSDEquivalent() throws Exception {
-        List<ShoppingCartRecord> records = ECommerceTestUtils.makeCartRecords();
+        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         ResultsSink sink = new ResultsSink();
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new ECommerceEnrichmentSolution1Workflow()
+        new BootcampEnrichmentSolution1Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setResultSink(sink)
                 // Set up start time used by currency exchange rate API
                 .setStartTime(START_TIME)
                 .build();
 
-        env.execute("ECommerceEnrichmentSolution1Job");
+        env.execute("BootcampEnrichmentSolution1Job");
 
         // Validate we get the expected results.
         assertThat(sink.getSink()).containsExactlyInAnyOrder(

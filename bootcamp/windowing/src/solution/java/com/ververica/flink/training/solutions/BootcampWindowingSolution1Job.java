@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class ECommerceWindowingSolution1Job {
+public class BootcampWindowingSolution1Job {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -34,13 +34,13 @@ public class ECommerceWindowingSolution1Job {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceWindowingSolution1Workflow()
+        new BootcampWindowingSolution1Workflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
                 .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
-        env.execute("ECommerceWindowingSolution1Job");
+        env.execute("BootcampWindowingSolution1Job");
     }
 }

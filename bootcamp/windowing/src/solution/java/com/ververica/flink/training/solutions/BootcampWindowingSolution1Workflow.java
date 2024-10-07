@@ -38,17 +38,17 @@ import java.time.Duration;
  * We calculate a per-country/per-minute count of items in completed
  * shopping carts.
  */
-public class ECommerceWindowingSolution1Workflow {
+public class BootcampWindowingSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
 
-    public ECommerceWindowingSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowingSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowingSolution1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampWindowingSolution1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

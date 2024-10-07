@@ -13,13 +13,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-class ECommerceEnrichmentSolution2WorkflowTest {
+class BootcampEnrichmentSolution2WorkflowTest {
 
     private static final long START_TIME = 0;
 
     @Test
     public void testAddingProductWeight() throws Exception {
-        List<ShoppingCartRecord> carts = ECommerceTestUtils.makeCartRecords();
+        List<ShoppingCartRecord> carts = BootcampTestUtils.makeCartRecords();
 
         // Generate product info for every product.
         List<ProductInfoRecord> products = new ArrayList<>();
@@ -32,13 +32,13 @@ class ECommerceEnrichmentSolution2WorkflowTest {
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new ECommerceEnrichmentSolution2Workflow()
+        new BootcampEnrichmentSolution2Workflow()
                 .setCartStream(env.fromData(carts).setParallelism(1))
                 .setProductInfoStream(env.fromData(products).setParallelism(1))
                 .setResultSink(sink)
                 .build();
 
-        env.execute("ECommerceWindowingSolution2Job");
+        env.execute("BootcampWindowingSolution2Job");
 
         // Validate we get the expected results.
         assertThat(sink.getSink()).containsExactlyInAnyOrder(

@@ -27,15 +27,15 @@ import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
 /**
- * This is the main() method that sets up the ECommerceWindowing2Workflow and
+ * This is the main() method that sets up the BootcampWindowing2Workflow and
  * runs it. For the exercise, you should be running the tests found in
- * ECommerceWindowing2WorkflowTest.
+ * BootcampWindowing2WorkflowTest.
  *
  * Note that when this is running, you can view it via your browser at
  * http://localhost:8081
  */
 
-public class ECommerceWindowing2Job {
+public class BootcampWindowing2Job {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -43,7 +43,7 @@ public class ECommerceWindowing2Job {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceWindowing2Workflow()
+        new BootcampWindowing2Workflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
@@ -51,6 +51,6 @@ public class ECommerceWindowing2Job {
                 .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m"))
                 .build();
 
-        env.execute("ECommerceWindowing2Job");
+        env.execute("BootcampWindowing2Job");
     }
 }

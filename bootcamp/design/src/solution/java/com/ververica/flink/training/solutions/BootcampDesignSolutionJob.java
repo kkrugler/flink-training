@@ -20,7 +20,7 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
-import com.ververica.flink.training.provided.ECommerceDesignDetectionWorkflow;
+import com.ververica.flink.training.provided.BootcampDesignDetectionWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -30,7 +30,7 @@ import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 /*
  * Solution to the workflow design exercise. We
  */
-public class ECommerceDesignSolutionJob {
+public class BootcampDesignSolutionJob {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -39,7 +39,7 @@ public class ECommerceDesignSolutionJob {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceDesignAnalyticsSolutionWorkflow()
+        new BootcampDesignAnalyticsSolutionWorkflow()
                 .setCartStream(env1.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
@@ -47,14 +47,14 @@ public class ECommerceDesignSolutionJob {
                 .setAbandonedSink(/* TODO - create Paimon sink null */ null)
                 .build();
 
-        new ECommerceDesignDetectionWorkflow()
+        new BootcampDesignDetectionWorkflow()
                 .setAbandonedStream(/* TODO - create Paimon source */ null)
                 .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
         // Run async, so we can have both jobs running at the same time.
-        env1.executeAsync("ECommerceDesignAnalyticsSolutionJob");
+        env1.executeAsync("BootcampDesignAnalyticsSolutionJob");
 
-        env2.executeAsync("ECommerceDesignDetectionSolutionJob");
+        env2.executeAsync("BootcampDesignDetectionSolutionJob");
     }
 }

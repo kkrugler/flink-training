@@ -37,17 +37,17 @@ import java.time.Duration;
  * Simple workflow example using windows.
  * We calculate a per-country/per-minute count of completed transactions.
  */
-public class ECommerceExampleWorkflow {
+public class BootcampExampleWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
 
-    public ECommerceExampleWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampExampleWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceExampleWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampExampleWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

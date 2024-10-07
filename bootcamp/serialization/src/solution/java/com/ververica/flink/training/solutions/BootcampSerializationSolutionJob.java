@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class ECommerceSerializationSolutionJob {
+public class BootcampSerializationSolutionJob {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -34,7 +34,7 @@ public class ECommerceSerializationSolutionJob {
 
         final boolean discarding = parameters.has("discard");
 
-        new ECommerceSerializationSolutionWorkflow()
+        new BootcampSerializationSolutionWorkflow()
                 .setCartStream(env.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
@@ -43,7 +43,7 @@ public class ECommerceSerializationSolutionJob {
                 .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
                 .build();
 
-        env.execute("ECommerceSerializationSolutionJob");
+        env.execute("BootcampSerializationSolutionJob");
     }
 
 }

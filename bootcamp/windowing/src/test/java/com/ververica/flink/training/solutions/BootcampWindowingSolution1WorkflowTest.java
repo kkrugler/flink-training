@@ -9,24 +9,24 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-class ECommerceWindowingSolution1WorkflowTest {
+class BootcampWindowingSolution1WorkflowTest {
 
     @Test
     public void testAggregation() throws Exception {
-        List<ShoppingCartRecord> records = ECommerceTestUtils.makeCartRecords();
+        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         ResultsSink sink = new ResultsSink();
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new ECommerceWindowingSolution1Workflow()
+        new BootcampWindowingSolution1Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setResultSink(sink)
                 .build();
 
-        env.execute("ECommerceWindowingSolution1Job");
+        env.execute("BootcampWindowingSolution1Job");
 
-        ECommerceTestUtils.validateOneMinuteResults(sink.getSink());
+        BootcampTestUtils.validateOneMinuteResults(sink.getSink());
     }
 
     private static class ResultsSink extends MockSink<KeyedWindowResult> {

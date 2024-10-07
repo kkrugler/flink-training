@@ -41,7 +41,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ECommerceFailuresSolution1Job {
+public class BootcampFailuresSolution1Job {
 
     private static final long START_TIME = 0;
 
@@ -78,12 +78,12 @@ public class ECommerceFailuresSolution1Job {
                 .map(r -> ShoppingCartRecord.fromString(r))
                 .name("Shopping Cart Stream");
 
-        new ECommerceFailuresSolution1Workflow()
+        new BootcampFailuresSolution1Workflow()
                 .setCartStream(cartStream)
                 .setResultSink(new DiscardingSink<>())
                 .build();
 
-        env.execute("ECommerceFailuresSolution1Job");
+        env.execute("BootcampFailuresSolution1Job");
 
     }
 

@@ -39,7 +39,7 @@ import java.time.Duration;
  * engaged in product-boosting behavior, by adding a lot of products to carts
  * that are never completed (purchased).
  */
-public class ECommerceDesignDetectionWorkflow {
+public class BootcampDesignDetectionWorkflow {
 
     private static final long DEFAULT_ABANDONED_LIMIT = 20;
 
@@ -47,20 +47,20 @@ public class ECommerceDesignDetectionWorkflow {
     private Sink<KeyedWindowResult> resultSink;
     private long maxAbandonedPerHour = DEFAULT_ABANDONED_LIMIT;
 
-    public ECommerceDesignDetectionWorkflow() {
+    public BootcampDesignDetectionWorkflow() {
     }
 
-    public ECommerceDesignDetectionWorkflow setAbandonedStream(DataStream<AbandonedCartItem> abandonedStream) {
+    public BootcampDesignDetectionWorkflow setAbandonedStream(DataStream<AbandonedCartItem> abandonedStream) {
         this.abandonedStream = abandonedStream;
         return this;
     }
 
-    public ECommerceDesignDetectionWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampDesignDetectionWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
 
-    public ECommerceDesignDetectionWorkflow setMaxAbandonedPerHour(long maxAbandonedPerHour) {
+    public BootcampDesignDetectionWorkflow setMaxAbandonedPerHour(long maxAbandonedPerHour) {
         this.maxAbandonedPerHour = maxAbandonedPerHour;
         return this;
     }

@@ -15,14 +15,14 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import static org.apache.flink.table.api.Expressions.*;
 
-public class ECommerceTablesSolutionWorkflow {
+public class BootcampTablesSolutionWorkflow {
 
     private StreamExecutionEnvironment env;
     private DataStream<TrimmedShoppingCart> shoppingCartStream;
     private DataStream<CurrencyConversionRecord> exchangeRateStream;
     private Sink<TrimmedShoppingCart> resultsSink;
 
-    public ECommerceTablesSolutionWorkflow(StreamExecutionEnvironment env) {
+    public BootcampTablesSolutionWorkflow(StreamExecutionEnvironment env) {
         this.env =env;
     }
 

@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-class ECommerceWindowingSolution3WorkflowTest {
+class BootcampWindowingSolution3WorkflowTest {
 
     @Test
-    public void testECommerceWindowingWorkflow() throws Exception {
-        List<ShoppingCartRecord> records = ECommerceTestUtils.makeCartRecords();
+    public void testBootcampWindowingWorkflow() throws Exception {
+        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
@@ -20,18 +20,18 @@ class ECommerceWindowingSolution3WorkflowTest {
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new ECommerceWindowingSolution3Workflow()
+        new BootcampWindowingSolution3Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)
                 .setFiveMinuteSink(fiveMinuteSink)
                 .setLongestTransactionsSink(longestTransactionSink)
                 .build();
 
-        env.execute("ECommerceWindowingSolution3Job");
+        env.execute("BootcampWindowingSolution3Job");
 
-        ECommerceTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
-        ECommerceTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
-        ECommerceTestUtils.validateLongestTransactionResults(longestTransactionSink.getSink());
+        BootcampTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
+        BootcampTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
+        BootcampTestUtils.validateLongestTransactionResults(longestTransactionSink.getSink());
     }
 
     private static class OneMinuteSink extends MockSink<KeyedWindowResult> {

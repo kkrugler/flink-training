@@ -43,20 +43,20 @@ import java.util.Set;
  * For this exercise, add a new sink for the stream of
  * AbandonedCartItem records.
  */
-public class ECommerceDesignAnalyticsWorkflow {
+public class BootcampDesignAnalyticsWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
 
-    public ECommerceDesignAnalyticsWorkflow() {
+    public BootcampDesignAnalyticsWorkflow() {
     }
 
-    public ECommerceDesignAnalyticsWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampDesignAnalyticsWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceDesignAnalyticsWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampDesignAnalyticsWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

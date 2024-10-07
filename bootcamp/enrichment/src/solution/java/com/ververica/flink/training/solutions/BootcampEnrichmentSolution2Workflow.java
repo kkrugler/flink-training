@@ -50,23 +50,23 @@ import java.time.Duration;
  * 2. Key by country, window per minute
  * 3. Generate per-product/per-minute shipping weight
  */
-public class ECommerceEnrichmentSolution2Workflow {
+public class BootcampEnrichmentSolution2Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private DataStream<ProductInfoRecord> productInfoStream;
     private Sink<KeyedWindowDouble> resultSink;
 
-    public ECommerceEnrichmentSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampEnrichmentSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceEnrichmentSolution2Workflow setProductInfoStream(DataStream<ProductInfoRecord> productInfoStream) {
+    public BootcampEnrichmentSolution2Workflow setProductInfoStream(DataStream<ProductInfoRecord> productInfoStream) {
         this.productInfoStream = productInfoStream;
         return this;
     }
 
-    public ECommerceEnrichmentSolution2Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
+    public BootcampEnrichmentSolution2Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
         this.resultSink = resultSink;
         return this;
     }

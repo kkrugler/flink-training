@@ -43,23 +43,23 @@ import java.time.Duration;
  * 2. Key by country, window per minute
  * 3. Generate per-country/per minute sales in US$
  */
-public class ECommerceEnrichmentSolution1Workflow {
+public class BootcampEnrichmentSolution1Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowDouble> resultSink;
     private long startTime = System.currentTimeMillis() - Duration.ofDays(2).toMillis();
 
-    public ECommerceEnrichmentSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampEnrichmentSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceEnrichmentSolution1Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
+    public BootcampEnrichmentSolution1Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
 
-    public ECommerceEnrichmentSolution1Workflow setStartTime(long startTime) {
+    public BootcampEnrichmentSolution1Workflow setStartTime(long startTime) {
         this.startTime = startTime;
         return this;
     }

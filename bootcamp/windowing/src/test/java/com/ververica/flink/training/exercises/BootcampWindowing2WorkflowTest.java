@@ -8,27 +8,27 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-class ECommerceWindowing2WorkflowTest {
+class BootcampWindowing2WorkflowTest {
 
     @Test
     public void testAggregation() throws Exception {
-        List<ShoppingCartRecord> records = ECommerceTestUtils.makeCartRecords();
+        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new ECommerceWindowing2Workflow()
+        new BootcampWindowing2Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)
                 .setFiveMinuteSink(fiveMinuteSink)
                 .build();
 
-        env.execute("ECommerceWindowing2Job");
+        env.execute("BootcampWindowing2Job");
 
-        ECommerceTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
-        ECommerceTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
+        BootcampTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
+        BootcampTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
     }
 
     private static class OneMinuteSink extends MockSink<KeyedWindowResult> {

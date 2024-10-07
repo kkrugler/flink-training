@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-class ECommerceFailuresSolution1WorkflowTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ECommerceFailuresSolution1WorkflowTest.class);
+class BootcampFailuresSolution1WorkflowTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BootcampFailuresSolution1WorkflowTest.class);
 
     // The beginning time for our workflow, for events
     private static final long START_TIME = 0;
@@ -68,14 +68,14 @@ class ECommerceFailuresSolution1WorkflowTest {
         TransactionalMemorySink resultsSink = new TransactionalMemorySink(exactlyOnce);
         resultsSink.reset();
 
-        new ECommerceFailuresSolution1Workflow()
+        new BootcampFailuresSolution1Workflow()
                 .setCartStream(cartStream)
                 .setResultSink(resultsSink)
                 .build();
 
         // TODO - execute async, then wait for status to be restarting, then running,
         // then set timer.
-        JobClient client = env1.executeAsync("ECommerceFailuresSolution1WorkflowTest");
+        JobClient client = env1.executeAsync("BootcampFailuresSolution1WorkflowTest");
 
         long endTime = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
         while (System.currentTimeMillis() < endTime)  {

@@ -48,7 +48,7 @@ import java.util.PriorityQueue;
  * duration, calculated as delta from the completed record to the
  * first record. This result is a KeyedWindowResult(transactionId, time, duration)
  */
-public class ECommerceWindowingSolution3Workflow {
+public class BootcampWindowingSolution3Workflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> oneMinuteSink;
@@ -56,30 +56,30 @@ public class ECommerceWindowingSolution3Workflow {
     private Sink<KeyedWindowResult> longestTransactionsSink;
     private int transactionWindowInMinutes = 5;
 
-    public ECommerceWindowingSolution3Workflow() {
+    public BootcampWindowingSolution3Workflow() {
     }
 
-    public ECommerceWindowingSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampWindowingSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+    public BootcampWindowingSolution3Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
         this.oneMinuteSink = oneMinuteSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+    public BootcampWindowingSolution3Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
         this.fiveMinuteSink = fiveMinuteSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
+    public BootcampWindowingSolution3Workflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
         this.longestTransactionsSink = longestTransactionsSink;
         return this;
     }
 
-    public ECommerceWindowingSolution3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
+    public BootcampWindowingSolution3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
         this.transactionWindowInMinutes = transactionWindowInMinutes;
         return this;
     }
