@@ -19,7 +19,7 @@ plugins {
     id "com.gradle.enterprise" version "3.6.3"
 }
 
-rootProject.name = 'flink-training'
+rootProject.name = 'flink-training-bootcamp'
 
 include 'state-processor'
 
@@ -35,12 +35,13 @@ include 'troubleshooting:state-migration:solution'
 include 'troubleshooting:state-migration:solution-custom-to-avro'
 include 'troubleshooting:throughput'
 
-include 'ecommerce:common'
-include 'ecommerce:windowing'
-include 'ecommerce:serialization'
-include 'ecommerce:enrichment'
-include 'ecommerce:failures'
-include 'ecommerce:design'
+include 'bootcamp:common'
+include 'bootcamp:design'
+include 'bootcamp:enrichment'
+include 'bootcamp:failures'
+include 'bootcamp:serialization'
+include 'bootcamp:tables'
+include 'bootcamp:windowing'
 
 // CI=true, TRAVIS=true, CONTINUOUS_INTEGRATION=true set automatically during Travis execution
 // see https://docs.travis-ci.com/user/environment-variables#default-environment-variables

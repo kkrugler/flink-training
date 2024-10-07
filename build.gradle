@@ -85,7 +85,7 @@ allprojects {
 }
 
 subprojects {
-    if (project == project(":troubleshooting") || project == project(":ecommerce") || project == project(":troubleshooting:state-migration")) {
+    if (project == project(":troubleshooting") || project == project(":bootcamp") || project == project(":troubleshooting:state-migration")) {
         // this is just an additional grouping layer, not a project!
         return
     }
@@ -235,7 +235,7 @@ tasks.register('printRunTasks') {
     subprojects.findAll { project ->
         boolean first = true;
         project.tasks.withType(JavaExec) { task ->
-            if (task.group == 'flink-training') {
+            if (task.group == 'flink-training-bootcamp') {
                 if (first) {
                     println ''
                     println '> Subproject \'' + project.name + '\''
@@ -253,7 +253,7 @@ static def void createTrainingRunTask(Project project, String property) {
             classpath = project.sourceSets.main.runtimeClasspath
             mainClass = project.ext.get(property)
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
-            group = 'flink-training'
+            group = 'flink-training-bootcamp'
         }
     }
 }

@@ -1,6 +1,6 @@
-# Apache Flink Bootcamp Exercises
+# Apache Flink Troubleshooting Exercises
 
-Exercises that accompany the training content in the documentation.
+Exercises that accompany the troubleshooting training content in the documentation.
 
 ## Table of Contents
 
@@ -40,14 +40,14 @@ be installed on your system:
 
 ### Download and build the flink-training project
 
-The `flink-training-bootcamp.zip` archive contains exercises, tests, and reference solutions for 
+The `flink-training-troubleshooting.zip` archive contains exercises, tests, and reference solutions for 
 the programming exercises.
 
-Download the `flink-training-bootcamp.zip` archive, unpack it, and build it:
+Download the `flink-training-troubleshooting.zip` archive, unpack it, and build it:
 
 ```bash
 wget -qO- http://blah | tar xvz -C /target/directory
-cd /target/directory/flink-training-bootcamp
+cd /target/directory/flink-training-troubleshooting
 ./gradlew testSolutions shadowJar
 ```
 
@@ -56,18 +56,18 @@ project. This usually takes a few minutes, depending on the speed of your intern
 
 If all of the tests pass and the build is successful, you are off to a good start.
 
-### Import the flink-training project into your IDE
+### Import the flink-training-troubleshooting project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
 
-Then you should be able to open [`ECommerceWindowing1WorkflowTest`](ecommerce/windowing/src/test/java/com/ververica/flink/training/exercises/ECommerceWindowing1WorkflowTest.java) 
-and run this test.
+Then you should be able to open [`TroubledStreamingJob`](troubleshooting/introduction/src/main/java/com/ververica/flink/training/exercises/TroubledStreamingJob.java) 
+and run the main method.
 
 > **:information_source: Note for Eclipse users:** Several Gradle projects in this repo 
 > depend on the Gradle project `common`. In order for Eclipse to detect the Gradle project dependencies correctly:
 > You likely need to run the following command:
 > 
-> `cd flink-training-bootcamp; ./gradlew cleanEclipse cleanEclipseProject cleanEclipseClasspath eclipse`
+> `cd flink-training-troubleshooting; ./gradlew cleanEclipse cleanEclipseProject cleanEclipseClasspath eclipse`
 > 
 > Then, in the Gradle project that depends on `common`, set `Without test code` to `No` in the project dependence 
 > setting. See the screenshot: 
@@ -92,10 +92,10 @@ To start a Flink program in your IDE, run its `main()` method. Under the hood, t
 environment will start a local Flink instance within the same process. Hence, it is also 
 possible to put breakpoints in your code and debug it.
 
-If you have an IDE with this `flink-training-bootcamp` project imported, you can run 
+If you have an IDE with this `flink-training-troubleshooting` project imported, you can run 
 (or debug) a streaming job by:
 
-- opening the `com.ververica.flink.training.examples.ECommerceExampleJob` class
+- opening the `com.ververica.flink.training.exercises.TroubledStreamingJob` class
 - running (or debugging) the `main()` method of this class
 
 ### Exercises, tests, and solutions
@@ -113,7 +113,7 @@ To run tests:
 
 ```bash
 ./gradlew test
-./gradlew :ecommerce:<subproject>:test
+./gradlew :troubleshooting:<subproject>:test
 ```
 
 For exercises and solutions, we provide special tasks that can be listed with:
@@ -126,21 +126,4 @@ For exercises and solutions, we provide special tasks that can be listed with:
 
 ## Lab exercises
 
-1. [Stream analytics via windowing](ecommerce/windowing)
-   - [Exercise](ecommerce/windowing/README.md)
-   - [Discussion](ecommerce/windowing/DISCUSSION.md)
-1. [Optimizing serialization](ecommerce/serialization)
-   - [Exercise](ecommerce/serialization/README.md)
-   - [Discussion](ecommerce/serialization/DISCUSSION.md)
-1. [Exactly-once and failure handling](ecommerce/failures)
-    - [Exercise](ecommerce/failures/README.md)
-    - [Discussion](ecommerce/failures/DISCUSSION.md)
-1. [Enrichment and scalability](ecommerce/enrichment)
-    - [Exercise](ecommerce/enrichment/README.md)
-    - [Discussion](ecommerce/enrichment/DISCUSSION.md)
-1. [Flink SQL and Table API](ecommerce/tables)
-    - [Exercise](ecommerce/tables/README.md)
-    - [Discussion](ecommerce/tables/DISCUSSION.md)
-1. [Workflow design and Paimon](ecommerce/design)
-    - [Exercise](ecommerce/design/README.md)
-    - [Discussion](ecommerce/design/DISCUSSION.md)
+TODO - see README-Bootcamp.md for format of entries.
