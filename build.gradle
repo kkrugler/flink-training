@@ -16,11 +16,22 @@
  */
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.0.0' apply false
-    id "com.diffplug.spotless" version "6.4.2" apply false
+    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
+    id "com.diffplug.spotless" version "6.25.0" apply false
 }
 
 description = "Flink Training Exercises"
+
+tasks.register('zipBootcamp', Zip) {
+    archiveFileName = "flink-training-bootcamp.zip"
+    destinationDirectory = layout.buildDirectory
+
+    from(layout.projectDirectory)
+    exclude("**/build")
+    exclude("**/.*")
+    exclude("troubleshooting")
+    exclude("state-processor")
+}
 
 allprojects {
     group = 'org.apache.flink'
@@ -92,7 +103,7 @@ subprojects {
 
     apply plugin: 'java'
     apply plugin: 'com.github.johnrengelman.shadow'
-    apply plugin: 'checkstyle'
+    // apply plugin: 'checkstyle'
     apply plugin: 'eclipse'
 
     ext {
@@ -103,15 +114,24 @@ subprojects {
         junitVersion = '4.13'
     }
 
-	test {
-	  useJUnitPlatform()
-	  
-	  jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-	}
+    tasks.withType(Test).configureEach {
+      useJUnitPlatform()
+      jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+    }
+
+    if (project.parent == project(":bootcamp")) {
+        tasks.register('testSolutions', Test) {
+            group = 'verification'
+            filter { excludeTestsMatching("*.exercises.*") }
+        }
+        tasks.named('test', Test) {
+            filter { includeTestsMatching("*.exercises.*") }
+        }
+    }
 
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
 
@@ -166,7 +186,7 @@ subprojects {
 
     spotless {
         java {
-            googleJavaFormat('1.7').aosp()
+            googleJavaFormat().aosp()
 
             // \# refers to static imports
             importOrder('org.apache.flink', 'org.apache.flink.shaded', '', 'javax', 'java', '\\#')

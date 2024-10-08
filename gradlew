@@ -86,16 +86,7 @@ APP_BASE_NAME=${0##*/}
 APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-# For proper execution of Flink (Kryo serializer) and the build (spotless plugin) on Java 17, we need to 
-# explicitly all access to some Java internals.
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
-	"--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-	"--add-opens=java.base/java.util=ALL-UNNAMED"'
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
