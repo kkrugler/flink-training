@@ -25,9 +25,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.util.Preconditions;
 
 /**
- * The eCommerce Windowing exercise from Ververica's Flink bootcamp training.
+ * The Windowing exercise from Ververica's Flink bootcamp training.
  *
- * <p>The task of this exercise is to filter a data stream of eCommerce web site records
+ * <p>The goal of this exercise is to filter a data stream of eCommerce web site records
  * to keep only records for completed transactions, and then calculate per-country/per-minute
  * aggregations of shopping cart item counts.
  */
@@ -56,7 +56,7 @@ public class BootcampWindowing1Workflow {
         // TODO - add watermarks to cartStream, using the .assignTimestampsAndWatermarks() call and
         // the appropriate WatermarkStrategy.<ShoppingCartRecord> method
 
-        // TODO - filter transactions out that are NOT completed.
+        // TODO - filter out transactions out that are NOT completed.
 
         // TODO - key by the country, then create 1 minute tumbling windows
 

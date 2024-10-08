@@ -60,7 +60,7 @@ If all of the tests pass and the build is successful, you are off to a good star
 
 The project needs to be imported as a gradle project into your IDE.
 
-Then you should be able to open [`ECommerceWindowing1WorkflowTest`](ecommerce/windowing/src/test/java/com/ververica/flink/training/exercises/ECommerceWindowing1WorkflowTest.java) 
+Then you should be able to open [`BootcampWindowing1WorkflowTest`](bootcamp/windowing/src/test/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java) 
 and run this test.
 
 > **:information_source: Note for Eclipse users:** Several Gradle projects in this repo 
@@ -89,14 +89,30 @@ Flink programs can be executed and debugged from within an IDE. This significant
 development process and provides an experience similar to working on any other Java application.
 
 To start a Flink program in your IDE, run its `main()` method. Under the hood, the execution 
-environment will start a local Flink instance within the same process. Hence, it is also 
-possible to put breakpoints in your code and debug it.
+environment will start a local Flink instance within the same process. Many of the `*WorkflowTest` JUnit
+tests will also start a local Flink instance. Because all the code is running in one JVM that is
+started by your IDE, you can put breakpoints in your code for debugging.
+
+Note that the local Flink instance will be serving Flink's Web UI at http://localhost:8081.
+If port 8081 is blocked and Flink won't start, or if the Web UI is not showing up, you can also
+configure and force the local mode via the `--local` program argument and set the port the
+Web UI is listening on, via `--local <port>`.
+
+The Flink instance will also be configured to use a `fixedDelayRestart` failure strategy with
+15s delay and infinite restarts, which is helpful for debugging code.
+
+You can also specify the parallelism via `--parallelism <number>` if needed. This is mostly
+useful when understanding the impact of changing the job's parallelism. Note that if you
+do not specify the parallelism, and you're running locally, the Flink instance will be started
+with its total slots (and thus any job's maximum parallelism) set to the number of CPU cores
+on your system.
 
 If you have an IDE with this `flink-training-bootcamp` project imported, you can run 
 (or debug) a streaming job by:
 
-- opening the `com.ververica.flink.training.examples.ECommerceExampleJob` class
+- opening the `com.ververica.flink.training.examples.BootcampExampleJob` class
 - running (or debugging) the `main()` method of this class
+
 
 ### Exercises, tests, and solutions
 
@@ -113,7 +129,7 @@ To run tests:
 
 ```bash
 ./gradlew test
-./gradlew :ecommerce:<subproject>:test
+./gradlew :bootcamp:<subproject>:test
 ```
 
 For exercises and solutions, we provide special tasks that can be listed with:
@@ -126,21 +142,21 @@ For exercises and solutions, we provide special tasks that can be listed with:
 
 ## Lab exercises
 
-1. [Stream analytics via windowing](ecommerce/windowing)
-   - [Exercise](ecommerce/windowing/README.md)
-   - [Discussion](ecommerce/windowing/DISCUSSION.md)
-1. [Optimizing serialization](ecommerce/serialization)
-   - [Exercise](ecommerce/serialization/README.md)
-   - [Discussion](ecommerce/serialization/DISCUSSION.md)
-1. [Exactly-once and failure handling](ecommerce/failures)
-    - [Exercise](ecommerce/failures/README.md)
-    - [Discussion](ecommerce/failures/DISCUSSION.md)
-1. [Enrichment and scalability](ecommerce/enrichment)
-    - [Exercise](ecommerce/enrichment/README.md)
-    - [Discussion](ecommerce/enrichment/DISCUSSION.md)
-1. [Flink SQL and Table API](ecommerce/tables)
-    - [Exercise](ecommerce/tables/README.md)
-    - [Discussion](ecommerce/tables/DISCUSSION.md)
-1. [Workflow design and Paimon](ecommerce/design)
-    - [Exercise](ecommerce/design/README.md)
-    - [Discussion](ecommerce/design/DISCUSSION.md)
+1. [Stream analytics via windowing](bootcamp/windowing)
+   - [Exercise](bootcamp/windowing/README.md)
+   - [Discussion](bootcamp/windowing/DISCUSSION.md)
+1. [Optimizing serialization](bootcamp/serialization)
+   - [Exercise](bootcamp/serialization/README.md)
+   - [Discussion](bootcamp/serialization/DISCUSSION.md)
+1. [Exactly-once and failure handling](bootcamp/failures)
+    - [Exercise](bootcamp/failures/README.md)
+    - [Discussion](bootcamp/failures/DISCUSSION.md)
+1. [Enrichment and scalability](bootcamp/enrichment)
+    - [Exercise](bootcamp/enrichment/README.md)
+    - [Discussion](bootcamp/enrichment/DISCUSSION.md)
+1. [Flink SQL and Table API](bootcamp/tables)
+    - [Exercise](bootcamp/tables/README.md)
+    - [Discussion](bootcamp/tables/DISCUSSION.md)
+1. [Workflow design and Paimon](bootcamp/design)
+    - [Exercise](bootcamp/design/README.md)
+    - [Discussion](bootcamp/design/DISCUSSION.md)

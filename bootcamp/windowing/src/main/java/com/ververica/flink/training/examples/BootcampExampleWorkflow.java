@@ -34,20 +34,19 @@ import org.apache.flink.util.Preconditions;
 import java.time.Duration;
 
 /**
- * Simple workflow example using windows.
- * We calculate a per-country/per-minute count of completed transactions.
+ * Simple workflow example that filters stream to just completed transactions.
  */
 public class BootcampExampleWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> resultSink;
+    private Sink<ShoppingCartRecord> resultSink;
 
     public BootcampExampleWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public BootcampExampleWorkflow setResultSink(Sink<KeyedWindowResult> resultSink) {
+    public BootcampExampleWorkflow setResultSink(Sink<ShoppingCartRecord> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -57,45 +56,11 @@ public class BootcampExampleWorkflow {
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
 
         // Assign timestamps & watermarks, and filter out pending carts
-        DataStream<ShoppingCartRecord> filtered = cartStream
+        cartStream
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
-                .filter(r -> r.isTransactionCompleted());
-
-        // Key by country, tumbling window of transactions per minute
-        filtered.keyBy(r -> r.getCountry())
-                .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
-                .aggregate(new CountTransactionsAggregator(), new SetKeyAndTimeFunction())
+                .filter(r -> r.isTransactionCompleted())
                 .sinkTo(resultSink);
-    }
-
-    private static class CountTransactionsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
-        @Override
-        public Long createAccumulator() {
-            return 0L;
-        }
-
-        @Override
-        public Long add(ShoppingCartRecord value, Long acc) {
-            return acc + 1;
-        }
-
-        @Override
-        public Long getResult(Long acc) {
-            return acc;
-        }
-
-        @Override
-        public Long merge(Long a, Long b) {
-            return a + b;
-        }
-    }
-
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
-        @Override
-        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
-            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
-        }
     }
 }
