@@ -21,21 +21,9 @@ apply plugin: 'application'
 
 mainClassName = ext.javaExerciseClassName
 
-java {
-    registerFeature('test') {
-        usingSourceSet(sourceSets.test)
-    }
-}
-
 dependencies {
     implementation project(path: ':bootcamp:common')
-
-    testApi "junit:junit:${junitVersion}"
-    testApi "org.apache.flink:flink-streaming-java:${flinkVersion}:tests"
-    testApi "org.apache.flink:flink-runtime:${flinkVersion}:tests"
-    testApi "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
-    testApi "org.apache.flink:flink-test-utils:${flinkVersion}"
-    testApi 'org.assertj:assertj-core:3.20.2'
+    testImplementation testFixtures(project(path: ':bootcamp:common'))
 }
 
 sourceSets {

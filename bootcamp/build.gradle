@@ -18,3 +18,23 @@
 subprojects {
     group = 'com.ververica.flink.training.bootcamp'
 }
+
+tasks.register('printTestTasks') {
+    doLast {
+        println '----------------------------------------------------------------'
+        println 'Flink Training Test Tasks runnable from root project \'' + project.name + '\''
+        println '----------------------------------------------------------------'
+
+        subprojects.findAll { project ->
+            boolean first = true;
+            project.tasks.withType(Test) { task ->
+                if (first) {
+                    println ''
+                    println '> Subproject \'' + project.name + '\''
+                    first = false;
+                }
+                println './gradlew ' + project.path + ':' + task.name
+            }
+        }
+    }
+}

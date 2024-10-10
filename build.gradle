@@ -152,18 +152,40 @@ subprojects {
 
     // common set of dependencies
     dependencies {
-        shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-        shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-        shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        if (project.parent.name == 'bootcamp') {
+            implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+            implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+            implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
 
-        shadow "org.apache.flink:flink-clients:${flinkVersion}"
-        shadow "org.apache.flink:flink-java:${flinkVersion}"
-        shadow "org.apache.flink:flink-streaming-java:${flinkVersion}"
+            implementation "org.apache.flink:flink-clients:${flinkVersion}"
+            implementation "org.apache.flink:flink-java:${flinkVersion}"
+            implementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
 
-        // allows using Flink's web UI when running in the IDE:
-        shadow "org.apache.flink:flink-runtime-web:${flinkVersion}"
-        // allow using RocksDB when running in the IDE:
-        shadow "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+            // allows using Flink's web UI when running in the IDE:
+            implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
+            // allow using RocksDB when running in the IDE:
+            implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+        } else {
+            shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+            shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+            shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+
+            shadow "org.apache.flink:flink-clients:${flinkVersion}"
+            shadow "org.apache.flink:flink-java:${flinkVersion}"
+            shadow "org.apache.flink:flink-streaming-java:${flinkVersion}"
+
+            // allows using Flink's web UI when running in the IDE:
+            shadow "org.apache.flink:flink-runtime-web:${flinkVersion}"
+            // allow using RocksDB when running in the IDE:
+            shadow "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+        }
+
+        // common set for testing
+        testImplementation "junit:junit:${junitVersion}"
+        testImplementation "org.apache.flink:flink-streaming-java:${flinkVersion}:tests"
+        testImplementation "org.apache.flink:flink-runtime:${flinkVersion}:tests"
+        testImplementation "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
+        testImplementation "org.apache.flink:flink-test-utils:${flinkVersion}"
     }
 
     // add solution source dirs:
@@ -223,25 +245,27 @@ subprojects {
         }
     }
 
-    shadowJar {
-        mergeServiceFiles()
-        dependencies {
-            exclude(dependency("org.apache.flink:force-shading"))
-            exclude(dependency('com.google.code.findbugs:jsr305'))
-            exclude(dependency('org.slf4j:.*'))
-            exclude(dependency('log4j:.*'))
-            exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
-            // already provided dependencies from serializer frameworks
-            exclude(dependency('com.esotericsoftware.kryo:kryo'))
-            exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
-            exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
+    if (project.parent.name != 'bootcamp') {
+        shadowJar {
+            mergeServiceFiles()
+            dependencies {
+                exclude(dependency("org.apache.flink:force-shading"))
+                exclude(dependency('com.google.code.findbugs:jsr305'))
+                exclude(dependency('org.slf4j:.*'))
+                exclude(dependency('log4j:.*'))
+                exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
+                // already provided dependencies from serializer frameworks
+                exclude(dependency('com.esotericsoftware.kryo:kryo'))
+                exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
+                exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
+            }
+            if (project.parent != rootProject) {
+                archiveBaseName.set("${project.parent.name}-${project.name}")
+            }
         }
-        if (project.parent != rootProject) {
-            archiveBaseName.set("${project.parent.name}-${project.name}")
-        }
-    }
 
-    assemble.dependsOn(shadowJar)
+        assemble.dependsOn(shadowJar)
+    }
 
     // add FLINK_TRAINING_LOCAL to the environment variables if run via gradle
     tasks.matching({ task -> task instanceof JavaExec }).all {
@@ -250,24 +274,27 @@ subprojects {
 }
 
 tasks.register('printRunTasks') {
-    println '------------------------------------------------------------'
-    println 'Flink Training Tasks runnable from root project \'' + project.name + '\''
-    println '------------------------------------------------------------'
+    doLast {
+        println '------------------------------------------------------------'
+        println 'Flink Training Tasks runnable from root project \'' + project.name + '\''
+        println '------------------------------------------------------------'
 
-    subprojects.findAll { project ->
-        boolean first = true;
-        project.tasks.withType(JavaExec) { task ->
-            if (task.group == 'flink-training-bootcamp') {
-                if (first) {
-                    println ''
-                    println '> Subproject \'' + project.name + '\''
-                    first = false;
+        subprojects.findAll { project ->
+            boolean first = true;
+            project.tasks.withType(JavaExec) { task ->
+                if (task.group == 'flink-training-bootcamp') {
+                    if (first) {
+                        println ''
+                        println '> Subproject \'' + project.name + '\''
+                        first = false;
+                    }
+                    println './gradlew ' + project.path + ':' + task.name
                 }
-                println './gradlew :' + project.name + ':' + task.name
             }
         }
     }
 }
+
 
 static def void createTrainingRunTask(Project project, String property) {
     if (project.ext.has(property)) {
