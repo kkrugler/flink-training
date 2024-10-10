@@ -7,7 +7,7 @@ Exercises that accompany the training content in the documentation.
 [**Set up your development environment**](#set-up-your-development-environment)
 
 1. [Software requirements](#software-requirements)
-1. [Download and build the flink-training project](#clone-and-build-the-flink-training-project)
+1. [Download and build the flink-training project](#download-and-build-the-flink-training-project)
 1. [Import the flink-training project into your IDE](#import-the-flink-training-project-into-your-ide)
 
 [**How to do the lab exercises**](#how-to-do-the-lab-exercises)
@@ -46,15 +46,17 @@ the programming exercises.
 Download the `flink-training-bootcamp.zip` archive, unpack it, and build it:
 
 ```bash
-wget -qO- http://blah | tar xvz -C /target/directory
-cd /target/directory/flink-training-bootcamp
-./gradlew testSolutions shadowJar
+mkdir /target/directory
+curl https://scaleunlimited.com/downloads/flink-training-bootcamp.zip -o flink-training-bootcamp.zip
+unzip -x flink-training-bootcamp.zip -d /target/directory
+cd /target/directory/
+./gradlew testSolutions
 ```
 
-If this is your first time building it, you will end up downloading all of the dependencies for this Flink training
+If this is your first time building it, you will end up downloading all the dependencies for this Flink training
 project. This usually takes a few minutes, depending on the speed of your internet connection.
 
-If all of the tests pass and the build is successful, you are off to a good start.
+If all the tests pass and the build is successful, you are off to a good start.
 
 ### Import the flink-training project into your IDE
 
@@ -72,6 +74,21 @@ and run this test.
 > Then, in the Gradle project that depends on `common`, set `Without test code` to `No` in the project dependence 
 > setting. See the screenshot: 
 > ![dependency-fix](images/project-dependency-fix-test-code.png)
+
+### Improving your Markdown experience
+
+When you open a Markdown file in IntelliJ, by default both the editor pane and the preview
+pane are displayed. You can switch to only showing the preview mode by selecting "Settings..."
+from the "IntelliJ IDEA" menu, then "Languages & Frameworks" > "Markdown". In the Markdown
+settings, select "Preview" from the "Default Layout" popup menu.
+
+![markdown-mode](images/intellij-markdown-settings.png)
+
+### Flink JavaDoc
+
+The Java documentation for Flink 1.19 is located [here](https://nightlies.apache.org/flink/flink-docs-release-1.19/api/java/)
+You can ignore the `1.19-SNAPSHOT` version at the top of the main page, this documentation is for the
+released version.
 
 ## How to do the lab exercises
 
@@ -113,7 +130,6 @@ If you have an IDE with this `flink-training-bootcamp` project imported, you can
 - opening the `com.ververica.flink.training.examples.BootcampExampleJob` class
 - running (or debugging) the `main()` method of this class
 
-
 ### Exercises, tests, and solutions
 
 Each of these exercises include:
@@ -125,20 +141,21 @@ If there are multiple exercises, the class name will be `...1Exercise`, `...2Exe
 
 You can run exercises, solutions, and tests with the `gradlew` command.
 
-To run tests:
+To run tests on all your exercise code:
 
 ```bash
 ./gradlew test
+```
+
+To run tests on just the exercises in one of the labs:
+
+```bash
 ./gradlew :bootcamp:<subproject>:test
 ```
 
-For exercises and solutions, we provide special tasks that can be listed with:
-
-```bash
-./gradlew printRunTasks
-```
-
-:point_down: Now you are ready to begin the lab exercises. :point_down:
+Now you are ready to begin the lab exercises listed below. There are links to each lab's
+README file, which describes what you need to do, as well links to each lab's DISCUSSION
+file, which talks about the solution(s).
 
 ## Lab exercises
 

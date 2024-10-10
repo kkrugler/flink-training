@@ -26,6 +26,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
+import java.time.Duration;
+
 public class BootcampExampleJob {
 
     public static void main(String[] args) throws Exception {

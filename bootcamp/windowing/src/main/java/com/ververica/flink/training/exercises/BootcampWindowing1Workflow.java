@@ -27,7 +27,7 @@ import org.apache.flink.util.Preconditions;
 /**
  * The Windowing exercise from Ververica's Flink bootcamp training.
  *
- * <p>The goal of this exercise is to filter a data stream of eCommerce web site records
+ * <p>The goal of this exercise is to filter a data stream of eCommerce shopping cart records
  * to keep only records for completed transactions, and then calculate per-country/per-minute
  * aggregations of shopping cart item counts.
  */

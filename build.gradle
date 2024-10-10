@@ -31,6 +31,8 @@ tasks.register('zipBootcamp', Zip) {
     exclude("**/.*")
     exclude("troubleshooting")
     exclude("state-processor")
+    exclude("README-troubleshooting.md")
+    exclude("LICENSE")
 }
 
 allprojects {

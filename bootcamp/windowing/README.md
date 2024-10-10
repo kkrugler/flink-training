@@ -3,50 +3,43 @@
 ## Introduction
 
 This lab is the hands-on part of the "Apache Flink Bootcamp" training by Ververica. 
-Please follow the [Setup Instructions](../../README-Bootcamp.md#setup-your-development-environment) first
+Please follow the [Setup Instructions](../../README-Bootcamp.md#set-up-your-development-environment) first
 and then continue reading here.
-
-### Running Locally
-
-Executing `com.ververica.flink.training.exercises.ECommerceWindowing1Job#main()` should create a local 
-Flink cluster running the windowing job and serving Flink's Web UI at http://localhost:8081.
-If port 8081 is blocked and Flink won't start, or if the Web UI is not showing up, you can also 
-configure and force the local mode via the `--local` program argument and set the port the 
-Web UI is listening on:
-
-* `--local -1`: defaults via `StreamExecutionEnvironment.getExecutionEnvironment()` (no Web UI, no extra settings)
-* `--local <port|port-range>`: uses `StreamExecutionEnvironment.createLocalEnvironmentWithWebUI()` and
-  - sets a `fixedDelayRestart` failure strategy with 15s delay and infinite restarts
-  - configures the Web UI to listen on a port in the given range
-    If more than one port is given, please find the port in the logs from this line:
-```
-12:11:04.062 [main] INFO o.a.f.r.d.DispatcherRestEndpoint - Web frontend listening at http://localhost:8081.
-```
-
-You can also specify the parallelism via `--parallelism <number>` if needed (may be valuable in local setups).
 
 ### The Flink Job
 
-This simple Flink job reads eCommerce shopping cart activity data from a Kafka topic with eight partitions. For the purpose of this training,
-the `KafkaConsumer` is replaced by `FakeKafkaSource`. The result of a calculation based on per-country activity is
-averaged over 1 second. The overall flow is depicted below:
+This simple Flink job reads eCommerce shopping cart activity data from a testing source that generates
+fake records. Records are filtered to only completed transactions, then grouped by country, divided
+into tumbling one-minute windows, and then a count of total items in each cart is calculated.
+The overall flow is depicted below:
 
 ```
 +-------------------+     +-----------------------+     +-----------------+     +----------------------+     +--------------------+
-|                   |     |                       |     |                 |     |                      |     |                    |
-| Fake Kafka Source | --> | Watermarks/Timestamps | --> | Deserialization | --> | Windowed Aggregation | --> | Sink: NormalOutput |
+| Fake Source for   |     |                       |     |                 |     |                      |     |                    |
+| eCommerce records | --> | Watermarks/Timestamps | --> | Filtering       | --> | Windowed Aggregation | --> | Sink: NormalOutput |
 |                   |     |                       |     |                 |     |                      |     |                    |
 +-------------------+     +-----------------------+     +-----------------+     +----------------------+     +--------------------+
-                                                                                            \
-                                                                                             \               +--------------------+
-                                                                                              \              |                    |
-                                                                                               +-----------> | Sink: LateDataSink |
-                                                                                                             |                    |
-                                                                                                             +--------------------+
 ```
 
-In local mode, the sinks print their values on `stdout` (NormalOutput) and `stderr` (LateDataSink), which simplifies debugging.
-Otherwise, a `DiscardingSink` is used for each sink.
+## Exercise 1
+
+Modify the [BootcampWindowing1Workflow](src/main/java/com/ververica/flink/training/exercises/BootcampWindowing1Workflow.java)
+class to:
+
+ - Filter out any `ShoppingCartRecord` that is not a completed transaction, via a
+   Flink FilterFunction and the `ShoppingCartRecord.isTransactionCompleted()` method.
+   Note you can use Java lambdas to easily implement simple filters like this.
+ - Key the resulting stream by the record's country, then window the stream into
+   tumbling (not sliding) windows of 1 minute.
+ - Use a Flink `AggregationFunction` and a `ProcessWindowFunction` to calculate the
+   total number of cart items for all the records found in each 1-minute/country
+   window.
+ - Generate a `KeyedWindowResult` record, where the key is the country, the time is
+   the start of the window, and the count is the number of items.
+
+## Exercise 2
+
+
 
 -----
 
