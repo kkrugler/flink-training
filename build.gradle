@@ -20,6 +20,8 @@ plugins {
     id "com.diffplug.spotless" version "6.25.0" apply false
 }
 
+apply plugin: 'base'
+
 description = "Flink Training Exercises"
 
 tasks.register('zipBootcamp', Zip) {
@@ -33,6 +35,10 @@ tasks.register('zipBootcamp', Zip) {
     exclude("state-processor")
     exclude("README-troubleshooting.md")
     exclude("LICENSE")
+}
+
+tasks.assemble {
+    dependsOn(zipBootcamp)
 }
 
 allprojects {
@@ -264,7 +270,9 @@ subprojects {
             }
         }
 
-        assemble.dependsOn(shadowJar)
+        tasks.assemble {
+            dependsOn(shadowJar)
+        }
     }
 
     // add FLINK_TRAINING_LOCAL to the environment variables if run via gradle
