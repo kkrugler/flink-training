@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.BootcampSerialization1Job'
-
 apply plugin: 'application'
-
-mainClassName = ext.javaExerciseClassName
 
 dependencies {
     implementation project(path: ':bootcamp:common')

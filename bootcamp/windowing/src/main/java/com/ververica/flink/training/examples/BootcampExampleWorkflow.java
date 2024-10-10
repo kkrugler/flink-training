@@ -60,7 +60,9 @@ public class BootcampExampleWorkflow {
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
+                .disableChaining()
                 .filter(r -> r.isTransactionCompleted())
+                .disableChaining()
                 .sinkTo(resultSink);
     }
 }

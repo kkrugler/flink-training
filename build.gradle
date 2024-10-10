@@ -20,10 +20,13 @@ plugins {
     id "com.diffplug.spotless" version "6.25.0" apply false
 }
 
+// Get access to tasks.assemble below
 apply plugin: 'base'
 
 description = "Flink Training Exercises"
 
+// Create a zip of just the required files for students. This excludes
+// the troubleshooting & state-processor projects.
 tasks.register('zipBootcamp', Zip) {
     archiveFileName = "flink-training-bootcamp.zip"
     destinationDirectory = layout.buildDirectory
@@ -37,6 +40,7 @@ tasks.register('zipBootcamp', Zip) {
     exclude("LICENSE")
 }
 
+// Set up so build will create the bootcamp zi file
 tasks.assemble {
     dependsOn(zipBootcamp)
 }

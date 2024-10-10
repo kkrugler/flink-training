@@ -15,7 +15,7 @@ public class BootcampWindowing2WorkflowTest {
         testBootcampWindowing2Workflow(new BootcampWindowing2Workflow());
     }
 
-    protected void testBootcampWindowing2Workflow(BootcampWindowing2Workflow workflow) throws Exception {
+    public static void testBootcampWindowing2Workflow(BootcampWindowing2Workflow workflow) throws Exception {
         List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();

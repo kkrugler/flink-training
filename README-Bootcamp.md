@@ -38,7 +38,7 @@ be installed on your system:
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
 
-### Download and build the flink-training project
+### Download and build the flink-training-bootcamp project
 
 The `flink-training-bootcamp.zip` archive contains exercises, tests, and reference solutions for 
 the programming exercises.
@@ -58,7 +58,7 @@ project. This usually takes a few minutes, depending on the speed of your intern
 
 If all the tests pass and the build is successful, you are off to a good start.
 
-### Import the flink-training project into your IDE
+### Import the flink-training-bootcamp project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
 
@@ -105,10 +105,9 @@ We assume you have set up your development environment according to our
 Flink programs can be executed and debugged from within an IDE. This significantly eases the 
 development process and provides an experience similar to working on any other Java application.
 
-To start a Flink program in your IDE, run its `main()` method. Under the hood, the execution 
-environment will start a local Flink instance within the same process. Many of the `*WorkflowTest` JUnit
-tests will also start a local Flink instance. Because all the code is running in one JVM that is
-started by your IDE, you can put breakpoints in your code for debugging.
+All of the `*Job` applications and `*WorkflowTest` JUnit
+tests will start a local Flink instance (aka `FlinkMiniCluster`). Because all the code is 
+running in one JVM that is started by your IDE, you can put breakpoints in your code for debugging.
 
 Note that the local Flink instance will be serving Flink's Web UI at http://localhost:8081.
 If port 8081 is blocked and Flink won't start, or if the Web UI is not showing up, you can also
@@ -129,6 +128,32 @@ If you have an IDE with this `flink-training-bootcamp` project imported, you can
 
 - opening the `com.ververica.flink.training.examples.BootcampExampleJob` class
 - running (or debugging) the `main()` method of this class
+
+### The Flink WebUI
+
+When you run a Flink program from the `*Job` class's `main()` method, you can then
+point your browser at http://localhost:8081 to view the Flink Web UI.
+
+![Flink WebUI](images/flink-webui-top.png)
+
+When you click on the row under "Job Name", you'll see your job's execution graph, along
+with lots of additional information.
+
+![Flink WebUI Execution Graph](images/flink-webui-execution.png)
+
+If you click on a specific operator, you'll see information about that operator.
+
+![Flink WebUI Operator](images/flink-webui-operator.png)
+
+You can view per-subtask information about the amount of data being received/sent, etc.
+Note that sources will always have 0 `Bytes Received` or `Records Received`, and sinks will
+always have 0 `Bytes Sent` or `Records Sent`.
+
+If you scroll to the right in this view, you'll see the `Flamegraph` item, which displays
+profiling information in a graphical format. We'll be using this in the
+[Serialization Lab](bootcamp/serialization/README.md)
+
+![Flink WebUI Flamegraph](images/flink-webui-flamegraph.png)
 
 ### Exercises, tests, and solutions
 

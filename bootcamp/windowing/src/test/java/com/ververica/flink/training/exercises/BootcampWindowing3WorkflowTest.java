@@ -15,7 +15,7 @@ public class BootcampWindowing3WorkflowTest {
         testBootcampWindowing3Workflow(new BootcampWindowing3Workflow());
     }
 
-    protected void testBootcampWindowing3Workflow(BootcampWindowing3Workflow workflow) throws Exception {
+    public static void testBootcampWindowing3Workflow(BootcampWindowing3Workflow workflow) throws Exception {
         List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();

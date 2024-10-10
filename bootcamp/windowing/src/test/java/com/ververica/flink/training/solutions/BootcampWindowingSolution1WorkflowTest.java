@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.ververica.flink.training.exercises.BootcampWindowing1WorkflowTest.testBootcampWindowing1Workflow;
 
-class BootcampWindowingSolution1WorkflowTest extends BootcampWindowing1WorkflowTest {
+
+class BootcampWindowingSolution1WorkflowTest {
 
     @Test
     public void testBootcampWindowingSolution1Workflow() throws Exception {

@@ -15,19 +15,17 @@
  * limitations under the License.
  */
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.BootcampTables1Job'
-
 apply plugin: 'application'
-
-mainClassName = ext.javaExerciseClassName
 
 dependencies {
     implementation project(path: ':bootcamp:common')
 
+    // We need the Flink Table API jars
     implementation "org.apache.flink:flink-table-api-java:${flinkVersion}"
     implementation "org.apache.flink:flink-table-api-java-bridge:${flinkVersion}"
     implementation "org.apache.flink:flink-table-runtime:${flinkVersion}"
 
+    // Pull in test scope dependencies from the common subproject.
     testImplementation testFixtures(project(path: ':bootcamp:common'))
 }
 

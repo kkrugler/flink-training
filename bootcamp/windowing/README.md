@@ -13,13 +13,7 @@ fake records. Records are filtered to only completed transactions, then grouped 
 into tumbling one-minute windows, and then a count of total items in each cart is calculated.
 The overall flow is depicted below:
 
-```
-+-------------------+     +-----------------------+     +-----------------+     +----------------------+     +--------------------+
-| Fake Source for   |     |                       |     |                 |     |                      |     |                    |
-| eCommerce records | --> | Watermarks/Timestamps | --> | Filtering       | --> | Windowed Aggregation | --> | Sink: NormalOutput |
-|                   |     |                       |     |                 |     |                      |     |                    |
-+-------------------+     +-----------------------+     +-----------------+     +----------------------+     +--------------------+
-```
+![workflow-diagram](../../images/windowing-workflow-diagram.png)
 
 ## Exercise 1
 
