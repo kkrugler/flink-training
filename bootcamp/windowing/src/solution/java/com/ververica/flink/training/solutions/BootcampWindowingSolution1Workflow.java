@@ -21,6 +21,7 @@ package com.ververica.flink.training.solutions;
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.exercises.BootcampWindowing1Workflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -38,21 +39,9 @@ import java.time.Duration;
  * We calculate a per-country/per-minute count of items in completed
  * shopping carts.
  */
-public class BootcampWindowingSolution1Workflow {
+public class BootcampWindowingSolution1Workflow extends BootcampWindowing1Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> resultSink;
-
-    public BootcampWindowingSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampWindowingSolution1Workflow setResultSink(Sink<KeyedWindowResult> resultSink) {
-        this.resultSink = resultSink;
-        return this;
-    }
-
+    @Override
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
@@ -71,14 +60,14 @@ public class BootcampWindowingSolution1Workflow {
                 .sinkTo(resultSink);
     }
 
-    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Integer, Integer> {
+    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
         @Override
-        public Integer createAccumulator() {
-            return 0;
+        public Long createAccumulator() {
+            return 0L;
         }
 
         @Override
-        public Integer add(ShoppingCartRecord value, Integer acc) {
+        public Long add(ShoppingCartRecord value, Long acc) {
             for (CartItem item : value.getItems()) {
                 acc += item.getQuantity();
             }
@@ -87,19 +76,19 @@ public class BootcampWindowingSolution1Workflow {
         }
 
         @Override
-        public Integer getResult(Integer acc) {
+        public Long getResult(Long acc) {
             return acc;
         }
 
         @Override
-        public Integer merge(Integer a, Integer b) {
+        public Long merge(Long a, Long b) {
             return a + b;
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
         @Override
-        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<KeyedWindowResult> out) throws Exception {
+        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
             out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
         }
     }

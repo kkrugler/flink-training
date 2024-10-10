@@ -22,6 +22,7 @@ import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.exercises.BootcampWindowing2Workflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -39,30 +40,9 @@ import java.time.Duration;
  * Solution to the second exercise in the eCommerce windowing lab.
  * We add a global per-5 minute window as a second result.
  */
-public class BootcampWindowingSolution2Workflow {
+public class BootcampWindowingSolution2Workflow extends BootcampWindowing2Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> oneMinuteSink;
-    private Sink<WindowAllResult> fiveMinuteSink;
-
-    public BootcampWindowingSolution2Workflow() {
-    }
-
-    public BootcampWindowingSolution2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampWindowingSolution2Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
-        this.oneMinuteSink = oneMinuteSink;
-        return this;
-    }
-
-    public BootcampWindowingSolution2Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
-        this.fiveMinuteSink = fiveMinuteSink;
-        return this;
-    }
-
+    @Override
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(oneMinuteSink, "oneMinuteSink must be set");

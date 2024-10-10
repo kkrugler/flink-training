@@ -43,11 +43,11 @@ import java.time.Duration;
  */
 public class BootcampWindowing3Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> oneMinuteSink;
-    private Sink<WindowAllResult> fiveMinuteSink;
-    private Sink<KeyedWindowResult> longestTransactionsSink;
-    private int transactionWindowInMinutes = 5;
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected Sink<KeyedWindowResult> oneMinuteSink;
+    protected Sink<WindowAllResult> fiveMinuteSink;
+    protected Sink<KeyedWindowResult> longestTransactionsSink;
+    protected int transactionWindowInMinutes = 5;
 
     public BootcampWindowing3Workflow() {
     }

@@ -33,8 +33,8 @@ import org.apache.flink.util.Preconditions;
  */
 public class BootcampWindowing1Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> resultSink;
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected Sink<KeyedWindowResult> resultSink;
 
     public BootcampWindowing1Workflow() {
     }

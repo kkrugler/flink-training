@@ -1,6 +1,7 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.*;
+import com.ververica.flink.training.exercises.BootcampWindowing1WorkflowTest;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
@@ -9,33 +10,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-class BootcampWindowingSolution1WorkflowTest {
+class BootcampWindowingSolution1WorkflowTest extends BootcampWindowing1WorkflowTest {
 
     @Test
-    public void testAggregation() throws Exception {
-        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
-
-        ResultsSink sink = new ResultsSink();
-
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new BootcampWindowingSolution1Workflow()
-                .setCartStream(env.fromData(records).setParallelism(1))
-                .setResultSink(sink)
-                .build();
-
-        env.execute("BootcampWindowingSolution1Job");
-
-        BootcampTestUtils.validateOneMinuteResults(sink.getSink());
-    }
-
-    private static class ResultsSink extends MockSink<KeyedWindowResult> {
-
-        private static final ConcurrentLinkedQueue<KeyedWindowResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<KeyedWindowResult> getSink() {
-            return QUEUE;
-        }
+    public void testBootcampWindowingSolution1Workflow() throws Exception {
+        testBootcampWindowing1Workflow(new BootcampWindowingSolution1Workflow());
     }
 }

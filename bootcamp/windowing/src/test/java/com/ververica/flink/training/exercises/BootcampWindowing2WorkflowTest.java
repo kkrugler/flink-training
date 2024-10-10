@@ -8,10 +8,14 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-class BootcampWindowing2WorkflowTest {
+public class BootcampWindowing2WorkflowTest {
 
     @Test
-    public void testAggregation() throws Exception {
+    public void testBootcampWindowing2Workflow() throws Exception {
+        testBootcampWindowing2Workflow(new BootcampWindowing2Workflow());
+    }
+
+    protected void testBootcampWindowing2Workflow(BootcampWindowing2Workflow workflow) throws Exception {
         List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();
@@ -19,7 +23,7 @@ class BootcampWindowing2WorkflowTest {
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
         final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
-        new BootcampWindowing2Workflow()
+        workflow
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)
                 .setFiveMinuteSink(fiveMinuteSink)

@@ -40,9 +40,9 @@ import java.time.Duration;
  */
 public class BootcampWindowing2Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> oneMinuteSink;
-    private Sink<WindowAllResult> fiveMinuteSink;
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected Sink<KeyedWindowResult> oneMinuteSink;
+    protected Sink<WindowAllResult> fiveMinuteSink;
 
     public BootcampWindowing2Workflow() {
     }

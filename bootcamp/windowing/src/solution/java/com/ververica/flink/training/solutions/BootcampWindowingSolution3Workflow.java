@@ -22,6 +22,7 @@ import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.exercises.BootcampWindowing3Workflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -48,41 +49,9 @@ import java.util.PriorityQueue;
  * duration, calculated as delta from the completed record to the
  * first record. This result is a KeyedWindowResult(transactionId, time, duration)
  */
-public class BootcampWindowingSolution3Workflow {
+public class BootcampWindowingSolution3Workflow extends BootcampWindowing3Workflow {
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> oneMinuteSink;
-    private Sink<WindowAllResult> fiveMinuteSink;
-    private Sink<KeyedWindowResult> longestTransactionsSink;
-    private int transactionWindowInMinutes = 5;
-
-    public BootcampWindowingSolution3Workflow() {
-    }
-
-    public BootcampWindowingSolution3Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampWindowingSolution3Workflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
-        this.oneMinuteSink = oneMinuteSink;
-        return this;
-    }
-
-    public BootcampWindowingSolution3Workflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
-        this.fiveMinuteSink = fiveMinuteSink;
-        return this;
-    }
-
-    public BootcampWindowingSolution3Workflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
-        this.longestTransactionsSink = longestTransactionsSink;
-        return this;
-    }
-
-    public BootcampWindowingSolution3Workflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
-        this.transactionWindowInMinutes = transactionWindowInMinutes;
-        return this;
-    }
+    @Override
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(oneMinuteSink, "oneMinuteSink must be set");
@@ -231,17 +200,26 @@ public class BootcampWindowingSolution3Workflow {
             return acc;
         }
 
+        /**
+         * Merge the two Tuples<start time, end time> by setting the resulting
+         * start time to the min of the two, and the end time to the max of
+         * the two. If the time is -1, ignore it since it hasn't be set yet.
+         *
+         * @param a An accumulator to merge
+         * @param b Another accumulator to merge
+         * @return
+         */
         @Override
         public Tuple2<Long, Long> merge(Tuple2<Long, Long> a, Tuple2<Long, Long> b) {
             if (a.f0 == -1) {
                 a.f0 = b.f0;
-            } else if ((b.f0 != -1) && (a.f0 > b.f0)) {
+            } else if ((b.f0 != -1) && (b.f0 < a.f0)) {
                 a.f0 = b.f0;
             }
 
             if (a.f1 == -1) {
                 a.f1 = b.f1;
-            } else if ((b.f1 != -1) && (a.f1 > b.f1)) {
+            } else if ((b.f1 != -1) && (b.f1 > a.f1)) {
                 a.f1 = b.f1;
             }
 
