@@ -243,6 +243,12 @@ subprojects {
 
     assemble.dependsOn(shadowJar)
 
+    test {
+        systemProperty 'log4j.configurationFile', 'log4j2.properties'
+        useJUnitPlatform()
+    }
+
+
     // add FLINK_TRAINING_LOCAL to the environment variables if run via gradle
     tasks.matching({ task -> task instanceof JavaExec }).all {
         environment "FLINK_TRAINING_LOCAL", "1"

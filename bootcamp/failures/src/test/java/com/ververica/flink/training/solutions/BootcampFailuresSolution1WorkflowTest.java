@@ -12,11 +12,6 @@ import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +30,6 @@ class BootcampFailuresSolution1WorkflowTest {
 
     @Test
     public void testGettingCorrectResultsAfterFailure() throws Exception {
-        // TODO - remove this, once log4j is configured properly.
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration config = ctx.getConfiguration();
-        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(Level.INFO);
-        ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
-
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{
                 "--parallelism", "1",
                 // reduce time between restarts
