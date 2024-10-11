@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.EnvironmentUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
+import com.ververica.flink.training.solutions.BootcampSerializationSolutionWorkflow;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -28,9 +29,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-import java.util.Map;
-
-public class BootcampSerializationSolutionJob {
+public class BootcampSerializationJob {
 
     public static void main(String[] args) throws Exception {
         final boolean discarding = true; // We always want to discard, to avoid performance impact from printing.
@@ -42,14 +41,14 @@ public class BootcampSerializationSolutionJob {
 
         final boolean bounded = numRecords != 0L;
         ShoppingCartSource source = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();
-        new BootcampSerializationSolutionWorkflow()
-                .setCartStream(env.fromSource(source, WatermarkStrategy.noWatermarks(), "Shopping Cart Stream"))
+        new BootcampSerializationWorkflow()
+                .setCartStream(env.fromSource(source,  WatermarkStrategy.noWatermarks(),"Shopping Cart Stream"))
                 .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m count"))
                 .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m count"))
                 .setLongestTransactionsSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m longest"))
                 .build();
 
-        JobExecutionResult jobResult = env.execute("BootcampSerializationSolutionJob");
+        JobExecutionResult jobResult = env.execute("BootcampSerializationJob");
         if (bounded) {
             System.out.format("Job net duration = %d\n", jobResult.getNetRuntime());
         }

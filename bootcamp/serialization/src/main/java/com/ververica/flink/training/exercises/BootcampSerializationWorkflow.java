@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
-import com.ververica.flink.training.exercises.BootcampWindowing3Workflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -43,17 +42,49 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Solution to the third exercise in the eCommerce windowing lab.
- * We add a configurable window with the top 2 longest transactions
- * as a new result. By "longest transaction" we mean a transaction's
- * duration, calculated as delta from the completed record to the
- * first record. This result is a KeyedWindowResult(transactionId, time, duration)
+ * Improve the performance of the workflow (throughput) by making
+ * changes recommended in the lab's README
  */
-public class BootcampWindowingSolution3Workflow extends BootcampWindowing3Workflow {
+public class BootcampSerializationWorkflow {
 
-    private static final Duration MAX_SESSION_GAP = Duration.ofMinutes(1);
+    // Maximum time between transactions where they will still be considered a
+    // single session.
+    protected static final Duration MAX_SESSION_GAP = Duration.ofMinutes(1);
 
-    @Override
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected Sink<KeyedWindowResult> oneMinuteSink;
+    protected Sink<WindowAllResult> fiveMinuteSink;
+    protected Sink<KeyedWindowResult> longestTransactionsSink;
+    protected int transactionWindowInMinutes = 5;
+
+    public BootcampSerializationWorkflow() {
+    }
+
+    public BootcampSerializationWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+        this.cartStream = cartStream;
+        return this;
+    }
+
+    public BootcampSerializationWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
+        this.oneMinuteSink = oneMinuteSink;
+        return this;
+    }
+
+    public BootcampSerializationWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
+        this.fiveMinuteSink = fiveMinuteSink;
+        return this;
+    }
+
+    public BootcampSerializationWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
+        this.longestTransactionsSink = longestTransactionsSink;
+        return this;
+    }
+
+    public BootcampSerializationWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
+        this.transactionWindowInMinutes = transactionWindowInMinutes;
+        return this;
+    }
+
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(oneMinuteSink, "oneMinuteSink must be set");

@@ -1,6 +1,7 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
+import com.ververica.flink.training.common.ListInfoFactory;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import org.apache.flink.api.common.functions.InvalidTypesException;
 import org.apache.flink.api.common.typeinfo.TypeInfo;
@@ -78,19 +79,6 @@ public class TrimmedShoppingCart {
 
     public void setItems(List<CartItem> items) {
         this.items = items;
-    }
-
-    public static class ListInfoFactory<E> extends TypeInfoFactory<List<E>> {
-
-        @Override
-        public TypeInformation<List<E>> createTypeInfo(Type t, Map<String, TypeInformation<?>> genericParameters) {
-            TypeInformation<?> elementType = genericParameters.get("E");
-            if (elementType == null) {
-                throw new InvalidTypesException("Type extraction is not possible on List (element type unknown).");
-            }
-
-            return Types.LIST((TypeInformation<E>) elementType);
-        }
     }
 
 }

@@ -44,8 +44,13 @@ public class EnvironmentUtils {
     private static final String NO_WEBUI_PORT = "-1";
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
+            final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
+        return createEnvironment(parameters, BIND_PORT.defaultValue(), parallelism);
+    }
+
+    public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
-        return createEnvironment(parameters, BIND_PORT.defaultValue());
+        return createEnvironment(parameters, BIND_PORT.defaultValue(), parameters.getInt("parallelism"));
     }
 
             /**
@@ -66,11 +71,11 @@ public class EnvironmentUtils {
                                 ? BIND_PORT.defaultValue()
                                 : NO_WEBUI_PORT);
 
-        return createEnvironment(parameters, localMode);
+        return createEnvironment(parameters, localMode, parameters.getInt("parallelism"));
     }
 
     private static StreamExecutionEnvironment createEnvironment(
-            final ParameterTool parameters, String uiPort) throws IOException, URISyntaxException {
+            final ParameterTool parameters, String uiPort, int parallelism) throws IOException, URISyntaxException {
         final StreamExecutionEnvironment env;
         if (uiPort.equals(NO_WEBUI_PORT)) {
             // cluster mode or disabled web UI
@@ -121,7 +126,6 @@ public class EnvironmentUtils {
             env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
         }
 
-        final int parallelism = parameters.getInt("parallelism", -1);
         if (parallelism > 0) {
             env.setParallelism(parallelism);
         }

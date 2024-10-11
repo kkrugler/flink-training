@@ -36,11 +36,13 @@ class BootcampFailuresSolution1WorkflowTest {
     @Test
     public void testGettingCorrectResultsAfterFailure() throws Exception {
         // TODO - remove this, once log4j is configured properly.
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration config = ctx.getConfiguration();
-        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(Level.INFO);
-        ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
+//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+//        Configuration config = ctx.getConfiguration();
+//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+//        loggerConfig.setLevel(Level.INFO);
+//        ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
+
+        LOGGER.warn("Verifying logging is enabled");
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{
                 "--parallelism", "1",

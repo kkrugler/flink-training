@@ -1,5 +1,7 @@
 package com.ververica.flink.training.common;
 
+import org.apache.flink.api.common.typeinfo.TypeInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,7 +24,6 @@ public class ShoppingCartRecord {
     private double shippingCost;
     private String couponCode;
     private List<CartItem> items;
-
 
     public ShoppingCartRecord() {
         setItems(new ArrayList<>());

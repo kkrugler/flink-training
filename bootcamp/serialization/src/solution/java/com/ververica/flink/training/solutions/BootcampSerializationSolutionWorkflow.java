@@ -22,6 +22,7 @@ import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.exercises.BootcampSerializationWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.OpenContext;
@@ -43,59 +44,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Solution to the exercises in the eCommerce serialization lab.
+ * Solution to the exercises in the eCommerce serialization lab, in increasing
+ * order of complexity...
+ *
  * 1. We strip down the incoming records and convert to a TrimmedShoppingCartRecord
  * 2. TrimmedShoppingCartRecord is serializable as a POJO
  * 3. Use KeyedProcessFunction to find duration, versus session window
  * 4. Use simple structure for top two aggregation, versus priority queue
  *
  */
-public class BootcampSerializationSolutionWorkflow {
+public class BootcampSerializationSolutionWorkflow extends BootcampSerializationWorkflow {
 
-    // Maximum time between transactions where they will still be considered a
-    // single session.
-    private static final long MAX_SESSION_GAP = Duration.ofMinutes(5).toMillis();
+    private static final long MAX_SESSION_GAP_MS = MAX_SESSION_GAP.toMillis();
 
-    private DataStream<ShoppingCartRecord> cartStream;
-    private Sink<KeyedWindowResult> oneMinuteSink;
-    private Sink<WindowAllResult> fiveMinuteSink;
-    private Sink<KeyedWindowResult> longestTransactionsSink;
-    private int transactionWindowInMinutes = 5;
-
-    public BootcampSerializationSolutionWorkflow() {
-    }
-
-    public BootcampSerializationSolutionWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampSerializationSolutionWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
-        this.oneMinuteSink = oneMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationSolutionWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
-        this.fiveMinuteSink = fiveMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationSolutionWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
-        this.longestTransactionsSink = longestTransactionsSink;
-        return this;
-    }
-
-    public BootcampSerializationSolutionWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
-        this.transactionWindowInMinutes = transactionWindowInMinutes;
-        return this;
-    }
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(oneMinuteSink, "oneMinuteSink must be set");
         Preconditions.checkNotNull(fiveMinuteSink, "fiveMinuteSink must be set");
         Preconditions.checkNotNull(longestTransactionsSink, "longestTransactionsSink must be set");
 
-        // Assign timestamps & watermarks, and
+        // Assign timestamps & watermarks
         DataStream<TrimmedShoppingCart> watermarkedStream = cartStream
                 // Convert to a smaller/better version of ShoppingCartRecord.
                 .map(r -> new TrimmedShoppingCart(r))
@@ -233,23 +201,23 @@ public class BootcampSerializationSolutionWorkflow {
             if (in.isTransactionCompleted()) {
                 if (start != null) {
                     out.collect(Tuple2.of(in.getTransactionId(), transactionTime - start));
-                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP);
+                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP_MS);
                 } else {
                     latestTime.update(transactionTime);
                     endTime.update(transactionTime);
-                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP);
+                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
                 }
             } else if (start == null) {
                 startTime.update(transactionTime);
                 latestTime.update(transactionTime);
-                ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP);
+                ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
             } else {
                 if (transactionTime < start) {
                     startTime.update(transactionTime);
                 }
                 if (transactionTime > latestTime.value()) {
-                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP);
-                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP);
+                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP_MS);
+                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
                 }
             }
         }

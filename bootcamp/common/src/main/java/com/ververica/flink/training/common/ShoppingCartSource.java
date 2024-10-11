@@ -1,8 +1,10 @@
 package com.ververica.flink.training.common;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ShoppingCartSource extends FakeParallelSource<ShoppingCartRecord> {
+
 
     // Create a bounded source with a short delay between each record
     public ShoppingCartSource(long numRecords) {

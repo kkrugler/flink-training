@@ -1,5 +1,7 @@
 package com.ververica.flink.training.common;
 
+import org.apache.flink.types.PojoTestUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,6 +27,13 @@ class ShoppingCartRecordTest {
         assertEquals(r1, r2);
     }
 
+    // This test is disabled, since the ShoppingCartRecord has a list that's not
+    // serializable by Flink without some help (via the @TypeInfo annotation).
+    @Test
+    @Disabled
+    void testSerializable() {
+        PojoTestUtils.assertSerializedAsPojoWithoutKryo(ShoppingCartRecord.class);
+    }
 
 
 }

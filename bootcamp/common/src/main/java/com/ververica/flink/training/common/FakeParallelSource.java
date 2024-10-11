@@ -8,6 +8,7 @@ import org.apache.flink.util.Preconditions;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A simple wrapper that can be used, with an appropriately serializable record provider, to add as a source via the new
