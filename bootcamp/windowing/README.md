@@ -22,11 +22,14 @@ class to:
 
 - Generate a `KeyedWindowResult` record, where the key is the country, the time is
   the start of the window, and the count is the number of items.
-- Start by filtering out any `ShoppingCartRecord` that is not a completed transaction, via a
+- Start by adding watermarks to the `cartStream`, using the `.assignTimestampsAndWatermarks()` method with
+  the `WatermarkStrategy` returned by the appropriate `WatermarkStrategy.<ShoppingCartRecord>` static helper
+  method. Hint - you want bounded out-of-orderness.
+- Then filter out any `ShoppingCartRecord` that is not a completed transaction, via a
    Flink FilterFunction and the `ShoppingCartRecord.isTransactionCompleted()` method.
    Note you can use Java lambdas to easily implement simple filters like this.
  - Key the resulting stream by the record's country, then window the stream into
-   tumbling (not sliding) windows of 1 minute.
+   tumbling (**not** sliding) windows of 1 minute.
 - Call `DataStream.aggregate()` with a Flink `AggregationFunction` and a
   `ProcessWindowFunction` to calculate the total number of cart items for
   all the records found in each 1-minute/country window.

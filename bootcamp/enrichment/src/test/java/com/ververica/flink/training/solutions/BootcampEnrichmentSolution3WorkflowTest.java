@@ -3,7 +3,6 @@ package com.ververica.flink.training.solutions;
 import com.ververica.flink.training.common.*;
 import com.ververica.flink.training.provided.CurrencyRateAPI;
 import com.ververica.flink.training.provided.KeyedWindowDouble;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
@@ -24,8 +23,7 @@ class BootcampEnrichmentSolution3WorkflowTest {
 
         ResultsSink sink = new ResultsSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
         new BootcampEnrichmentSolution1Workflow()
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setResultSink(sink)
@@ -33,7 +31,7 @@ class BootcampEnrichmentSolution3WorkflowTest {
                 .setStartTime(START_TIME)
                 .build();
 
-        env.execute("BootcampEnrichmentSolution3Job");
+        env.execute("BootcampEnrichmentSolution3Workflow");
 
         // Validate we get the expected results.
         assertThat(sink.getSink()).containsExactlyInAnyOrder(

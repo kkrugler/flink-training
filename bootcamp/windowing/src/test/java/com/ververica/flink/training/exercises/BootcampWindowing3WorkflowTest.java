@@ -1,7 +1,6 @@
 package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.*;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +21,7 @@ public class BootcampWindowing3WorkflowTest {
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
         LongestTransactionSink longestTransactionSink = new LongestTransactionSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
         workflow
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)

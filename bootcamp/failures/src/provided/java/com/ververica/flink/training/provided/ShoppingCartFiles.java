@@ -1,5 +1,6 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.DoNotChangeThis;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.connector.file.sink.FileSink;
@@ -12,6 +13,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 
+@DoNotChangeThis
 public class ShoppingCartFiles {
 
     public static FileSource<String> makeCartFilesSource(boolean unbounded) throws URISyntaxException {
@@ -24,7 +26,7 @@ public class ShoppingCartFiles {
                                 srcPath.getParent());
 
         if (unbounded) {
-            builder.monitorContinuously(Duration.ofSeconds(1));
+            builder.monitorContinuously(Duration.ofSeconds(10));
         } else {
             builder.processStaticFileSet();
         }

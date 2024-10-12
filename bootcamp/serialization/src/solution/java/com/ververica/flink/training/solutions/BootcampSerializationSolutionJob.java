@@ -18,17 +18,14 @@
 
 package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.EnvironmentUtils;
+import com.ververica.flink.training.common.FlinkClusterUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
-
-import java.util.Map;
 
 public class BootcampSerializationSolutionJob {
 
@@ -38,7 +35,7 @@ public class BootcampSerializationSolutionJob {
         final long numRecords = 10_000_000; // Set to 0 for unbounded source
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters, parallelism);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredLocalEnvironment(parameters, parallelism);
 
         final boolean bounded = numRecords != 0L;
         ShoppingCartSource source = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();

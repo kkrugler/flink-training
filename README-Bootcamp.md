@@ -126,13 +126,15 @@ on your system.
 If you have an IDE with this `flink-training-bootcamp` project imported, you can run 
 (or debug) a streaming job by:
 
-- opening the `com.ververica.flink.training.examples.BootcampExampleJob` class
+- opening the [BootcampExampleJob](bootcamp/example/src/main/java/com/ververica/flink/training/examples/BootcampExampleJob.java)
 - running (or debugging) the `main()` method of this class
 
 ### The Flink WebUI
 
 When you run a Flink program from the `*Job` class's `main()` method, you can then
 point your browser at http://localhost:8081 to view the Flink Web UI.
+
+For more details, please see the [example README](bootcamp/example/README.md) file.
 
 ![Flink WebUI](images/flink-webui-top.png)
 

@@ -18,6 +18,10 @@ public abstract class MockSink<T> implements Sink<T> {
     // Every extending class must implement this one method.
     public abstract ConcurrentLinkedQueue<T> getSink();
 
+    public MockSink() {
+        reset();
+    }
+
     public MockSink<T> reset() {
         getSink().clear();
         return this;

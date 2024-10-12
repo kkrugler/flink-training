@@ -1,5 +1,6 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.DoNotChangeThis;
 import com.ververica.flink.training.common.ShoppingCartGenerator;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import org.apache.flink.util.Preconditions;
@@ -13,6 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * A utility class that we use to create a large set of files containing
+ * shopping cart records, for our failures lab.
+ */
+@DoNotChangeThis
 public class ShoppingCartFilesGenerator {
 
     private static final long START_TIME = 0;

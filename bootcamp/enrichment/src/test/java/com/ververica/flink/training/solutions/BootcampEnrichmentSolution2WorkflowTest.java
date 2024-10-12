@@ -2,7 +2,6 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.*;
 import com.ververica.flink.training.provided.KeyedWindowDouble;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +29,7 @@ class BootcampEnrichmentSolution2WorkflowTest {
 
         ResultsSink sink = new ResultsSink();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
         new BootcampEnrichmentSolution2Workflow()
                 .setCartStream(env.fromData(carts).setParallelism(1))
                 .setProductInfoStream(env.fromData(products).setParallelism(1))

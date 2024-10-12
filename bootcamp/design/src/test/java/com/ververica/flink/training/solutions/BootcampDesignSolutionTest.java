@@ -16,48 +16,56 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.EnvironmentUtils;
+import com.ververica.flink.training.common.FlinkClusterUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
 import com.ververica.flink.training.provided.BootcampDesignDetectionWorkflow;
-import com.ververica.flink.training.solutions.BootcampDesignAnalyticsSolutionWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
 
 /*
- * Job for the workflow design exercise. We need to use a Paimon table as the
- * bridge between the two workflows.
- *
+ * Solution to the workflow design exercise. We
  */
-public class BootcampDesignJob {
+public class BootcampDesignSolutionTest {
 
-    public static void main(String[] args) throws Exception {
-        ParameterTool parameters = ParameterTool.fromArgs(args);
-        final StreamExecutionEnvironment env1 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
-        final StreamExecutionEnvironment env2 = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
+    @Test
+    public void testBridgingWorkflows() throws Exception {
+        final StreamExecutionEnvironment env1 = FlinkClusterUtils.createConfiguredTestEnvironment(2);
+        final StreamExecutionEnvironment env2 = FlinkClusterUtils.createConfiguredTestEnvironment(2);
 
-        final boolean discarding = parameters.has("discard");
-
-        new BootcampDesignAnalyticsWorkflow()
+        // TODO use pre-defined set of records to test
+        new BootcampDesignAnalyticsSolutionWorkflow()
                 .setCartStream(env1.fromSource(new ShoppingCartSource(),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
-                .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
-                // TODO - create Paimon sink, use it in the workflow for abandoned items
+                // Ignore the results for this test
+                .setResultSink(new DiscardingSink<>())
+                .setAbandonedSink(/* TODO - create Paimon sink null */ null)
                 .build();
 
         new BootcampDesignDetectionWorkflow()
-                .setAbandonedStream(/* TODO - create Paimon source from same table as above */ null)
-                .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
+                .setAbandonedStream(/* TODO - create Paimon source */ null)
+                // TODO - save results, validate
+                .setResultSink(new DiscardingSink<>())
                 .build();
 
         // Run async, so we can have both jobs running at the same time.
-        env1.executeAsync("BootcampDesignAnalyticsSolutionJob");
+        JobClient client1 = env1.executeAsync("BootcampDesignAnalyticsWorkflow");
+        JobClient client2 = env2.executeAsync("BootcampDesignDetectionWorkflow");
 
-        env2.executeAsync("BootcampDesignDetectionSolutionJob");
+        while (!client1.getJobStatus().isDone() && !client2.getJobStatus().isDone()) {
+            Thread.sleep(100);
+        }
+
+        Assert.assertFalse(client1.getJobStatus().isCompletedExceptionally());
+        Assert.assertFalse(client2.getJobStatus().isCompletedExceptionally());
+
+        // TODO - validate results.
+
     }
 }

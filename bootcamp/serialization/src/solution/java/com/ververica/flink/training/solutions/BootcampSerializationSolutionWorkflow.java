@@ -34,11 +34,15 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.operators.TimestampedCollector;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +58,7 @@ import java.util.List;
  *
  */
 public class BootcampSerializationSolutionWorkflow extends BootcampSerializationWorkflow {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BootcampSerializationSolutionWorkflow.class);
 
     private static final long MAX_SESSION_GAP_MS = MAX_SESSION_GAP.toMillis();
 
@@ -183,55 +188,86 @@ public class BootcampSerializationSolutionWorkflow extends BootcampSerialization
 
     private static class FindTransactionBoundsFunction extends KeyedProcessFunction<String, TrimmedShoppingCart, Tuple2<String, Long>> {
 
-        private ValueState<Long> startTime;
-        private ValueState<Long> latestTime;
+        // Earliest time of any uncompleted transaction
+        private ValueState<Long> earliestTime;
+        // Set if we have a timer running
+        private ValueState<Long> timerTime;
+        // Transaction time for the one completed transaction
         private ValueState<Long> endTime;
 
         @Override
         public void open(OpenContext openContext) throws Exception {
-            startTime = getRuntimeContext().getState(new ValueStateDescriptor<>("startTime", Long.class));
-            latestTime = getRuntimeContext().getState(new ValueStateDescriptor<>("startTime", Long.class));
+            earliestTime = getRuntimeContext().getState(new ValueStateDescriptor<>("earliestTime", Long.class));
+            timerTime = getRuntimeContext().getState(new ValueStateDescriptor<>("timerTime", Long.class));
             endTime = getRuntimeContext().getState(new ValueStateDescriptor<>("endTime", Long.class));
         }
 
         @Override
         public void processElement(TrimmedShoppingCart in, Context ctx, Collector<Tuple2<String, Long>> out) throws Exception {
-            Long start = startTime.value();
+            Long earliest = earliestTime.value();
+            Long timer = timerTime.value();
+            Long end = endTime.value();
+
             long transactionTime = in.getTransactionTime();
+
+            // We assume properly ordered data, in that the completed transaction's time will always be >= any
+            // uncompleted transactions, thus we don't need to do any special checks here.
             if (in.isTransactionCompleted()) {
-                if (start != null) {
-                    out.collect(Tuple2.of(in.getTransactionId(), transactionTime - start));
-                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP_MS);
-                } else {
-                    latestTime.update(transactionTime);
-                    endTime.update(transactionTime);
-                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
-                }
-            } else if (start == null) {
-                startTime.update(transactionTime);
-                latestTime.update(transactionTime);
-                ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
+                removeTimer(ctx);
+                endTime.update(transactionTime);
+                timerTime.update(transactionTime);
+                startTimer(ctx);
             } else {
-                if (transactionTime < start) {
-                    startTime.update(transactionTime);
+                if ((earliest == null) || (earliest > transactionTime)) {
+                    earliestTime.update(transactionTime);
                 }
-                if (transactionTime > latestTime.value()) {
-                    ctx.timerService().deleteEventTimeTimer(latestTime.value() + MAX_SESSION_GAP_MS);
-                    ctx.timerService().registerEventTimeTimer(transactionTime + MAX_SESSION_GAP_MS);
+
+                // See if we need to update the timerTime. If we have an end time
+                // then we are good, otherwise if this is the first non-transaction
+                // record, or it's later than our current timer, we want to stop the
+                // potentially running timer, and start with the later time.
+                if ((end == null) && ((earliest == null) || (transactionTime > timer))) {
+                    removeTimer(ctx);
+                    timerTime.update(transactionTime);
+                    startTimer(ctx);
                 }
+            }
+        }
+
+        private void startTimer(Context ctx) throws IOException {
+            ctx.timerService().registerEventTimeTimer(timerTime.value() + MAX_SESSION_GAP_MS);
+        }
+
+        private void removeTimer(Context ctx) throws IOException {
+            if (timerTime.value() != null) {
+                ctx.timerService().deleteEventTimeTimer(timerTime.value() + MAX_SESSION_GAP_MS);
+                timerTime.clear();
             }
         }
 
         @Override
         public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<String, Long>> out) throws Exception {
-            // Timer fired. If we have an end transaction, assume it's also the start (single cart update), otherwise
-            // assume it's an abandoned cart (do nothing).
-            if (endTime.value() != null) {
-                out.collect(Tuple2.of(ctx.getCurrentKey(), 0L));
+            // Timer fired. If we have an end transaction, then we have a duration. If there's no start, assume it's
+            // a single action. If we don't have an end transaction, assume it's an abandoned cart (do nothing).
+            Long start = earliestTime.value();
+            Long end = endTime.value();
+            if (end != null) {
+                if (start == null) {
+                    start = end;
+                }
+
+                // If we just call out.collect(), the record's event time is set to the timer's timestamp. But
+                // that's not what we want, as this timer is for when we "close" a session, so it's some time
+                // after the end of the session. We need to do the funky cast of the collector to a TimestampedCollector,
+                // which lets us set the timestamp to use when we call collect.
+                TimestampedCollector<Tuple2<String, Long>> outWithTime = (TimestampedCollector)out;
+                outWithTime.setAbsoluteTimestamp(end);
+                outWithTime.collect(Tuple2.of(ctx.getCurrentKey(), end - start));
             }
 
-            startTime.clear();
-            latestTime.clear();
+            // Clear all our state
+            earliestTime.clear();
+            timerTime.clear();
             endTime.clear();
         }
     }

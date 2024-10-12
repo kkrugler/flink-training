@@ -129,6 +129,7 @@ subprojects {
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
         jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+        systemProperty 'log4j.configurationFile', 'log4j2.properties'
     }
 
     if (project.parent == project(":bootcamp")) {
@@ -136,13 +137,9 @@ subprojects {
             group = 'verification'
             filter { excludeTestsMatching("*.exercises.*") }
         }
-        tasks.register('testExercises', Test) {
-            group = 'verification'
-            filter { excludeTestsMatching("*.exercises.*") }
+        tasks.named('test', Test) {
+            filter { includeTestsMatching("*.exercises.*") }
         }
-//        tasks.named('test', Test) {
-//            filter { includeTestsMatching("*.exercises.*") }
-//        }
     }
 
     sourceCompatibility = javaVersion

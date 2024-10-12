@@ -1,8 +1,6 @@
 package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.*;
-import com.ververica.flink.training.solutions.BootcampSerializationSolutionWorkflow;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
@@ -20,16 +18,12 @@ public class BootcampSerializationWorkflowTest {
         List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
 
         OneMinuteSink oneMinuteSink = new OneMinuteSink();
-        oneMinuteSink.reset();
-
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
-        fiveMinuteSink.reset();
 
         LongestTransactionSink longestTransactionSink = new LongestTransactionSink();
         longestTransactionSink.reset();
 
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
         workflow
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)

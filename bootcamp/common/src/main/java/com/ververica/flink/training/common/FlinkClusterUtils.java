@@ -37,53 +37,55 @@ import static org.apache.flink.configuration.RestOptions.BIND_PORT;
 import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
 import static org.apache.flink.configuration.TaskManagerOptions.*;
 
-/** Common functionality to set up execution environments for the eCommerce training. */
-public class EnvironmentUtils {
-    public static final Logger LOG = LoggerFactory.getLogger(EnvironmentUtils.class);
+/** Common functionality to set up execution environments for the bootcamp training. */
+public class FlinkClusterUtils {
+    public static final Logger LOG = LoggerFactory.getLogger(FlinkClusterUtils.class);
 
-    private static final String NO_WEBUI_PORT = "-1";
+    private static final int NO_WEBUI_PORT = -1;
+
+    public static StreamExecutionEnvironment createConfiguredTestEnvironment(int parallelism) throws IOException, URISyntaxException {
+        return createConfiguredTestEnvironment(ParameterTool.fromArgs(new String[]{}), parallelism);
+    }
+
+    public static StreamExecutionEnvironment createConfiguredTestEnvironment(
+            final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
+        return createEnvironment(parameters, parallelism, true, NO_WEBUI_PORT);
+    }
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
-        return createEnvironment(parameters, BIND_PORT.defaultValue(), parallelism);
+        return createEnvironment(parameters, parallelism, true, Integer.parseInt(BIND_PORT.defaultValue()));
     }
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
-        return createEnvironment(parameters, BIND_PORT.defaultValue(), parameters.getInt("parallelism"));
+        int parallelism = parameters.getInt("parallelism", -1);
+        return createEnvironment(parameters, parallelism, true, Integer.parseInt(BIND_PORT.defaultValue()));
     }
 
-            /**
-             * Creates a streaming environment with a few pre-configured settings based on command-line
-             * parameters.
-             *
-             * @throws IOException if the local checkpoint directory for the file system state backend*
-             *     cannot be created
-             * @throws URISyntaxException if <code>fsStatePath</code> is not a valid URI
-             */
+    /**
+     * Creates a streaming environment with a few pre-configured settings based on command-line
+     * parameters.
+     *
+     * @throws IOException if the local checkpoint directory for the file system state backend*
+     *     cannot be created
+     * @throws URISyntaxException if <code>fsStatePath</code> is not a valid URI
+     */
     public static StreamExecutionEnvironment createConfiguredEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
-        // TODO - use isLocal(parameters)
-        final String localMode =
-                parameters.get(
-                        "local",
-                        System.getenv("FLINK_TRAINING_LOCAL") != null
-                                ? BIND_PORT.defaultValue()
-                                : NO_WEBUI_PORT);
-
-        return createEnvironment(parameters, localMode, parameters.getInt("parallelism"));
+        final boolean local = isLocal(parameters);
+        final int webUIPort = local ? Integer.parseInt(BIND_PORT.defaultValue()) : NO_WEBUI_PORT;
+        return createEnvironment(parameters, parameters.getInt("parallelism"), local, webUIPort);
     }
 
     private static StreamExecutionEnvironment createEnvironment(
-            final ParameterTool parameters, String uiPort, int parallelism) throws IOException, URISyntaxException {
+            final ParameterTool parameters, int parallelism, boolean local, int webUIPort) throws IOException, URISyntaxException {
         final StreamExecutionEnvironment env;
-        if (uiPort.equals(NO_WEBUI_PORT)) {
+        if (!local) {
             // cluster mode or disabled web UI
             env = StreamExecutionEnvironment.getExecutionEnvironment();
         } else {
-            // configure Web UI
             Configuration flinkConfig = new Configuration();
-            flinkConfig.set(BIND_PORT, uiPort);
             flinkConfig.set(CPU_CORES, 4.0);
             flinkConfig.set(TASK_HEAP_MEMORY, MemorySize.ofMebiBytes(1024));
             flinkConfig.set(TASK_OFF_HEAP_MEMORY, MemorySize.ofMebiBytes(256));
@@ -123,7 +125,13 @@ public class EnvironmentUtils {
             Duration restartDelay = Duration.ofSeconds(parameters.getInt("restartdelay", 15));
             flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, restartDelay);
 
-            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
+            if (webUIPort != NO_WEBUI_PORT) {
+                // configure Web UI
+                flinkConfig.set(BIND_PORT, Integer.toString(webUIPort));
+                env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
+            } else {
+                env = StreamExecutionEnvironment.createLocalEnvironment(flinkConfig);
+            }
         }
 
         if (parallelism > 0) {
@@ -134,13 +142,13 @@ public class EnvironmentUtils {
         return env;
     }
 
-    /** Checks whether the environment should be set up in local mode (with Web UI,...). */
+    /** Checks whether the environment should be set up in local mode. */
     public static boolean isLocal(ParameterTool parameters) {
         final String localMode = parameters.get("local");
         if (localMode == null) {
             return System.getenv("FLINK_TRAINING_LOCAL") != null;
         } else {
-            return !localMode.equals(NO_WEBUI_PORT);
+            return !localMode.equals(Integer.toString(NO_WEBUI_PORT));
         }
     }
 }

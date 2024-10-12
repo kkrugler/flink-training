@@ -19,14 +19,4 @@ apply plugin: 'application'
 
 dependencies {
     implementation project(path: ':bootcamp:common')
-
-    // We're using the FileSource and FileSink
-    implementation "org.apache.flink:flink-connector-files:${flinkVersion}"
-
-    testImplementation testFixtures(project(path: ':bootcamp:common'))
-}
-
-sourceSets {
-    main.java.srcDirs += 'src/provided/java'
-    main.java.srcDirs += 'src/solution/java'
 }

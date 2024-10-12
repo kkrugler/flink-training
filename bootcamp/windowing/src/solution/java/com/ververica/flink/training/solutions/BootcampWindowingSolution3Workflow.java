@@ -293,7 +293,9 @@ public class BootcampWindowingSolution3Workflow extends BootcampWindowing3Workfl
         @Override
         public void process(Context ctx, Iterable<List<KeyedWindowResult>> elements,
                             Collector<KeyedWindowResult> out) throws Exception {
+            long windowStart = ctx.window().getStart();
             for (KeyedWindowResult e : elements.iterator().next()) {
+                e.setTime(windowStart);
                 out.collect(e);
             }
         }

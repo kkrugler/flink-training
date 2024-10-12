@@ -22,7 +22,7 @@ public class BootcampWindowing2WorkflowTest {
         FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
 
         ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredEnvironment(parameters);
         workflow
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)

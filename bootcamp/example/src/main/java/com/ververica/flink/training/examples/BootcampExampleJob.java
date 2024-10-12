@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.examples;
 
-import com.ververica.flink.training.common.EnvironmentUtils;
+import com.ververica.flink.training.common.FlinkClusterUtils;
 import com.ververica.flink.training.common.ShoppingCartSource;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -26,26 +26,28 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
 
-public class BootcampEnrichmentSolution3Job {
+/**
+ * Job that runs our example workflow, with some CLI parameter support
+ *  --discard will discard records, instead of printing them to stdOut
+ *  --numrecords <count> will stop the workflow after processing <count> records
+ *  --parallelism <n> will set the cluster's slots to <n>, and thus the job parallelism
+ */
+public class BootcampExampleJob {
 
     public static void main(String[] args) throws Exception {
         ParameterTool parameters = ParameterTool.fromArgs(args);
-        final StreamExecutionEnvironment env = EnvironmentUtils.createConfiguredLocalEnvironment(parameters);
+        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredLocalEnvironment(parameters);
 
         final boolean discarding = parameters.has("discard");
-        final long numRecords = parameters.getLong("records", Long.MAX_VALUE);
+        final long numRecords = parameters.getLong("numrecords", 1_000_000);
 
-        new BootcampEnrichmentSolution3Workflow()
-                .setCartStream(env.fromSource(new ShoppingCartSource(numRecords, 0L),
+        new BootcampExampleWorkflow()
+                .setCartStream(env.fromSource(new ShoppingCartSource(numRecords),
                                 WatermarkStrategy.noWatermarks(),
                                 "Shopping Cart Stream"))
                 .setResultSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .build();
 
-        long startTime = System.currentTimeMillis();
-        env.execute("BootcampEnrichmentSolution3Job");
-        long endTime = System.currentTimeMillis();
-        System.out.println("Execution time in MS: " + (endTime - startTime));
+        env.execute("BootcampExampleJob");
     }
-
 }

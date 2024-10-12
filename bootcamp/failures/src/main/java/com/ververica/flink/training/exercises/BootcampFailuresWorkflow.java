@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.CartItem;
+import com.ververica.flink.training.common.DoNotChangeThis;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import org.apache.flink.api.common.eventtime.*;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -33,27 +34,28 @@ import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Solution to the first exercise in the eCommerce windowing lab.
+ * Workflow we run to generate results, which will fail once.
+ *
  * We calculate a per-country/per-minute count of items in completed
  * shopping carts.
  */
-public class BootcampFailuresSolution1Workflow {
+@DoNotChangeThis
+public class BootcampFailuresWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<String> resultSink;
 
-    public BootcampFailuresSolution1Workflow() {
+    public BootcampFailuresWorkflow() {
     }
 
-    public BootcampFailuresSolution1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampFailuresWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public BootcampFailuresSolution1Workflow setResultSink(Sink<String> resultSink) {
+    public BootcampFailuresWorkflow setResultSink(Sink<String> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -108,6 +110,11 @@ public class BootcampFailuresSolution1Workflow {
         }
     }
 
+    /**
+     * This is just like the ProcessWindowFunction we created for the windowing lab, except that one time
+     * when we get a special result with 0 items, we'll throw an exception that causes the workflow to
+     * fail.
+     */
     private static class FailingSetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
 
         private static final AtomicBoolean FAILURE_TRIGGERED = new AtomicBoolean(false);
@@ -119,6 +126,8 @@ public class BootcampFailuresSolution1Workflow {
         @Override
         public void process(String key, Context ctx, Iterable<Integer> elements, Collector<KeyedWindowResult> out) throws Exception {
             int itemCount = elements.iterator().next();
+            // If it's our special result (item count of 0) and we haven't previously
+            // thrown an exception, do that now.
             if ((itemCount == 0) && !FAILURE_TRIGGERED.getAndSet(true)) {
                 throw new IndexOutOfBoundsException("Some error in the workflow");
             }

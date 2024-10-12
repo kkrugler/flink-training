@@ -1,6 +1,6 @@
 package com.ververica.flink.training.provided;
 
-import com.sun.jna.Memory;
+import com.ververica.flink.training.common.DoNotChangeThis;
 import org.apache.flink.api.connector.sink2.*;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  - Restoring the state of all transactions when needed.
  - Committing data during flush operations.
  */
+@DoNotChangeThis
 public class TransactionalMemorySink implements StatefulSink<String, List<String>> {
 
     // This is a static class member, because it represents the committed transactional
@@ -30,8 +31,14 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
 
     private boolean exactlyOnce;
 
+    public TransactionalMemorySink() {
+        this(false);
+    }
+
     public TransactionalMemorySink(boolean exactlyOnce) {
         this.exactlyOnce = exactlyOnce;
+
+        reset();
     }
 
     @Override
@@ -136,6 +143,11 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
         return COMMITTED;
     }
 
+    /**
+     * Clear out any persisted state, in case we run multiple tests using this sink.
+     *
+     * @return
+     */
     public TransactionalMemorySink reset() {
         COMMITTED.clear();
         TRANSACTIONS.clear();
