@@ -26,7 +26,12 @@ class BootcampFailuresSolution1WorkflowTest extends BootcampFailures1WorkflowTes
 
     @Test
     public void testGettingCorrectResultsAfterFailure() throws Exception {
-        testGettingCorrectResultsAfterFailure(new BootcampFailuresSolutionConfig());
+        testBootcampFailuresWorkflow(new BootcampFailuresSolutionConfig(), true);
+    }
+
+    @Test
+    public void testLatency() throws Exception {
+        testBootcampFailuresWorkflow(new BootcampFailuresSolutionConfig(), false);
     }
 
 }

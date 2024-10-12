@@ -2,6 +2,7 @@ package com.ververica.flink.training.provided;
 
 import com.ververica.flink.training.common.DoNotChangeThis;
 import org.apache.flink.api.connector.sink2.*;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import java.io.*;
@@ -22,7 +23,7 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
 
     // This is a static class member, because it represents the committed transactional
     // data (e.g. a DB's committed set of records).
-    private static final ConcurrentLinkedQueue<String> COMMITTED = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<Tuple2<Long, String>> COMMITTED = new ConcurrentLinkedQueue<>();
 
     // This is a static class member, because it represents the sink persistent global state
     // (e.g. a DB's set of transactions), so we don't want it cleared when the workflow is
@@ -84,7 +85,7 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
             if (exactlyOnce) {
                 currentTransaction.add(element);
             } else {
-                COMMITTED.add(element);
+                COMMITTED.add(Tuple2.of(System.currentTimeMillis(), element));
             }
         }
 
@@ -100,7 +101,7 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
             if (endOfInput || !currentTransaction.isEmpty()) {
                 if (exactlyOnce) {
                     TRANSACTIONS.put(transactionId++, new ArrayList<>(currentTransaction));
-                    COMMITTED.addAll(currentTransaction);
+                    currentTransaction.forEach(r -> COMMITTED.add(Tuple2.of(System.currentTimeMillis(), r)));
                 }
 
                 currentTransaction.clear();
@@ -139,7 +140,7 @@ public class TransactionalMemorySink implements StatefulSink<String, List<String
         }
     }
 
-    public ConcurrentLinkedQueue<String> getCommitted() {
+    public ConcurrentLinkedQueue<Tuple2<Long, String>> getCommitted() {
         return COMMITTED;
     }
 

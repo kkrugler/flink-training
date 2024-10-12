@@ -17,7 +17,7 @@ import java.time.Duration;
 public class ShoppingCartFiles {
 
     public static FileSource<String> makeCartFilesSource(boolean unbounded) throws URISyntaxException {
-        URL srcPathAsURL = ShoppingCartFiles.class.getResource("/cart-files/file-001.txt");
+        URL srcPathAsURL = ShoppingCartFiles.class.getResource("/cart-files/file-000.txt");
         Path srcPath = new Path(srcPathAsURL.toURI());
 
         // Create a stream of ShoppingCartRecords from the directory we just filled with files.

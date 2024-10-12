@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.provided;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.DoNotChangeThis;
@@ -46,6 +46,7 @@ public class BootcampFailuresWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<String> resultSink;
+    private boolean triggerFailure = true;
 
     public BootcampFailuresWorkflow() {
     }
@@ -60,6 +61,11 @@ public class BootcampFailuresWorkflow {
         return this;
     }
 
+    public BootcampFailuresWorkflow setTriggerFailure(boolean triggerFailure) {
+        this.triggerFailure = triggerFailure;
+        return this;
+    }
+
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
@@ -71,27 +77,23 @@ public class BootcampFailuresWorkflow {
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
                 .filter(r -> r.isTransactionCompleted());
 
-        // We have a special version of the SetKeyAndTimeFunction(), which will fail on the N-th
-        // call to generate results, but only once.
-        FailingSetKeyAndTimeFunction setKeyAndTimeFunction = new FailingSetKeyAndTimeFunction();
-        setKeyAndTimeFunction.reset();
-
         // Key by country, tumbling window per minute
         filtered.keyBy(r -> r.getCountry())
                 .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
-                .aggregate(new CountItemsAggregator(), setKeyAndTimeFunction)
+                .aggregate(new CountItemsAggregator(),
+                        triggerFailure ? new FailingSetKeyAndTimeFunction() : new SetKeyAndTimeFunction())
                 .map(r -> r.toString())
                 .sinkTo(resultSink);
     }
 
-    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Integer, Integer> {
+    private static class CountItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
         @Override
-        public Integer createAccumulator() {
-            return 0;
+        public Long createAccumulator() {
+            return 0L;
         }
 
         @Override
-        public Integer add(ShoppingCartRecord value, Integer acc) {
+        public Long add(ShoppingCartRecord value, Long acc) {
             for (CartItem item : value.getItems()) {
                 acc += item.getQuantity();
             }
@@ -100,12 +102,12 @@ public class BootcampFailuresWorkflow {
         }
 
         @Override
-        public Integer getResult(Integer acc) {
+        public Long getResult(Long acc) {
             return acc;
         }
 
         @Override
-        public Integer merge(Integer a, Integer b) {
+        public Long merge(Long a, Long b) {
             return a + b;
         }
     }
@@ -115,7 +117,7 @@ public class BootcampFailuresWorkflow {
      * when we get a special result with 0 items, we'll throw an exception that causes the workflow to
      * fail.
      */
-    private static class FailingSetKeyAndTimeFunction extends ProcessWindowFunction<Integer, KeyedWindowResult, String, TimeWindow> {
+    private static class FailingSetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
 
         private static final AtomicBoolean FAILURE_TRIGGERED = new AtomicBoolean(false);
 
@@ -123,15 +125,28 @@ public class BootcampFailuresWorkflow {
             FAILURE_TRIGGERED.set(false);
         }
 
+        public FailingSetKeyAndTimeFunction() {
+            reset();
+        }
+
         @Override
-        public void process(String key, Context ctx, Iterable<Integer> elements, Collector<KeyedWindowResult> out) throws Exception {
-            int itemCount = elements.iterator().next();
+        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
+            long itemCount = elements.iterator().next();
             // If it's our special result (item count of 0) and we haven't previously
             // thrown an exception, do that now.
-            if ((itemCount == 0) && !FAILURE_TRIGGERED.getAndSet(true)) {
+            if ((itemCount == 0L) && !FAILURE_TRIGGERED.getAndSet(true)) {
                 throw new IndexOutOfBoundsException("Some error in the workflow");
             }
 
+            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), itemCount));
+        }
+    }
+
+    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
+
+        @Override
+        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
+            long itemCount = elements.iterator().next();
             out.collect(new KeyedWindowResult(key, ctx.window().getStart(), itemCount));
         }
     }
