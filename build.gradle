@@ -129,7 +129,6 @@ subprojects {
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
         jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-        systemProperty 'log4j.configurationFile', 'log4j2.properties'
     }
 
     if (project.parent == project(":bootcamp")) {
