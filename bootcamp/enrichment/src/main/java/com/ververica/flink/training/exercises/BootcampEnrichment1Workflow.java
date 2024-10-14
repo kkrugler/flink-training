@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.exercises.BootcampEnrichment1Workflow;
 import com.ververica.flink.training.provided.KeyedWindowDouble;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import com.ververica.flink.training.provided.SumDollarsAggregator;
@@ -38,9 +37,27 @@ import java.time.Duration;
  * 2. Key by country, window per minute
  * 3. Generate per-country/per minute sales in US$
  */
-public class BootcampEnrichmentSolution1Workflow extends BootcampEnrichment1Workflow {
+public class BootcampEnrichment1Workflow {
 
-    @Override
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected Sink<KeyedWindowDouble> resultSink;
+    protected long startTime = System.currentTimeMillis() - Duration.ofDays(2).toMillis();
+
+    public BootcampEnrichment1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+        this.cartStream = cartStream;
+        return this;
+    }
+
+    public BootcampEnrichment1Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
+        this.resultSink = resultSink;
+        return this;
+    }
+
+    public BootcampEnrichment1Workflow setStartTime(long startTime) {
+        this.startTime = startTime;
+        return this;
+    }
+
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
@@ -54,7 +71,10 @@ public class BootcampEnrichmentSolution1Workflow extends BootcampEnrichment1Work
 
         // Enrich by calculating US$ price to all cart items, summing total based on quantity,
         // and outputting Tuple2<country, usdEquivalent>
+        // We'll first want to use a custom map function to calculate a Tuple2<country, total USD amount>
+        // from the incoming ShoppingCartRecord
         DataStream<Tuple2<String, Double>> withUSPrices = filtered
+                // TODO - make it so
                 .map(new CalcTotalUSDollarPriceFunction(startTime))
                 .name("Calc US dollar price");
 
@@ -64,4 +84,5 @@ public class BootcampEnrichmentSolution1Workflow extends BootcampEnrichment1Work
                 .aggregate(new SumDollarsAggregator(), new SetKeyAndTimeFunction())
                 .sinkTo(resultSink);
     }
+
 }

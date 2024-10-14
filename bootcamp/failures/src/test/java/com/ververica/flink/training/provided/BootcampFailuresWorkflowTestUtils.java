@@ -1,10 +1,8 @@
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.provided;
 
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.BootcampFailuresWorkflow;
-import com.ververica.flink.training.provided.ShoppingCartFiles;
-import com.ververica.flink.training.provided.TransactionalMemorySink;
+import com.ververica.flink.training.exercises.BootcampFailuresConfig;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -16,31 +14,18 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URI;
-import java.sql.Array;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-public class BootcampFailures1WorkflowTest {
+public class BootcampFailuresWorkflowTestUtils {
 
     // The beginning time for our workflow, for events
     private static final long START_TIME = 0;
     private static final long NUM_RECORDS = 1_000;
-
-    @Test
-    public void testGettingCorrectResultsAfterFailure() throws Exception {
-        testBootcampFailuresWorkflow(new BootcampFailuresConfig(), true);
-    }
-
-    @Test
-    public void testLatency() throws Exception {
-        testBootcampFailuresWorkflow(new BootcampFailuresConfig(), false);
-    }
-
 
     /**
      * Common test code used by both exercises & solutions tests. The solutions provide
@@ -51,7 +36,7 @@ public class BootcampFailures1WorkflowTest {
      * @param triggerFailure - if true, cause the workflow to fail the first time it's run.
      * @throws Exception
      */
-    public static void testBootcampFailuresWorkflow(BootcampFailuresConfig config, boolean triggerFailure) throws Exception {
+    public static void testWorkflow(BootcampFailuresConfig config, boolean triggerFailure) throws Exception {
         final StreamExecutionEnvironment env = config.getEnvironment();
 
         final boolean unbounded = true;
@@ -76,7 +61,6 @@ public class BootcampFailures1WorkflowTest {
             while (!client.getJobStatus().isDone() && (client.getJobStatus().get() != JobStatus.RESTARTING)) {
                 Thread.sleep(10L);
             }
-        } else {
         }
 
         // Wait for the job to be running normally.
@@ -102,23 +86,21 @@ public class BootcampFailures1WorkflowTest {
         }
 
         // Calculate min/max/average latency. This is approximate, since our start time is loosely based
-        // on when the job switched to the RUNNING state. We only care about this if we're testing for
-        // latency.
-        if (!triggerFailure) {
-            long min = Long.MAX_VALUE;
-            long max = Long.MIN_VALUE;
-            long count = 0;
-            long sum = 0;
-            for (Tuple2<Long, String> record : resultsSink.getCommitted()) {
-                long latency = record.f0 - startTime;
-                min = Math.min(min, latency);
-                max = Math.max(max, latency);
-                sum += latency;
-                count++;
-            }
-
-            System.out.format("Min: %d, Max: %d, Average: %d\n", min, max, sum / count);
+        // on when the job switched to the RUNNING state.
+        long min = Long.MAX_VALUE;
+        long max = Long.MIN_VALUE;
+        long count = 0;
+        long sum = 0;
+        for (Tuple2<Long, String> record : resultsSink.getCommitted()) {
+            long latency = record.f0 - startTime;
+            min = Math.min(min, latency);
+            max = Math.max(max, latency);
+            sum += latency;
+            count++;
         }
+
+        assertThat(count).isGreaterThan(0);
+        System.out.format("Min: %d, Max: %d, Average: %d\n", min, max, sum / count);
 
         List<String> records = new ArrayList<>();
         resultsSink.getCommitted().forEach(r -> records.add(r.f1));

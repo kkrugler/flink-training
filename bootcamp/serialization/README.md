@@ -2,12 +2,6 @@
 
 ## Introduction
 
-This lab is the hands-on part of the "Apache Flink Bootcamp" training by Ververica.
-Please follow the [Setup Instructions](../../README-Bootcamp.md#set-up-your-development-environment) first
-and then continue reading here.
-
-### The Flink Job
-
 This workflow is exactly the same as the `BootcampWindowingWorkflow`, in that we're calculating
 three different results (per-minute/per-country item count, per-five-minute item count, and
 per five-minute longest transactions).

@@ -16,19 +16,33 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
+import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ProductInfoRecord;
 import com.ververica.flink.training.common.ProductRecord;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.exercises.BootcampEnrichment2Workflow;
+import com.ververica.flink.training.provided.KeyedWindowDouble;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
+import com.ververica.flink.training.provided.SumWeightAggregator;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.OpenContext;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
+import java.util.Collections;
 
 /**
  * Solution to the second exercise in the eCommerce enrichment lab.
@@ -38,9 +52,27 @@ import java.time.Duration;
  * 2. Key by country, window per minute
  * 3. Generate per-product/per-minute shipping weight
  */
-public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Workflow {
+public class BootcampEnrichment2Workflow {
 
-    @Override
+    protected DataStream<ShoppingCartRecord> cartStream;
+    protected DataStream<ProductInfoRecord> productInfoStream;
+    protected Sink<KeyedWindowDouble> resultSink;
+
+    public BootcampEnrichment2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+        this.cartStream = cartStream;
+        return this;
+    }
+
+    public BootcampEnrichment2Workflow setProductInfoStream(DataStream<ProductInfoRecord> productInfoStream) {
+        this.productInfoStream = productInfoStream;
+        return this;
+    }
+
+    public BootcampEnrichment2Workflow setResultSink(Sink<KeyedWindowDouble> resultSink) {
+        this.resultSink = resultSink;
+        return this;
+    }
+
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(productInfoStream, "productInfoStream must be set");
@@ -55,6 +87,7 @@ public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Work
 
         // Turn into a per-product stream
         DataStream<ProductRecord> productStream = filtered
+                // TODO use a flatMap to convert one shopping cart into 1...N ProductRecords.
                 .flatMap(new ExplodeShoppingCartFunction())
                 .name("Explode shopping cart");
 
@@ -65,10 +98,13 @@ public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Work
                                 .withTimestampAssigner((element, timestamp) -> element.getInfoTime()));
 
         // Connect products with the product info stream, using product ID,
-        // and enrich the product records.
+        // and enrich the product records. Both streams need to be keyed by the
+        // product id before connecting. Then .process(custom KeyedCoProcessFunction())
+        // can be used
         DataStream<ProductRecord> enrichedStream = productStream
                 .keyBy(r -> r.getProductId())
                 .connect(watermarkedProduct.keyBy(r -> r.getProductId()))
+                // TODO - implement real AddProductInfoFunction
                 .process(new AddProductInfoFunction())
                 .name("Enriched products");
 
@@ -78,5 +114,4 @@ public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Work
                 .aggregate(new SumWeightAggregator(), new SetKeyAndTimeFunction())
                 .sinkTo(resultSink);
     }
-
 }

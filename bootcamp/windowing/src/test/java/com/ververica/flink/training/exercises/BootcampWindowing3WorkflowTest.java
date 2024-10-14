@@ -7,63 +7,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.ververica.flink.training.provided.BootcampWindowingWorkflowTestUtils.testWindowing3Workflow;
+
 public class BootcampWindowing3WorkflowTest {
 
     @Test
     public void testBootcampWindowing3Workflow() throws Exception {
-        testBootcampWindowing3Workflow(new BootcampWindowing3Workflow());
-    }
-
-    public static void testBootcampWindowing3Workflow(BootcampWindowing3Workflow workflow) throws Exception {
-        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
-
-        OneMinuteSink oneMinuteSink = new OneMinuteSink();
-        FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
-        LongestTransactionSink longestTransactionSink = new LongestTransactionSink();
-
-        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
-        workflow
-                .setCartStream(env.fromData(records).setParallelism(1))
-                .setOneMinuteSink(oneMinuteSink)
-                .setFiveMinuteSink(fiveMinuteSink)
-                .setLongestTransactionsSink(longestTransactionSink)
-                .build();
-
-        env.execute("BootcampWindowing3Job");
-
-        BootcampTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
-        BootcampTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
-        BootcampTestUtils.validateLongestTransactionResults(longestTransactionSink.getSink());
-    }
-
-    private static class OneMinuteSink extends MockSink<KeyedWindowResult> {
-
-        private static ConcurrentLinkedQueue<KeyedWindowResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<KeyedWindowResult> getSink() {
-            return QUEUE;
-        }
-    }
-
-    private static class FiveMinuteSink extends MockSink<WindowAllResult> {
-
-        private static ConcurrentLinkedQueue<WindowAllResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<WindowAllResult> getSink() {
-            return QUEUE;
-        }
-    }
-
-    private static class LongestTransactionSink extends MockSink<KeyedWindowResult> {
-
-        private static ConcurrentLinkedQueue<KeyedWindowResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<KeyedWindowResult> getSink() {
-            return QUEUE;
-        }
+        testWindowing3Workflow(new BootcampWindowing3Workflow());
     }
 
 }

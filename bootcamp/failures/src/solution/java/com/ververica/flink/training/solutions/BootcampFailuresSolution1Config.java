@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
 
-public class BootcampFailuresSolutionConfig extends BootcampFailuresConfig {
+public class BootcampFailuresSolution1Config extends BootcampFailuresConfig {
 
     @Override
     public TransactionalMemorySink getResultsSink() {

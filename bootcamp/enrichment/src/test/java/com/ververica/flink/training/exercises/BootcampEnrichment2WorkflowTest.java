@@ -1,7 +1,8 @@
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.*;
 import com.ververica.flink.training.provided.KeyedWindowDouble;
+import com.ververica.flink.training.solutions.BootcampEnrichmentSolution2Workflow;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +14,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import static com.ververica.flink.training.provided.BootcampEnrichmentWorkflowTestUtils.testAddingProductWeightWorkflow;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-class BootcampEnrichmentSolution2WorkflowTest {
+class BootcampEnrichment2WorkflowTest {
 
     @Test
     public void testAddingProductWeight() throws Exception {
-        testAddingProductWeightWorkflow(new BootcampEnrichmentSolution2Workflow());
+        testAddingProductWeightWorkflow(new BootcampEnrichment2Workflow());
     }
 }

@@ -1,10 +1,21 @@
 # Lab: Bootcamp Serialization (Discussion)
 
-We'll work through the solutions to the two exercises.
+We'll work through the solutions to the exercises.
 
 ## Exercise 1 Solutions
 
 See the [README](README.md#exercise-1) file for the steps.
+
+Before starting any optimization work, it's always best to measure/profile. We can use
+Flink's flamegraph to get an idea of where significant time (CPU cycles) is being
+spent.
+
+![Serialization Flamegraph](images/serialization-flamegraph.png)
+
+If you hover over various wide parts of the graph, you'll see that most of the time
+is being spent doing serialization.
+
+![Serialization Flamegraph Details](images/serialization-flamegraph-details.png)
 
 1. Create a `TrimmedShoppingCart` record that has **only** the fields from the
    `ShoppingCartRecord` that are used by the workflow, and convert from the incoming

@@ -39,9 +39,9 @@ import static org.apache.flink.configuration.TaskManagerOptions.*;
 
 /** Common functionality to set up execution environments for the bootcamp training. */
 public class FlinkClusterUtils {
-    public static final Logger LOG = LoggerFactory.getLogger(FlinkClusterUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FlinkClusterUtils.class);
 
-    private static final int NO_WEBUI_PORT = -1;
+    public static final int NO_WEBUI_PORT = -1;
 
     public static StreamExecutionEnvironment createConfiguredTestEnvironment(int parallelism) throws IOException, URISyntaxException {
         return createConfiguredTestEnvironment(ParameterTool.fromArgs(new String[]{}), parallelism);
@@ -49,18 +49,30 @@ public class FlinkClusterUtils {
 
     public static StreamExecutionEnvironment createConfiguredTestEnvironment(
             final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
-        return createEnvironment(parameters, parallelism, true, NO_WEBUI_PORT);
+        return createEnvironment(parameters, new Configuration(), parallelism, true, NO_WEBUI_PORT);
     }
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
-        return createEnvironment(parameters, parallelism, true, Integer.parseInt(BIND_PORT.defaultValue()));
+        return createEnvironment(parameters, new Configuration(), parallelism, true,
+                Integer.parseInt(BIND_PORT.defaultValue()));
     }
 
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters) throws IOException, URISyntaxException {
         int parallelism = parameters.getInt("parallelism", -1);
-        return createEnvironment(parameters, parallelism, true, Integer.parseInt(BIND_PORT.defaultValue()));
+        return createConfiguredLocalEnvironment(parameters, parallelism);
+    }
+
+    public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
+            final ParameterTool parameters, Configuration extraConfig) throws IOException, URISyntaxException {
+        int parallelism = parameters.getInt("parallelism", -1);
+        return createConfiguredLocalEnvironment(parameters, extraConfig, parallelism);
+    }
+
+    public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
+            final ParameterTool parameters, Configuration extraConfig, int parallelism) throws IOException, URISyntaxException {
+        return createEnvironment(parameters, extraConfig, parallelism, true, Integer.parseInt(BIND_PORT.defaultValue()));
     }
 
     /**
@@ -75,11 +87,13 @@ public class FlinkClusterUtils {
             final ParameterTool parameters) throws IOException, URISyntaxException {
         final boolean local = isLocal(parameters);
         final int webUIPort = local ? Integer.parseInt(BIND_PORT.defaultValue()) : NO_WEBUI_PORT;
-        return createEnvironment(parameters, parameters.getInt("parallelism"), local, webUIPort);
+        final int parallelism = parameters.getInt("parallelism", -1);
+        return createEnvironment(parameters, new Configuration(), parallelism, local, webUIPort);
     }
 
     private static StreamExecutionEnvironment createEnvironment(
-            final ParameterTool parameters, int parallelism, boolean local, int webUIPort) throws IOException, URISyntaxException {
+            final ParameterTool parameters, Configuration extraConfig,
+            int parallelism, boolean local, int webUIPort) throws IOException, URISyntaxException {
         final StreamExecutionEnvironment env;
         if (!local) {
             // cluster mode or disabled web UI
@@ -124,6 +138,10 @@ public class FlinkClusterUtils {
             flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS, Integer.MAX_VALUE);
             Duration restartDelay = Duration.ofSeconds(parameters.getInt("restartdelay", 15));
             flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, restartDelay);
+
+            // Mix in any provided configuration, which could override what we set above (other than the
+            // webUI port, which is explicitly provided).
+            flinkConfig.addAll(extraConfig);
 
             if (webUIPort != NO_WEBUI_PORT) {
                 // configure Web UI

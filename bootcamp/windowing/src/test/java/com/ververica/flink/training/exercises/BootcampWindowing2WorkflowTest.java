@@ -8,52 +8,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.ververica.flink.training.provided.BootcampWindowingWorkflowTestUtils.testWindowing2Workflow;
+
 public class BootcampWindowing2WorkflowTest {
 
     @Test
     public void testBootcampWindowing2Workflow() throws Exception {
-        testBootcampWindowing2Workflow(new BootcampWindowing2Workflow());
+        testWindowing2Workflow(new BootcampWindowing2Workflow());
     }
-
-    public static void testBootcampWindowing2Workflow(BootcampWindowing2Workflow workflow) throws Exception {
-        List<ShoppingCartRecord> records = BootcampTestUtils.makeCartRecords();
-
-        OneMinuteSink oneMinuteSink = new OneMinuteSink();
-        FiveMinuteSink fiveMinuteSink = new FiveMinuteSink();
-
-        ParameterTool parameters = ParameterTool.fromArgs(new String[]{"--parallelism", "2"});
-        final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredEnvironment(parameters);
-        workflow
-                .setCartStream(env.fromData(records).setParallelism(1))
-                .setOneMinuteSink(oneMinuteSink)
-                .setFiveMinuteSink(fiveMinuteSink)
-                .build();
-
-        env.execute("BootcampWindowing2Job");
-
-        BootcampTestUtils.validateOneMinuteResults(oneMinuteSink.getSink());
-        BootcampTestUtils.validateFiveMinuteResults(fiveMinuteSink.getSink());
-    }
-
-    private static class OneMinuteSink extends MockSink<KeyedWindowResult> {
-
-        private static ConcurrentLinkedQueue<KeyedWindowResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<KeyedWindowResult> getSink() {
-            return QUEUE;
-        }
-    }
-
-    private static class FiveMinuteSink extends MockSink<WindowAllResult> {
-
-        private static ConcurrentLinkedQueue<WindowAllResult> QUEUE = new ConcurrentLinkedQueue<>();
-
-        @Override
-        public ConcurrentLinkedQueue<WindowAllResult> getSink() {
-            return QUEUE;
-        }
-    }
-
 
 }

@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Given a starting seed and time, generate deterministic results
- * for future conversion rates from a given currency to USD.
+ * for future conversion rates from a given currency to USD, at a
+ * point in time at/after the provided <startTime>
  */
 public class CurrencyRateAPI {
 
@@ -108,6 +109,11 @@ public class CurrencyRateAPI {
         Thread.sleep(millisecondsOnly, nanosecondsOnly);
     }
 
+    /**
+     * @param time
+     * @return Return an index into the list of rates, based on time and the
+     * duration of a rate's validity. Currently that's one minute.
+     */
     public int getRateTimeAsIndex(long time) {
         if (time < startTime) {
             throw new IllegalArgumentException("Time must be after start time");

@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static com.ververica.flink.training.exercises.BootcampWindowing1WorkflowTest.testBootcampWindowing1Workflow;
+import static com.ververica.flink.training.provided.BootcampWindowingWorkflowTestUtils.testWindowing1Workflow;
 
 
 class BootcampWindowingSolution1WorkflowTest {
 
     @Test
     public void testBootcampWindowingSolution1Workflow() throws Exception {
-        testBootcampWindowing1Workflow(new BootcampWindowingSolution1Workflow());
+        testWindowing1Workflow(new BootcampWindowingSolution1Workflow());
     }
 }

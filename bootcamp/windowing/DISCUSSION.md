@@ -62,6 +62,10 @@ window time, along with the aggregator's result:
         }
     }
 ```
+
+As a thought experiment, let's say you added support for capturing late data, versus dropping it
+(which is what happens now). How would you also add a test to validate proper behavior?
+
 ## Exercise 2 Solution
 
 See the [README](README.md#exercise-2) file for the steps.
@@ -94,6 +98,7 @@ See the [README](README.md#exercise-2) file for the steps.
         fiveMinuteStream
                 .sinkTo(fiveMinuteSink);
    ```
+
 The `OneMinuteWindowCountAggregator` function is a simple aggregator.
 ```java
     private static class OneMinuteWindowCountAggregator implements AggregateFunction<KeyedWindowResult, Long, Long> {
@@ -124,6 +129,11 @@ The `SetTimeFunction` is essentially the same as with the previous solution:
     }
 
 ```
+
+Note that you could have started the five-minute aggregation from the `filtered` stream. But this
+would be less efficient, since you'd be aggregating more records, versus just the 25 (one per test
+country per minute * 5 minutes) records in the `oneMinuteStream`. When a record is emitted from
+a `ProcessWindowFunction`, the timestamp is automatically set to the end of the window period.
 
 ## Exercise 3 Solution
 
