@@ -10,7 +10,7 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.util.Collector;
 
-public class AddProductInfoFunction extends KeyedCoProcessFunction<String, ProductRecord, ProductInfoRecord, ProductRecord> {
+public class AddProductInfoSolutionFunction extends KeyedCoProcessFunction<String, ProductRecord, ProductInfoRecord, ProductRecord> {
 
     private transient ListState<ProductRecord> pendingLeft;
     private transient ValueState<ProductInfoRecord> pendingRight;

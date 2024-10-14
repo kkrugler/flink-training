@@ -20,11 +20,9 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.exercises.BootcampEnrichment1Workflow;
-import com.ververica.flink.training.provided.KeyedWindowDouble;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import com.ververica.flink.training.provided.SumDollarsAggregator;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -55,7 +53,7 @@ public class BootcampEnrichmentSolution1Workflow extends BootcampEnrichment1Work
         // Enrich by calculating US$ price to all cart items, summing total based on quantity,
         // and outputting Tuple2<country, usdEquivalent>
         DataStream<Tuple2<String, Double>> withUSPrices = filtered
-                .map(new CalcTotalUSDollarPriceFunction(startTime))
+                .map(new CalcTotalUSDollarPriceSolutionFunction(startTime))
                 .name("Calc US dollar price");
 
         // Key by country, tumbling window per minute

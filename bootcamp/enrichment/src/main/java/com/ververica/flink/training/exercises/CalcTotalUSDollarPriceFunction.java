@@ -50,8 +50,9 @@ class CalcTotalUSDollarPriceFunction extends RichMapFunction<ShoppingCartRecord,
 
     @Override
     public Tuple2<String, Double> map(ShoppingCartRecord in) throws Exception {
-        String country = in.getCountry();
-        double rate = getRate(country, in.getTransactionTime());
-        return Tuple2.of(country, calcUSDEquivalent(in, rate));
+        // Use the calcUSDEquivalent() method to calculate the Tuple2<Country,
+        // USD value> result that we return.
+        // TODO - make it so.
+        return Tuple2.of("", 0.0);
     }
 }

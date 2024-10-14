@@ -23,6 +23,7 @@ import com.ververica.flink.training.common.ProductRecord;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.exercises.BootcampEnrichment2Workflow;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
+import com.ververica.flink.training.provided.SumWeightAggregator;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -55,7 +56,7 @@ public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Work
 
         // Turn into a per-product stream
         DataStream<ProductRecord> productStream = filtered
-                .flatMap(new ExplodeShoppingCartFunction())
+                .flatMap(new ExplodeShoppingCartSolutionFunction())
                 .name("Explode shopping cart");
 
         // Assign timestamps & watermarks
@@ -69,7 +70,7 @@ public class BootcampEnrichmentSolution2Workflow extends BootcampEnrichment2Work
         DataStream<ProductRecord> enrichedStream = productStream
                 .keyBy(r -> r.getProductId())
                 .connect(watermarkedProduct.keyBy(r -> r.getProductId()))
-                .process(new AddProductInfoFunction())
+                .process(new AddProductInfoSolutionFunction())
                 .name("Enriched products");
 
         // Key by country, tumbling window per minute

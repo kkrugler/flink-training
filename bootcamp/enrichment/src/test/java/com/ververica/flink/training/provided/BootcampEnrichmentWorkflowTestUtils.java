@@ -44,6 +44,7 @@ public class BootcampEnrichmentWorkflowTestUtils {
     }
 
     private static double estimateSpend(List<ShoppingCartRecord> records, String transactionId, Duration currentRateTime) {
+        // Find the cart by transactionId.
         ShoppingCartRecord cartRecord = null;
         for (ShoppingCartRecord cart : records) {
             if (cart.isTransactionCompleted() && (cart.getTransactionId().equals(transactionId))) {
@@ -53,6 +54,14 @@ public class BootcampEnrichmentWorkflowTestUtils {
         }
         assertThat(cartRecord).isNotNull();
 
+        return estimateSpend(cartRecord, currentRateTime);
+    }
+
+    public static double estimateSpend(ShoppingCartRecord cartRecord, long currentRateTime) {
+        return estimateSpend(cartRecord, Duration.ofMillis(currentRateTime));
+    }
+
+    public static double estimateSpend(ShoppingCartRecord cartRecord, Duration currentRateTime) {
         String country = cartRecord.getCountry();
         CurrencyRateAPI api = new CurrencyRateAPI(START_TIME);
         double rate = api.getRate(country, currentRateTime);

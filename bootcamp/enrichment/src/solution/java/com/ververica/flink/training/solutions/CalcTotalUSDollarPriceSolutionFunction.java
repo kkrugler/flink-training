@@ -12,12 +12,12 @@ import org.apache.flink.api.java.tuple.Tuple2;
  * by calling the currency rate API, and summing US$ equivalents * quantity
  * for every cart item
  */
-class CalcTotalUSDollarPriceFunction extends RichMapFunction<ShoppingCartRecord, Tuple2<String, Double>> {
+class CalcTotalUSDollarPriceSolutionFunction extends RichMapFunction<ShoppingCartRecord, Tuple2<String, Double>> {
 
     private final long startTime;
     private transient CurrencyRateAPI api;
 
-    public CalcTotalUSDollarPriceFunction(long startTime) {
+    public CalcTotalUSDollarPriceSolutionFunction(long startTime) {
         this.startTime = startTime;
     }
 

@@ -1,10 +1,7 @@
 package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.CurrencyRateAPI;
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.HashMap;
@@ -15,11 +12,11 @@ import java.util.Map;
  * by calling the currency rate API, and summing US$ equivalents * quantity
  * for every cart item
  */
-class CalcTotalUSDollarPriceWithCacheFunction extends CalcTotalUSDollarPriceFunction {
+class CalcTotalUSDollarPriceWithCacheSolutionFunction extends CalcTotalUSDollarPriceSolutionFunction {
 
     private transient Map<String, Double> cachedRates;
 
-    public CalcTotalUSDollarPriceWithCacheFunction(long startTime) {
+    public CalcTotalUSDollarPriceWithCacheSolutionFunction(long startTime) {
         super(startTime);
     }
 

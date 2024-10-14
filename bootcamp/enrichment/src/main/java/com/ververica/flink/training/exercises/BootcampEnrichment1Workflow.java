@@ -74,7 +74,6 @@ public class BootcampEnrichment1Workflow {
         // We'll first want to use a custom map function to calculate a Tuple2<country, total USD amount>
         // from the incoming ShoppingCartRecord
         DataStream<Tuple2<String, Double>> withUSPrices = filtered
-                // TODO - make it so
                 .map(new CalcTotalUSDollarPriceFunction(startTime))
                 .name("Calc US dollar price");
 
