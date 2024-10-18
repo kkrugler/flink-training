@@ -26,7 +26,7 @@ class BootcampTablesSolutionWorkflowTest {
     private static final Date START_DATE = new Date(START_TIME);
 
     @Test
-    // TODO - reenable
+    // FIXME - reenable
     @Disabled
     public void testWorkflow() throws Exception {
         List<ShoppingCartRecord> fullCarts = BootcampTestUtils.makeCartRecords();
@@ -48,7 +48,7 @@ class BootcampTablesSolutionWorkflowTest {
                 .setResultsSink(sink)
                 .build();
 
-        // TODO - table job termination w/batch sources
+        // FIXME - table job termination w/batch sources
         JobClient client = env.executeAsync("BootcampTables1Workflow");
 
         Thread.sleep(2000L);

@@ -61,7 +61,7 @@ public class BootcampDesignSolutionTest {
         final StreamExecutionEnvironment env1 = FlinkClusterUtils.createConfiguredTestEnvironment(2);
         final StreamExecutionEnvironment env2 = FlinkClusterUtils.createConfiguredTestEnvironment(2);
 
-        // TODO - use files that have a significant percentage of uncompleted transactions.
+        // FIXME - use files that have a significant percentage of uncompleted transactions.
 
         FileSource<String> carts = makeCartFilesSource(false);
         DataStream<ShoppingCartRecord> cartStream = env1.fromSource(carts,
@@ -69,7 +69,7 @@ public class BootcampDesignSolutionTest {
                 .map(s -> ShoppingCartRecord.fromString(s));
 
         Path resultsDir = new Path(Files.createTempDirectory("temp").toUri());
-        // TODO - create Paimon sink
+        // FIXME - create Paimon sink
 
         FileSink<String> abandonedSink = FileSink.forRowFormat(resultsDir,
                 new SimpleStringEncoder<String>()).build();
@@ -83,7 +83,7 @@ public class BootcampDesignSolutionTest {
 
         ResultsSink analyticsResults = new ResultsSink();
 
-        // TODO - create Paimon source
+        // FIXME - create Paimon source
         FileSource<String> abandonedSource = FileSource.forRecordStreamFormat(
                 new TextLineInputFormat("UTF-8"), resultsDir).build();
 
@@ -104,7 +104,7 @@ public class BootcampDesignSolutionTest {
         for (KeyedWindowResult result : analyticsResults.getSink()) {
             System.out.println(result);
         }
-        // TODO - validate results.
+        // FIXME - validate results.
 
     }
 
@@ -119,7 +119,7 @@ public class BootcampDesignSolutionTest {
     }
 
     public static FileSource<String> makeCartFilesSource(boolean unbounded) throws URISyntaxException {
-        // TODO - use path in our resource dir
+        // FIXME - use path in our resource dir
         URL srcPathAsURL = BootcampDesignSolutionTest.class.getResource("/cart-files/file-000.txt");
         Path srcPath = new Path(srcPathAsURL.toURI());
 

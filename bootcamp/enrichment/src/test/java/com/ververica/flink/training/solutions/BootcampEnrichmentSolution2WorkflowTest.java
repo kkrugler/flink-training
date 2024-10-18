@@ -9,7 +9,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 class BootcampEnrichmentSolution2WorkflowTest {
 
     @Test
-    // TODO - reenable when intermittent failure is resolved
+    // FIXME - reenable when intermittent failure is resolved
     @Disabled
     public void testAddingProductWeight() throws Exception {
         testAddingProductWeightWorkflow(new BootcampEnrichmentSolution2Workflow());

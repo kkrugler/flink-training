@@ -75,7 +75,7 @@ public class BootcampEnrichment2Workflow {
 
         // Turn into a per-product stream
         DataStream<ProductRecord> productStream = filtered
-                // TODO use a flatMap to convert one shopping cart into 1...N ProductRecords.
+                // Use a flatMap to convert one shopping cart into 1...N ProductRecords.
                 .flatMap(new ExplodeShoppingCartFunction())
                 .name("Explode shopping cart");
 
@@ -92,7 +92,7 @@ public class BootcampEnrichment2Workflow {
         DataStream<ProductRecord> enrichedStream = productStream
                 .keyBy(r -> r.getProductId())
                 .connect(watermarkedProduct.keyBy(r -> r.getProductId()))
-                // TODO - implement real AddProductInfoFunction
+                // Use a KeyedCoProcessFunction to join the two streams of data.
                 .process(new AddProductInfoFunction())
                 .name("Enriched products");
 

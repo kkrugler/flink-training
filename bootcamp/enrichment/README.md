@@ -27,29 +27,51 @@ of `ShoppingCartRecord` records with additional information.
 ## Exercise 1
 
 Take a look at the [BootcampEnrichment1Workflow](src/main/java/com/ververica/flink/training/exercises/BootcampEnrichment1Workflow.java)
-class to see how the rather simple workflow calls a custom map function called
+class to see how the rather simple workflow uses a custom map function called
 [CalcTotalUSDollarPriceFunction](src/main/java/com/ververica/flink/training/exercises/CalcTotalUSDollarPriceFunction.java)
 to calculate the total value of all items in the shopping cart, normalized to
 US dollars.
 
-In order to do this, it makes use of a provided "Currency Exchange Rate" API
+In order to do this, it makes use of a "Currency Exchange Rate" API
 that is provided by the [CurrencyRateAPI](src/provided/java/com/ververica/flink/training/provided/CurrencyRateAPI.java)
 class. This simulates an external service, one that would typically be called via
 HTTP requests.
 
 Modify the `CalcTotalUSDollarPriceFunction` to use this API to perform the
 API request and calculation. You can test this via either running the
-`BootcampEnrichment1WorkflowTest.testAddingUSDEquivalent()` test (integration),
-or the 
+`BootcampEnrichment1WorkflowTest.testAddingUSDEquivalent()` test (integration)
+or the `CalcTotalUSDollarPriceSolutionFunctionTest` (function test). Take
+a look at how the function test leverages Flink's test harness support.
 
+## Exercise 2
 
-Modify the 
+Take a look at the [BootcampEnrichment2Workflow](src/main/java/com/ververica/flink/training/exercises/BootcampEnrichment2Workflow.java)
+class to see how the workflow uses a custom flatMap function called
+[ExplodeShoppingCartFunction](src/main/java/com/ververica/flink/training/exercises/ExplodeShoppingCartFunction.java)
+to convert single `ShoppingCartRecord` records into some number of
+`ProductRecord` records, and then connects this stream of product records with a stream
+of product information records, and uses the
+[AddProductInfoFunction](src/main/java/com/ververica/flink/training/exercises/AddProductInfoFunction.java)
+to join the two stream.
 
-This lab provides the basis of the hands-on part of the "Apache Flink Bootcamp"
-training by Ververica. Please follow the [Setup Instructions](../../README.md#setup-your-development-environment) first
-and then continue reading here.
+You'll need to fill out the `ExplodeShoppingCartFunction` and `AddProductInfoFunction` classes
+to get the `BootcampEnrichment2WorkflowTest.testAddingProductWeight` integration test to pass.
 
-TODO - fill out
+## Exercise 3
+
+Take a look at the [BootcampEnrichment3Workflow](src/main/java/com/ververica/flink/training/exercises/BootcampEnrichment3Workflow.java)
+class. This is exactly the same as the previous `BootcampEnrichment1Workflow`, except that
+it uses a new custom map function called
+[CalcTotalUSDollarPriceWithCacheFunction](src/main/java/com/ververica/flink/training/exercises/CalcTotalUSDollarPriceWithCacheFunction.java)
+when calculating the total value of all items in the shopping cart, normalized to
+US dollars.
+
+This new function is the same as the old `CalcTotalUSDollarPriceFunction`, except
+that it (should) use a cache to avoid unnecessary lookups. Modify the
+new version to support caching.
+
+You can test this via running the
+`BootcampEnrichment3WorkflowTest.testAddingUSDEquivalent()` test (integration).
 
 -----
 

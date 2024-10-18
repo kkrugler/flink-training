@@ -35,8 +35,8 @@ class CalcTotalUSDollarPriceWithCacheFunction extends CalcTotalUSDollarPriceFunc
 
         // TODO we need a cache key that represents the exchange rate for a given
         // country at a given point in time. We know rates are valid for some
-        // amount of time, so use the getRateTimeAsIndex() call for this part
-        // of the key;
+        // amount of time, so use the CurrencyRateAPI::getRateTimeAsIndex() call
+        // // for this part of the key.
         String cacheKey = "";
 
         double rate;
