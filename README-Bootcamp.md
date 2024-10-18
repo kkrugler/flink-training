@@ -44,7 +44,7 @@ The `ff-2024` branch in the `flink-training` repo in GitHub contains exercises, 
 the programming exercises. To get started, you need to:
 
 ```bash
-git clone https://github.com/kkrugler/flink-training
+git clone https://github.com/ververica/flink-training
 cd flink-training
 git checkout ff-2024
 ./gradlew clean testSolutions

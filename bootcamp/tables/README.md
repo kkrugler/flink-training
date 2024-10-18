@@ -10,13 +10,16 @@ of `CurrencyConvertRecord` records.
 
 You'll need to modify the
 [BootcampTablesWorkflow](src/main/java/com/ververica/flink/training/exercises/BootcampTablesWorkflow.java)
-code to use the Table APIs to define the tables, do the join, and generate the results. Hints are provided,
-as well as links to helpful documentation.
+code to use the Table APIs to define the tables, do the join, and generate the results. Hints are provided
+in the code, as well as below.
+
+To test, you should run the `BootcampTablesWorkflowTest.testWorkflow()` test.
+
+### Hints
 
 The required schemas for each of these stream's tables have been
 provided for you as `TrimmedShoppingCartSchema` and `CurrencyConvertRecordTable`.
 
-To test, you should run the `BootcampTablesWorkflowTest.testWorkflow()` test.
 
 -----
 

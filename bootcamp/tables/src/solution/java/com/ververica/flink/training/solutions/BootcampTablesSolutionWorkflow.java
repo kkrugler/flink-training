@@ -11,10 +11,16 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.util.Preconditions;
 
+import static org.apache.flink.table.api.DataTypes.*;
 import static org.apache.flink.table.api.Expressions.*;
 
+/**
+ * Use the exchangeRateStream to add the exchangeRate field to TrimmedShoppingCart
+ * records, using the Table API
+ */
 public class BootcampTablesSolutionWorkflow {
 
     private StreamExecutionEnvironment env;
@@ -57,13 +63,24 @@ public class BootcampTablesSolutionWorkflow {
                 .build();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
 
+        DataType itemsRecordType = ROW(
+                FIELD("productId", STRING()),
+                FIELD("quantity", INT()),
+                FIELD("price", DOUBLE()),
+                FIELD("usDollarEquivalent", DOUBLE()),
+                FIELD("productName", STRING()),
+                FIELD("category", STRING()),
+                FIELD("weightKg", DOUBLE())
+        );
+
         Schema shoppingCartSchema = Schema.newBuilder()
                 .column("transactionId", DataTypes.STRING())
                 .column("country", DataTypes.STRING())
                 .column("transactionCompleted", DataTypes.BOOLEAN())
                 .column("transactionTime", DataTypes.BIGINT())
-                // .columnByExpression("transactionDT", $"TO_TIMESTAMP_LTZ(transactionTime, 3)")
-                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
+                .column("items", ARRAY(itemsRecordType))
+                .columnByMetadata("rowtime", "TIMESTAMP_LTZ(3)") // extract timestamp into a column
+                .watermark("rowtime", "SOURCE_WATERMARK()")  // declare watermarks propagation                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
                 .build();
         Table cartTable = tEnv.fromDataStream(shoppingCartStream, shoppingCartSchema);
         tEnv.createTemporaryView("cartTable", cartTable);
@@ -72,11 +89,18 @@ public class BootcampTablesSolutionWorkflow {
         Schema exchangeRateSchema = Schema.newBuilder()
                 .column("exchangeRateCountry", DataTypes.STRING())
                 .column("exchangeRateTime", DataTypes.BIGINT())
-                // .columnByExpression("timestampDT", $"TO_TIMESTAMP_LTZ(timestamp, 3)")
+                .columnByMetadata("rowtime", "TIMESTAMP_LTZ(3)") // extract timestamp into a column
+                .watermark("rowtime", "SOURCE_WATERMARK()")  // declare watermarks propagation                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
                 .column("exchangeRate", DataTypes.DOUBLE())
                 .build();
-        Table currencyTable = tEnv.fromDataStream(exchangeRateStream, exchangeRateSchema);
+        Table currencyTable = tEnv.fromDataStream(exchangeRateStream, exchangeRateSchema).select(
+                $("exchangeRateCountry"),
+                $("exchangeRateTime"),
+                $("rowtime").as("exchangeRateRowTime"),
+                $("exchangeRate")
+        );
         tEnv.createTemporaryView("currencyTable", currencyTable);
+
 
         Table resultTable = cartTable
                 .join(currencyTable)
