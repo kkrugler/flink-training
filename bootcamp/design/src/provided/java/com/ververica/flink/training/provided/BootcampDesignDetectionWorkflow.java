@@ -43,14 +43,14 @@ public class BootcampDesignDetectionWorkflow {
 
     private static final long DEFAULT_ABANDONED_LIMIT = 20;
 
-    private DataStream<AbandonedCartItem> abandonedStream;
+    private DataStream<String> abandonedStream;
     private Sink<KeyedWindowResult> resultSink;
     private long maxAbandonedPerHour = DEFAULT_ABANDONED_LIMIT;
 
     public BootcampDesignDetectionWorkflow() {
     }
 
-    public BootcampDesignDetectionWorkflow setAbandonedStream(DataStream<AbandonedCartItem> abandonedStream) {
+    public BootcampDesignDetectionWorkflow setAbandonedStream(DataStream<String> abandonedStream) {
         this.abandonedStream = abandonedStream;
         return this;
     }
@@ -71,10 +71,14 @@ public class BootcampDesignDetectionWorkflow {
 
         // Key by customer, tumbling window per hour.
         // Count number of transactions, then filter to only the suspected items.
-        abandonedStream.keyBy(r -> r.getCustomerId())
+        final long abandonedLimit = maxAbandonedPerHour;
+
+        abandonedStream
+                .map(s -> AbandonedCartItem.fromString(s))
+                .keyBy(r -> r.getCustomerId())
                 .window(TumblingEventTimeWindows.of(Duration.ofHours(1)))
                 .aggregate(new CountTransactionsAggregator(), new SetKeyAndTimeFunction())
-                .filter(r -> r.getResult() >= maxAbandonedPerHour)
+                .filter(r -> r.getResult() >= abandonedLimit)
                 .sinkTo(resultSink);
     }
 

@@ -1,4 +1,4 @@
-package com.ververica.flink.training.provided;
+package com.ververica.flink.training.common;
 
 import com.ververica.flink.training.common.ExchangeRates;
 import org.apache.flink.annotation.VisibleForTesting;

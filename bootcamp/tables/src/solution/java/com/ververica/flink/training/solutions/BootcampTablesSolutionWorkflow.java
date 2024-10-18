@@ -52,7 +52,7 @@ public class BootcampTablesSolutionWorkflow {
         config.setString("table.local-time-zone", "UTC");
 
         EnvironmentSettings settings = EnvironmentSettings.newInstance()
-                .inStreamingMode()
+                .inBatchMode()
                 .withConfiguration(config)
                 .build();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
@@ -62,7 +62,7 @@ public class BootcampTablesSolutionWorkflow {
                 .column("country", DataTypes.STRING())
                 .column("transactionCompleted", DataTypes.BOOLEAN())
                 .column("transactionTime", DataTypes.BIGINT())
-                .columnByExpression("transactionDT", "FROM_UNIXTIME(transactionTime / 1000)")
+                // .columnByExpression("transactionDT", $"TO_TIMESTAMP_LTZ(transactionTime, 3)")
                 .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
                 .build();
         Table cartTable = tEnv.fromDataStream(shoppingCartStream, shoppingCartSchema);
@@ -70,10 +70,10 @@ public class BootcampTablesSolutionWorkflow {
 
         StreamTableEnvironment exchangeRateTableEnv = StreamTableEnvironment.create(env, settings);
         Schema exchangeRateSchema = Schema.newBuilder()
-                .column("country", DataTypes.STRING())
-                .column("timestamp", DataTypes.BIGINT())
-                .columnByExpression("timestampDT", "FROM_UNIXTIME(timestamp / 1000)")
-                .column("conversionRate", DataTypes.DOUBLE())
+                .column("exchangeRateCountry", DataTypes.STRING())
+                .column("exchangeRateTime", DataTypes.BIGINT())
+                // .columnByExpression("timestampDT", $"TO_TIMESTAMP_LTZ(timestamp, 3)")
+                .column("exchangeRate", DataTypes.DOUBLE())
                 .build();
         Table currencyTable = tEnv.fromDataStream(exchangeRateStream, exchangeRateSchema);
         tEnv.createTemporaryView("currencyTable", currencyTable);
@@ -82,14 +82,17 @@ public class BootcampTablesSolutionWorkflow {
                 .join(currencyTable)
                 .where(
                         and(
-                                $("cartTable.country").isEqual($("currencyTable.country")),
-                                $("cartTable.timestamp").between(
-                                        $("currencyTable.transactionDT"),
-                                        $("currencyTable.timestampDT").plus(lit(1).minutes())
+                                $("country").isEqual($("exchangeRateCountry")),
+                                $("transactionTime").between(
+                                        $("exchangeRateTime"),
+                                        $("exchangeRateTime").plus(lit(60000))
                                 )
                         )
                 )
-                .select($("cartTable.*"), $("currencyTable.conversionRate"));
+                .select($("country"), $("transactionId"),
+                        $("transactionTime"), $("transactionCompleted"),
+                        $("items"),
+                        $("exchangeRate"));
 
         // Convert back to DataStream, connect to sink
         DataStream<TrimmedShoppingCart> enrichedStream = tEnv.toDataStream(resultTable, ShoppingCartWithExchangeRate.class)

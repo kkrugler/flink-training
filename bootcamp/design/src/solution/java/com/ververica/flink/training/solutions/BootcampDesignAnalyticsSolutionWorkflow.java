@@ -47,7 +47,7 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
 
     private DataStream<ShoppingCartRecord> cartStream;
     private Sink<KeyedWindowResult> resultSink;
-    private Sink<AbandonedCartItem> abandonedSink;
+    private Sink<String> abandonedSink;
 
     public BootcampDesignAnalyticsSolutionWorkflow() {
     }
@@ -62,7 +62,7 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
         return this;
     }
 
-    public BootcampDesignAnalyticsSolutionWorkflow setAbandonedSink(Sink<AbandonedCartItem> abandonedSink) {
+    public BootcampDesignAnalyticsSolutionWorkflow setAbandonedSink(Sink<String> abandonedSink) {
         this.abandonedSink = abandonedSink;
         return this;
     }
@@ -88,7 +88,9 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
                 .process(new FilterCompletedTransactions());
 
         // Send results to the provided sink.
-        uncompleted.sinkTo(abandonedSink);
+        uncompleted
+                .map(r -> r.toString())
+                .sinkTo(abandonedSink);
 
         // Key by customer id, tumbling window per hour. Return unique transactionIds per customer
         uncompleted.keyBy(r -> r.getCustomerId())

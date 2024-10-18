@@ -1,5 +1,8 @@
 package com.ververica.flink.training.provided;
 
+import static com.ververica.flink.training.common.TextParseUtils.getField;
+import static com.ververica.flink.training.common.TextParseUtils.getTextField;
+
 public class AbandonedCartItem {
     private String transactionId;
     private long transactionTime;
@@ -45,5 +48,26 @@ public class AbandonedCartItem {
 
     public void setProductId(String productId) {
         this.productId = productId;
+    }
+
+    @Override
+    public String toString() {
+        return "AbandonedCartItem{" +
+                "transactionId='" + transactionId + '\'' +
+                ", transactionTime=" + transactionTime +
+                ", customerId='" + customerId + '\'' +
+                ", productId='" + productId + '\'' +
+                '}';
+    }
+
+    public static AbandonedCartItem fromString(String s) {
+        AbandonedCartItem result = new AbandonedCartItem();
+
+        result.setTransactionId(getTextField(s, "transactionId"));
+        result.setTransactionTime(Long.parseLong(getField(s, "transactionTime")));
+        result.setCustomerId(getTextField(s, "customerId"));
+        result.setProductId(getTextField(s, "productId"));
+        return result;
+
     }
 }

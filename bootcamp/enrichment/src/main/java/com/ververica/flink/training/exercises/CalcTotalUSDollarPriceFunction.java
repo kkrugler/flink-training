@@ -2,7 +2,7 @@ package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.CurrencyRateAPI;
+import com.ververica.flink.training.common.CurrencyRateAPI;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
