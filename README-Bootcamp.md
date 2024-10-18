@@ -46,11 +46,10 @@ the programming exercises.
 Download the `flink-training-bootcamp.zip` archive, unpack it, and build it:
 
 ```bash
-mkdir /target/directory
-curl https://scaleunlimited.com/downloads/flink-training-bootcamp.zip -o flink-training-bootcamp.zip
-unzip -x flink-training-bootcamp.zip -d /target/directory
-cd /target/directory/
-./gradlew testSolutions
+git clone https://github.com/kkrugler/flink-training
+cd flink-training
+git checkout ff-2024
+./gradlew clean testSolutions
 ```
 
 If this is your first time building it, you will end up downloading all the dependencies for this Flink training
