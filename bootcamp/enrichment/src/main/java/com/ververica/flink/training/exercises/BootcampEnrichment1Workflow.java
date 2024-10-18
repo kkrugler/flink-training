@@ -19,7 +19,7 @@
 package com.ververica.flink.training.exercises;
 
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.KeyedWindowDouble;
+import com.ververica.flink.training.common.KeyedWindowDouble;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import com.ververica.flink.training.provided.SumDollarsAggregator;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;

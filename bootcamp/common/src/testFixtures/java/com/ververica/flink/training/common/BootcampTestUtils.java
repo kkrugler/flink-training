@@ -10,6 +10,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 public class BootcampTestUtils {
 
     public static final long START_TIME = 0;
+
     public static ShoppingCartRecord createShoppingCart(ShoppingCartGenerator generator, String country) {
         ShoppingCartRecord result = (ShoppingCartRecord)generator.createShoppingCart();
         result.setCountry(country);

@@ -31,6 +31,8 @@ public class AddProductInfoSolutionFunction extends KeyedCoProcessFunction<Strin
             out.collect(left);
         } else {
             // We need to wait for the product info record to arrive.
+            // Note this wouldn't be safe to do if the state backend was HeapMapState, and
+            // we had objectReuse enabled.
             pendingLeft.add(left);
         }
     }

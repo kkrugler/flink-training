@@ -1,4 +1,4 @@
-package com.ververica.flink.training.provided;
+package com.ververica.flink.training.common;
 
 public class KeyedWindowDouble {
     private String key;

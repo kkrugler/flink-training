@@ -43,7 +43,7 @@ public class BootcampEnrichmentWorkflowTestUtils {
         );
     }
 
-    private static double estimateSpend(List<ShoppingCartRecord> records, String transactionId, Duration currentRateTime) {
+    public static double estimateSpend(List<ShoppingCartRecord> records, String transactionId, Duration currentRateTime) {
         // Find the cart by transactionId.
         ShoppingCartRecord cartRecord = null;
         for (ShoppingCartRecord cart : records) {

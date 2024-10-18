@@ -1,6 +1,6 @@
 package com.ververica.flink.training.provided;
 
-import com.ververica.flink.training.provided.KeyedWindowDouble;
+import com.ververica.flink.training.common.KeyedWindowDouble;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;

@@ -2,17 +2,16 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.CurrencyConversionRecord;
-import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.provided.AddUSDollarEquivalentFunction;
 import com.ververica.flink.training.provided.ShoppingCartWithExchangeRate;
 import com.ververica.flink.training.provided.TrimmedShoppingCart;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
 
 import static org.apache.flink.table.api.Expressions.*;
 
@@ -24,10 +23,29 @@ public class BootcampTablesSolutionWorkflow {
     private Sink<TrimmedShoppingCart> resultsSink;
 
     public BootcampTablesSolutionWorkflow(StreamExecutionEnvironment env) {
-        this.env =env;
+        this.env = env;
+    }
+
+    public BootcampTablesSolutionWorkflow setCartStream(DataStream<TrimmedShoppingCart> shoppingCartStream) {
+        this.shoppingCartStream = shoppingCartStream;
+        return this;
+    }
+
+    public BootcampTablesSolutionWorkflow setExchangeRateStream(DataStream<CurrencyConversionRecord> exchangeRateStream) {
+        this.exchangeRateStream = exchangeRateStream;
+        return this;
+    }
+
+    public BootcampTablesSolutionWorkflow setResultsSink(Sink<TrimmedShoppingCart> resultsSink) {
+        this.resultsSink = resultsSink;
+        return this;
     }
 
     public void build() {
+        Preconditions.checkNotNull(shoppingCartStream, "shoppingCartStream must be set");
+        Preconditions.checkNotNull(exchangeRateStream, "exchangeRateStream must be set");
+        Preconditions.checkNotNull(resultsSink, "resultsSink must be set");
+
         // Set the "session timezone" to be UTC, so FROM_UNIXTIME generates
         // results in UTC.
         Configuration config = new Configuration();
@@ -80,17 +98,4 @@ public class BootcampTablesSolutionWorkflow {
         enrichedStream.sinkTo(resultsSink);
     }
 
-    private static class AddUSDollarEquivalentFunction implements MapFunction<ShoppingCartWithExchangeRate, TrimmedShoppingCart> {
-
-        @Override
-        public TrimmedShoppingCart map(ShoppingCartWithExchangeRate in) throws Exception {
-            TrimmedShoppingCart result = new TrimmedShoppingCart(in);
-
-            for (CartItem item : result.getItems()) {
-                item.setUsDollarEquivalent(item.getPrice() * in.getExchangeRate());
-            }
-
-            return result;
-        }
-    }
 }

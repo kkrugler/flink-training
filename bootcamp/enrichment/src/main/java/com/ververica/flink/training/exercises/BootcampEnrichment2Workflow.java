@@ -18,31 +18,19 @@
 
 package com.ververica.flink.training.exercises;
 
-import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.ProductInfoRecord;
 import com.ververica.flink.training.common.ProductRecord;
 import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.KeyedWindowDouble;
+import com.ververica.flink.training.common.KeyedWindowDouble;
 import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import com.ververica.flink.training.provided.SumWeightAggregator;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
-import java.util.Collections;
 
 /**
  * Solution to the second exercise in the eCommerce enrichment lab.
