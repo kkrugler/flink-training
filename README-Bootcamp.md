@@ -38,12 +38,10 @@ be installed on your system:
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
 
-### Download and build the flink-training-bootcamp project
+### Clone and build the flink-training-bootcamp project
 
-The `flink-training-bootcamp.zip` archive contains exercises, tests, and reference solutions for 
-the programming exercises.
-
-Download the `flink-training-bootcamp.zip` archive, unpack it, and build it:
+The `ff-2024` branch in the `flink-training` repo in GitHub contains exercises, tests, and reference solutions for 
+the programming exercises. To get started, you need to:
 
 ```bash
 git clone https://github.com/kkrugler/flink-training
