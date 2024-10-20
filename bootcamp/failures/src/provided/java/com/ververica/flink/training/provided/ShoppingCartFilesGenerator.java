@@ -13,6 +13,8 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * A utility class that we use to create a large set of files containing
@@ -25,18 +27,30 @@ public class ShoppingCartFilesGenerator {
 
     public static void main(String[] args) throws Exception {
         Path srcDir = Files.createTempDirectory("shopping-cart-files");
+        final long numRecords = 100_000;
+        final long numFiles = 1;
+        ShoppingCartGenerator generator = new ShoppingCartGenerator(START_TIME);
+        ShoppingCartFilesGenerator.generateFiles(generator, srcDir.toFile(), numRecords, numFiles, 0.1);
+
+        System.out.println("Generated files to " + srcDir);
+    }
+
+    public static void main2(String[] args) throws Exception {
+        Path srcDir = Files.createTempDirectory("shopping-cart-files");
         final long numRecords = 1_000;
         final long numFiles = 10;
         ShoppingCartGenerator generator = new ShoppingCartGenerator(START_TIME);
-        ShoppingCartFilesGenerator.generateFiles(generator, srcDir.toFile(), numRecords, numFiles);
+        ShoppingCartFilesGenerator.generateFiles(generator, srcDir.toFile(), numRecords, numFiles, 0.0);
 
     }
 
-    public static void generateFiles(ShoppingCartGenerator generator, File dir, long numRecords, long numFiles) throws Exception {
+    public static void generateFiles(ShoppingCartGenerator generator, File dir, long numRecords, long numFiles, double percentageAbandoned) throws Exception {
         Preconditions.checkArgument(numRecords > 0, "Num records must be > 0");
         Preconditions.checkArgument(numRecords >= numFiles, "Num records must be >= num files");
 
         dir.mkdirs();
+
+        Random rand = new Random(410);
 
         int fileIndex = 0;
         long recordsWritten = 0;
@@ -44,12 +58,16 @@ public class ShoppingCartFilesGenerator {
             fileIndex++;
             long recordsInFile = (numRecords - recordsWritten) / numFiles;
 
-            File out = new File(dir, String.format("file-%03d.txt", fileIndex));
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(out));
+            File out = new File(dir, String.format("file-%03d.gz", fileIndex));
+            GZIPOutputStream bos = new GZIPOutputStream(new FileOutputStream(out));
             WritableByteChannel channel = Channels.newChannel(bos);
 
             for (long i = 0; i < recordsInFile; i++) {
                 ShoppingCartRecord cart = generator.apply(recordsWritten++);
+                if ((percentageAbandoned > 0.0) && (rand.nextDouble() < percentageAbandoned)) {
+                    cart.setTransactionCompleted(false);
+                }
+
                 channel.write(StandardCharsets.UTF_8.encode(cart.toString()));
                 channel.write(StandardCharsets.UTF_8.encode("\n"));
             }

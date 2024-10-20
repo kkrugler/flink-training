@@ -21,6 +21,7 @@ package com.ververica.flink.training.provided;
 import com.ververica.flink.training.common.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -30,6 +31,7 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
+import java.util.logging.Filter;
 
 /**
  * Given a stream of AbandonedCartItem records, identify customers who seem to be
@@ -39,16 +41,16 @@ import java.time.Duration;
 @DoNotChangeThis
 public class BootcampDesignDetectionWorkflow {
 
-    private static final long DEFAULT_ABANDONED_LIMIT = 20;
+    private static final long DEFAULT_ABANDONED_LIMIT = 100;
 
-    private DataStream<String> abandonedStream;
+    private DataStream<AbandonedCartItem> abandonedStream;
     private Sink<KeyedWindowResult> resultSink;
     private long maxAbandonedPerHour = DEFAULT_ABANDONED_LIMIT;
 
     public BootcampDesignDetectionWorkflow() {
     }
 
-    public BootcampDesignDetectionWorkflow setAbandonedStream(DataStream<String> abandonedStream) {
+    public BootcampDesignDetectionWorkflow setAbandonedStream(DataStream<AbandonedCartItem> abandonedStream) {
         this.abandonedStream = abandonedStream;
         return this;
     }
@@ -72,9 +74,8 @@ public class BootcampDesignDetectionWorkflow {
         final long abandonedLimit = maxAbandonedPerHour;
 
         abandonedStream
-                .map(s -> AbandonedCartItem.fromString(s))
                 .keyBy(r -> r.getCustomerId())
-                .window(TumblingEventTimeWindows.of(Duration.ofHours(1)))
+                .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
                 .aggregate(new CountTransactionsAggregator(), new SetKeyAndTimeFunction())
                 .filter(r -> r.getResult() >= abandonedLimit)
                 .sinkTo(resultSink);

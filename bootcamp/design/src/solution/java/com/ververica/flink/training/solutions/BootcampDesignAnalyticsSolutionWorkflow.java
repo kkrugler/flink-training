@@ -22,8 +22,10 @@ import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.provided.AbandonedCartItem;
+import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -78,14 +80,13 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
         DataStream<ShoppingCartRecord> watermarked = cartStream
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
-                .filter(r -> r.isTransactionCompleted());
+                                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()));
 
         // Key by transactionId, and filter out completed transactions. Output
         // PendingCartItem(transactionId, transactionTime, customerId, productId) records.
         DataStream<AbandonedCartItem> uncompleted = watermarked
                 .keyBy(r -> r.getTransactionId())
-                .window(EventTimeSessionWindows.withGap(Duration.ofMinutes(1)))
+                .window(EventTimeSessionWindows.withGap(Duration.ofMinutes(5)))
                 .process(new FilterCompletedTransactions());
 
         // Send results to the provided sink.
@@ -150,10 +151,4 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
         }
     }
 
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
-        @Override
-        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
-            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
-        }
-    }
 }

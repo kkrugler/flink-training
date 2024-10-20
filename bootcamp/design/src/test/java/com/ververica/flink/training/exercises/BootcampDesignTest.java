@@ -22,6 +22,7 @@ import com.ververica.flink.training.common.FlinkClusterUtils;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.MockSink;
 import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.provided.AbandonedCartItem;
 import com.ververica.flink.training.provided.BootcampDesignDetectionWorkflow;
 import com.ververica.flink.training.solutions.BootcampDesignAnalyticsSolutionWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -73,13 +74,20 @@ public class BootcampDesignTest {
 
         ResultsSink analyticsResults = new ResultsSink();
 
-        // FIXME - create Paimon source
-        FileSource<String> abandonedSource = FileSource.forRecordStreamFormat(
-                new TextLineInputFormat("UTF-8"), resultsDir).build();
+        FileSource<String> abandonedSource = FileSource.forRecordStreamFormat(new TextLineInputFormat("UTF-8"), resultsDir)
+                .monitorContinuously(Duration.ofMillis(100))
+                .build();
+
+        // Create a watermarked stream of AbandonedCartItem records.
+        DataStream<AbandonedCartItem> abandonedStream = env2.fromSource(abandonedSource,
+                        WatermarkStrategy.noWatermarks(), "abandoned products")
+                .map(s -> AbandonedCartItem.fromString(s))
+                .assignTimestampsAndWatermarks(
+                        WatermarkStrategy.<AbandonedCartItem>forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()));
 
         new BootcampDesignDetectionWorkflow()
-                .setAbandonedStream(env2.fromSource(abandonedSource, WatermarkStrategy.noWatermarks(),
-                        "abandoned products"))
+                .setAbandonedStream(abandonedStream)
                 .setResultSink(analyticsResults)
                 .build();
 

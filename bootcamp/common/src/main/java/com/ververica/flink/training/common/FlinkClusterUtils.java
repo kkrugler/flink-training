@@ -21,6 +21,7 @@ package com.ververica.flink.training.common;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.*;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.environment.ExecutionCheckpointingOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.FileUtils;
 import org.slf4j.Logger;
@@ -123,6 +124,9 @@ public class FlinkClusterUtils {
                 checkpointPath =
                         Path.fromLocalFile(Files.createTempDirectory("flink-checkpoints").toFile());
             }
+            // Ensure that when a bounded source finishes, a final checkpoint happens, which will cause
+            // any pending sink output to flush.
+            flinkConfig.set(ExecutionCheckpointingOptions.ENABLE_CHECKPOINTS_AFTER_TASKS_FINISH, true);
 
             if (parameters.has("useRocksDB")) {
                 flinkConfig.set(StateBackendOptions.STATE_BACKEND, "rocksdb");
