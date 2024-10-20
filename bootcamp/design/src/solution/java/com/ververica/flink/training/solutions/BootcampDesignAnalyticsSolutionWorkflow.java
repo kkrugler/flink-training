@@ -27,6 +27,7 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -84,7 +85,7 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
         // PendingCartItem(transactionId, transactionTime, customerId, productId) records.
         DataStream<AbandonedCartItem> uncompleted = watermarked
                 .keyBy(r -> r.getTransactionId())
-                .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))
+                .window(EventTimeSessionWindows.withGap(Duration.ofMinutes(1)))
                 .process(new FilterCompletedTransactions());
 
         // Send results to the provided sink.
@@ -104,7 +105,6 @@ public class BootcampDesignAnalyticsSolutionWorkflow {
         @Override
         public void process(String transactionId, Context ctx, Iterable<ShoppingCartRecord> in, Collector<AbandonedCartItem> out) throws Exception {
             boolean foundCompleted = false;
-            Set<String> productIds = new HashSet<>();
             for (ShoppingCartRecord cart : in) {
                 if (cart.isTransactionCompleted()) {
                     foundCompleted = true;

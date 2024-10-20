@@ -75,6 +75,8 @@ public class BootcampDesignAnalyticsWorkflow {
 
         // Key by transactionId, and filter out completed transactions. Output
         // PendingCartItem(transactionId, transactionTime, customerId, productId) records.
+        // TODO - wait, is a one minute window all we need here??? Don't we want a session window, with
+        // a one minute gap
         DataStream<AbandonedCartItem> uncompleted = watermarked
                 .keyBy(r -> r.getTransactionId())
                 .window(TumblingEventTimeWindows.of(Duration.ofMinutes(1)))

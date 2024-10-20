@@ -24,14 +24,18 @@ import com.ververica.flink.training.common.ShoppingCartRecord;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple workflow example that filters stream to just completed transactions.
@@ -60,9 +64,14 @@ public class BootcampExampleWorkflow {
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
+                .uid("Assign Timestamps")
                 .disableChaining()
                 .filter(r -> r.isTransactionCompleted())
+                .name("filter to completed transactions")
+                .uid("FilterTransactions")
                 .disableChaining()
-                .sinkTo(resultSink);
+                .sinkTo(resultSink)
+                .name("Results sink")
+                .uid("Results sink");
     }
 }

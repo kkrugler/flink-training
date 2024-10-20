@@ -106,6 +106,11 @@ All of the `*Job` applications and `*WorkflowTest` JUnit
 tests will start a local Flink instance (aka `FlinkMiniCluster`). Because all the code is 
 running in one JVM that is started by your IDE, you can put breakpoints in your code for debugging.
 
+The first time you run each different JUnit test, a popup menu will appear with two run options: test and testSolutions.
+For your code, you should pick `test`. If you are running the unit test for a solution, pick `testSolutions`.
+
+![Selecting test task](images/selecting-test-action-intellij.png)
+
 Note that the local Flink instance will be serving Flink's Web UI at http://localhost:8081.
 If port 8081 is blocked and Flink won't start, or if the Web UI is not showing up, you can also
 configure and force the local mode via the `--local` program argument and set the port the
@@ -140,7 +145,8 @@ Each of these exercises include:
 - a JUnit Test class (`...Test`) with a few tests for your implementation
 - a `...Solution` class with a complete solution.
 
-If there are multiple exercises, the class name will be `...1Exercise`, `...2Exercise`, and so on.
+If there are multiple exercises for a workflow, the class name will be `Bootcamp<Module>1Workflow`, `Bootcamp<Module>2Workflow`, and so on. In this case,
+there will also be multiple solution classes (one per exercise), called `Bootcamp<Module>Solution1Workflow` and so on.
 
 You can run exercises, solutions, and tests with the `gradlew` command.
 
@@ -153,7 +159,7 @@ To run tests on all your exercise code:
 To run tests on just the exercises in one of the labs:
 
 ```bash
-./gradlew :bootcamp:<subproject>:test
+./gradlew :bootcamp:<module>:test
 ```
 
 Now you are ready to begin the lab exercises listed below. There are links to each lab's
