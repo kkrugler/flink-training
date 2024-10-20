@@ -38,8 +38,9 @@ For this first exercise, you can improve performance a few different ways:
   `ShoppingCartRecord` to this `TrimmedShoppingCart` as soon as possible.
 - Make sure this `TrimmedShoppingCart` is serializable as a POJO, and thus doesn't use the (slower)
   Kryo serializer. To test this, you can use Flink's `PojoTestUtils.assertSerializedAsPojoWithoutKryo()`
-  method. Note that you'll need to use the (provided) `@ListInfoFactory` annotation.
-- Modify the `ShoppingCartRecord` (in the common sub-project) to also use the `@ListInfoFactory` annotation.
+  method. Note that you'll need to use the `@TypeInfo` annotation with the (provided)
+  `ListInfoFactory`.
+- Modify the `ShoppingCartRecord` (in the common sub-project) to also use the `@TypeInfo` annotation.
 
 To test that your changes haven't broken anything, run the
 [BootcampSerializationWorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflowTest.java)
@@ -53,7 +54,7 @@ These changes are harder...
 - Use a simple structure for top two durations, versus a `PriorityQueue`. This won't change
   the throughput very much, but if you were trying to capture the top N transactions, and there
   were a lot of these, and you had frequent checkpoints, then it would become an issue.
-- (very hard) Use a KeyedProcessFunction to find transaction durations, versus Flink's session window
+- (very hard) Use a `KeyedProcessFunction` to find transaction durations, versus Flink's session window
   support. This is hard because you'll have to set timers yourself, and ensure that the event time
   for the records you generate is based on the end of the session, not the timer's time.
 

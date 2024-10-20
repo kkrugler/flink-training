@@ -1,8 +1,8 @@
 package com.ververica.flink.training.common;
 
+@DoNotChangeThis
 public class ProductInfoRecord {
     private long infoTime;
-
     private String productId;
     private String productName;
     private String category;

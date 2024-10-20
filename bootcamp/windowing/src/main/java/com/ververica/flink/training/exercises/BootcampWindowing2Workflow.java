@@ -18,18 +18,14 @@
 
 package com.ververica.flink.training.exercises;
 
-import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import java.time.Duration;
@@ -84,44 +80,13 @@ public class BootcampWindowing2Workflow {
                 .sinkTo(oneMinuteSink);
 
         // TODO - use a global window (unkeyed), generate results for a 5 minute window.
+        // You can take advantage of the provided OneMinuteWindowCountAggregator and
+        // SetTimeFunction classes.
         DataStream<WindowAllResult> fiveMinuteStream = null;
 
         fiveMinuteStream
                 .sinkTo(fiveMinuteSink);
 
-    }
-
-    private static class CountCartItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
-        @Override
-        public Long createAccumulator() {
-            return 0L;
-        }
-
-        @Override
-        public Long add(ShoppingCartRecord value, Long acc) {
-            for (CartItem item : value.getItems()) {
-                acc += item.getQuantity();
-            }
-
-            return acc;
-        }
-
-        @Override
-        public Long getResult(Long acc) {
-            return acc;
-        }
-
-        @Override
-        public Long merge(Long a, Long b) {
-            return a + b;
-        }
-    }
-
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
-        @Override
-        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
-            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
-        }
     }
 
 }

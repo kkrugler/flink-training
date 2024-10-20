@@ -3,6 +3,11 @@ package com.ververica.flink.training.common;
 import static com.ververica.flink.training.common.TextParseUtils.getField;
 import static com.ververica.flink.training.common.TextParseUtils.getTextField;
 
+/**
+ * A generic result type that has a key, a window start time, and
+ * a long value.
+ */
+@DoNotChangeThis
 public class KeyedWindowResult {
 
     private String key;

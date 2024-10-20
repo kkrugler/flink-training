@@ -7,6 +7,7 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
+@DoNotChangeThis
 public class BootcampTestUtils {
 
     public static final long START_TIME = 0;

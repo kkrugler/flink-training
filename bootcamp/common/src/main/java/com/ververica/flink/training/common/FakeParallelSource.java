@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  */
 @SuppressWarnings("serial")
+@DoNotChangeThis
 public class FakeParallelSource<T>
         implements Source<T, FakeParallelSource.NoOpSourceSplit, FakeParallelSource.NoOpEnumState> {
 

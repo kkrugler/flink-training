@@ -73,7 +73,7 @@ public class BootcampFailuresWorkflowTestUtils {
         // Wait until at least N checkpoints have happened (actually n-1), so that we know the sink
         // has had a commit call. We'll also bail out after 5 seconds, which could happen if checkpointing
         // isn't happening, or something has stalled out.
-        final int numCheckpoints = 2;
+        final int numCheckpoints = 3;
         File checkpointDir = new File(new URI(env.getConfiguration().get(CheckpointingOptions.CHECKPOINTS_DIRECTORY)));
         long endTime = System.currentTimeMillis() + Duration.ofSeconds(5).toMillis();
         while (!findCheckpointDir(checkpointDir, numCheckpoints) && (System.currentTimeMillis() < endTime)) {

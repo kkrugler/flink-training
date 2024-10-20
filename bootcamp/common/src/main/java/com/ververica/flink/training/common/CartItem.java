@@ -3,6 +3,7 @@ package com.ververica.flink.training.common;
 import static com.ververica.flink.training.common.TextParseUtils.getField;
 import static com.ververica.flink.training.common.TextParseUtils.getTextField;
 
+@DoNotChangeThis
 public class CartItem {
     private String productId;
     private int quantity;

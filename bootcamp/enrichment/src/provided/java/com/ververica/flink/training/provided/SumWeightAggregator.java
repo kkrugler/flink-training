@@ -1,8 +1,10 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.DoNotChangeThis;
 import com.ververica.flink.training.common.ProductRecord;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
+@DoNotChangeThis
 public class SumWeightAggregator implements AggregateFunction<ProductRecord, Double, Double> {
     @Override
     public Double createAccumulator() {

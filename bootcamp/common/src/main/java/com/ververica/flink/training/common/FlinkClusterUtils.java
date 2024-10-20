@@ -38,6 +38,7 @@ import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
 import static org.apache.flink.configuration.TaskManagerOptions.*;
 
 /** Common functionality to set up execution environments for the bootcamp training. */
+@DoNotChangeThis
 public class FlinkClusterUtils {
     private static final Logger LOG = LoggerFactory.getLogger(FlinkClusterUtils.class);
 

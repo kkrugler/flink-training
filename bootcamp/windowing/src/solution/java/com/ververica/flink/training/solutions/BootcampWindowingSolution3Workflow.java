@@ -23,6 +23,8 @@ import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
 import com.ververica.flink.training.exercises.BootcampWindowing3Workflow;
+import com.ververica.flink.training.provided.SetKeyAndTimeFunction;
+import com.ververica.flink.training.provided.SetTimeFunction;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -97,78 +99,6 @@ public class BootcampWindowingSolution3Workflow extends BootcampWindowing3Workfl
                 .windowAll(TumblingEventTimeWindows.of(Duration.ofMinutes(transactionWindowInMinutes)))
                 .aggregate(new FindLongestTransactions(), new EmitLongestTransactions())
                 .sinkTo(longestTransactionsSink);
-    }
-
-    // ========================================================================================
-    // Classes for doing aggregation to calculate per-1 minute item counts.
-    // ========================================================================================
-
-    private static class CountCartItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
-        @Override
-        public Long createAccumulator() {
-            return 0L;
-        }
-
-        @Override
-        public Long add(ShoppingCartRecord value, Long acc) {
-            for (CartItem item : value.getItems()) {
-                acc += item.getQuantity();
-            }
-
-            return acc;
-        }
-
-        @Override
-        public Long getResult(Long acc) {
-            return acc;
-        }
-
-        @Override
-        public Long merge(Long a, Long b) {
-            return a + b;
-        }
-    }
-
-    private static class SetTimeFunction extends ProcessAllWindowFunction<Long, WindowAllResult, TimeWindow> {
-
-        @Override
-        public void process(Context ctx, Iterable<Long> elements, Collector<WindowAllResult> out) throws Exception {
-            out.collect(new WindowAllResult(ctx.window().getStart(), elements.iterator().next()));
-        }
-    }
-
-    // ========================================================================================
-    // Classes for doing aggregation to calculate per-5 minute item counts, using the output
-    // of the 1-minute aggregation as input
-    // ========================================================================================
-
-    private static class OneMinuteWindowCountAggregator implements AggregateFunction<KeyedWindowResult, Long, Long> {
-        @Override
-        public Long createAccumulator() {
-            return 0L;
-        }
-
-        @Override
-        public Long add(KeyedWindowResult value, Long acc) {
-            return acc + value.getResult();
-        }
-
-        @Override
-        public Long getResult(Long acc) {
-            return acc;
-        }
-
-        @Override
-        public Long merge(Long a, Long b) {
-            return a + b;
-        }
-    }
-
-    private static class SetKeyAndTimeFunction extends ProcessWindowFunction<Long, KeyedWindowResult, String, TimeWindow> {
-        @Override
-        public void process(String key, Context ctx, Iterable<Long> elements, Collector<KeyedWindowResult> out) throws Exception {
-            out.collect(new KeyedWindowResult(key, ctx.window().getStart(), elements.iterator().next()));
-        }
     }
 
     // ========================================================================================

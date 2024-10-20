@@ -24,4 +24,5 @@ dependencies {
 
 sourceSets {
     main.java.srcDirs += 'src/solution/java'
+    main.java.srcDirs += 'src/provided/java'
 }

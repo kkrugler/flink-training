@@ -32,10 +32,13 @@ class to:
    tumbling (**not** sliding) windows of 1 minute.
 - Call `DataStream.aggregate()` with a Flink `AggregationFunction` and a
   `ProcessWindowFunction` to calculate the total number of cart items for
-  all the records found in each 1-minute/country window.
+  all the records found in each 1-minute/country window. You can use the [CountCartItemsAggregator](src/main/java/com/ververica/flink/training/exercises/CountCartItemsAggregator.java) 
+  class as the starting point for the aggregator, and the `SetKeyAndTimeFuntion` as-is for the `ProcessWindowFunction`.
 
 To test, run the [BootcampWindowing1WorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java)
 in IntelliJ.
+
+If you get stuck, classes for a working solution are located in the [provided](src/main/provided/com/ververica/flink/training/solutions/) directory.
 
 ## Exercise 2
 
@@ -52,8 +55,6 @@ class to calculate an additional result for completed transactions:
 - Call `DataStream.aggregate()` with a Flink `AggregationFunction` and a
   `ProcessWindowFunction` to calculate the total number of cart items for 
   all the records found in each 5-minute window (across all countries).
-- Generate a `KeyedWindowResult` record, where the key is the country, the time is
-  the start of the window, and the count is the number of items.
 
 To test, run the [BootcampWindowing2WorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampWindowing2WorkflowTest.java)
 in IntelliJ.
@@ -74,6 +75,8 @@ This one is tricky, as you'll first need to find transaction duration by:
    1 minute maximum gap between records to define a session.
  - Use `.aggregate` to track the min/max times, to find the bounds of a session.
  - Then do a `.windowAll`, and find the top 2 transactions (by duration).
+
+If you get stuck, the `BootcampWindowingSolution3Workflow` implements a working version.
 
 -----
 

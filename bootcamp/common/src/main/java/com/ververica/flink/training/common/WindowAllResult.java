@@ -4,6 +4,7 @@ package com.ververica.flink.training.common;
  * Class to save result from a .windowAll calculation, where there is no key,
  * just a window start time and a result.
  */
+@DoNotChangeThis
 public class WindowAllResult {
 
     private long time;

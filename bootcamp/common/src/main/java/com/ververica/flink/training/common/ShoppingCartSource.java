@@ -3,6 +3,7 @@ package com.ververica.flink.training.common;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
+@DoNotChangeThis
 public class ShoppingCartSource extends FakeParallelSource<ShoppingCartRecord> {
 
 

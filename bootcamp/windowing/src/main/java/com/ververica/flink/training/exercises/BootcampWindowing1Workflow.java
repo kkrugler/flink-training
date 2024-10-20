@@ -58,11 +58,10 @@ public class BootcampWindowing1Workflow {
 
         // TODO - filter out transactions out that are NOT completed.
 
-        // TODO - key by the country, then create 1 minute tumbling windows
+        // TODO - key by the country, then create 1 minute tumbling event time windows
 
-        // TODO - aggregate the count of items (don't forget about CartItem.quantity!)
-
-        // TODO - use a WindowProcessFunction to emit the desired KeyedWindowResult(country, window start time, count)
+        // TODO - aggregate the count of items using CountCartItemsAggregator, and
+        // SetKeyAndTimeFunction to set the desired KeyedWindowResult(country, window start time, count)
 
         // ==================================================================
         // Placeholder to get code to compile

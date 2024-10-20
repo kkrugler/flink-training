@@ -1,8 +1,11 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.DoNotChangeThis;
+
 import static com.ververica.flink.training.common.TextParseUtils.getField;
 import static com.ververica.flink.training.common.TextParseUtils.getTextField;
 
+@DoNotChangeThis
 public class AbandonedCartItem {
     private String transactionId;
     private long transactionTime;

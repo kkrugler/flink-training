@@ -2,6 +2,7 @@ package com.ververica.flink.training.common;
 
 import java.util.Date;
 
+@DoNotChangeThis
 public class CurrencyConversionRecord {
     private String exchangeRateCountry;
     private Date exchangeRateTime;

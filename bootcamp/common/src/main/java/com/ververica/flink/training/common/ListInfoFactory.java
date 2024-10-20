@@ -9,6 +9,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A ListInfoFactory that knows how to return TypeInformation for
+ * a List<E>. This can be used with fields in a class that would
+ * otherwise need to be serialized using Kryo.
+ *
+ * @param <E>
+ */
+@DoNotChangeThis
 public class ListInfoFactory<E> extends TypeInfoFactory<List<E>> {
 
     @Override

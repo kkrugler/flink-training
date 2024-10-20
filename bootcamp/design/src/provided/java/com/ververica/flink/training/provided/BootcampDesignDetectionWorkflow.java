@@ -18,10 +18,7 @@
 
 package com.ververica.flink.training.provided;
 
-import com.ververica.flink.training.common.CartItem;
-import com.ververica.flink.training.common.KeyedWindowResult;
-import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.common.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.connector.sink2.Sink;
@@ -39,6 +36,7 @@ import java.time.Duration;
  * engaged in product-boosting behavior, by adding a lot of products to carts
  * that are never completed (purchased).
  */
+@DoNotChangeThis
 public class BootcampDesignDetectionWorkflow {
 
     private static final long DEFAULT_ABANDONED_LIMIT = 20;

@@ -1,5 +1,10 @@
 package com.ververica.flink.training.common;
 
+/**
+ * Generic result type that has a key, a window start time, and a (double) value for
+ * the result.
+ */
+@DoNotChangeThis
 public class KeyedWindowDouble {
     private String key;
     private long time;

@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * for future conversion rates from a given currency to USD, at a
  * point in time at/after the provided <startTime>
  */
+@DoNotChangeThis
 public class CurrencyRateAPI {
 
     /**

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+@DoNotChangeThis
 public class ProductInfoGenerator implements SerializableFunction<Long, ProductInfoRecord> {
 
     public static final int NUM_UNIQUE_PRODUCTS = 20;

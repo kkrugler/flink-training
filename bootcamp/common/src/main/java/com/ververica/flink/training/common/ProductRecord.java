@@ -1,5 +1,6 @@
 package com.ververica.flink.training.common;
 
+@DoNotChangeThis
 public class ProductRecord {
     // Fields from ShoppingCartRecord that we need
     private String transactionId;

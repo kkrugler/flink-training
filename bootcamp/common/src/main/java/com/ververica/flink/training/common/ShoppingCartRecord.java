@@ -23,6 +23,8 @@ public class ShoppingCartRecord {
     private String shippingAddress;
     private double shippingCost;
     private String couponCode;
+    // TODO - you might want to use the @TypeInfo annotation to
+    // improve serialization performance.
     private List<CartItem> items;
 
     public ShoppingCartRecord() {

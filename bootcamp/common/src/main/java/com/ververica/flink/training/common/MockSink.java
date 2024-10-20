@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @param <T>
  */
 @SuppressWarnings("serial")
+@DoNotChangeThis
 public abstract class MockSink<T> implements Sink<T> {
 
     // Every extending class must implement this one method.

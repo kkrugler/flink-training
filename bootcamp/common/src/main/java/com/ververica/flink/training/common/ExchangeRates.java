@@ -3,6 +3,7 @@ package com.ververica.flink.training.common;
 import java.util.HashMap;
 import java.util.Map;
 
+@DoNotChangeThis
 public interface ExchangeRates {
 
     public static final Map<String, Double> STARTING_RATES = new HashMap<String, Double>() {{

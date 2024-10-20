@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * A generator that can be used with a FakeParallelSource to generate ShoppingCartRecords.
+ */
+@DoNotChangeThis
 public class ShoppingCartGenerator implements SerializableFunction<Long, ShoppingCartRecord> {
 
     private static final int MAX_ACTIVE_CARTS = 100;

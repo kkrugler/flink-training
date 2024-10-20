@@ -1,8 +1,10 @@
 package com.ververica.flink.training.provided;
 
+import com.ververica.flink.training.common.DoNotChangeThis;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 
+@DoNotChangeThis
 public class SumDollarsAggregator implements AggregateFunction<Tuple2<String, Double>, Double, Double> {
     @Override
     public Double createAccumulator() {
