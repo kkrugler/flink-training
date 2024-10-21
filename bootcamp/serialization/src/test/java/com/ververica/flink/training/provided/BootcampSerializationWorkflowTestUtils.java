@@ -20,6 +20,7 @@ public class BootcampSerializationWorkflowTestUtils {
         longestTransactionSink.reset();
 
         final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredTestEnvironment(2);
+
         workflow
                 .setCartStream(env.fromData(records).setParallelism(1))
                 .setOneMinuteSink(oneMinuteSink)

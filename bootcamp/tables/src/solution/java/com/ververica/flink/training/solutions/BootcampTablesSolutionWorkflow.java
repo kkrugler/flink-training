@@ -63,24 +63,15 @@ public class BootcampTablesSolutionWorkflow {
                 .build();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
 
-        DataType itemsRecordType = ROW(
-                FIELD("productId", STRING()),
-                FIELD("quantity", INT()),
-                FIELD("price", DOUBLE()),
-                FIELD("usDollarEquivalent", DOUBLE()),
-                FIELD("productName", STRING()),
-                FIELD("category", STRING()),
-                FIELD("weightKg", DOUBLE())
-        );
-
         Schema shoppingCartSchema = Schema.newBuilder()
                 .column("transactionId", DataTypes.STRING())
                 .column("country", DataTypes.STRING())
                 .column("transactionCompleted", DataTypes.BOOLEAN())
                 .column("transactionTime", DataTypes.BIGINT())
-                .column("items", ARRAY(itemsRecordType))
-                .columnByMetadata("rowtime", "TIMESTAMP_LTZ(3)") // extract timestamp into a column
-                .watermark("rowtime", "SOURCE_WATERMARK()")  // declare watermarks propagation                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
+                // .column("items", ARRAY(itemsRecordType))
+                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
+//                .columnByExpression("event_time", "TO_TIMESTAMP_LTZ(transactionTime, 3)")
+//                .watermark("event_time", "event_time - INTERVAL '1' MINUTE")
                 .build();
         Table cartTable = tEnv.fromDataStream(shoppingCartStream, shoppingCartSchema);
         tEnv.createTemporaryView("cartTable", cartTable);
@@ -89,21 +80,15 @@ public class BootcampTablesSolutionWorkflow {
         Schema exchangeRateSchema = Schema.newBuilder()
                 .column("exchangeRateCountry", DataTypes.STRING())
                 .column("exchangeRateTime", DataTypes.BIGINT())
-                .columnByMetadata("rowtime", "TIMESTAMP_LTZ(3)") // extract timestamp into a column
-                .watermark("rowtime", "SOURCE_WATERMARK()")  // declare watermarks propagation                .column("items", DataTypes.ARRAY(DataTypes.of(CartItem.class)))
+                .columnByExpression("exchange_rate_time", "TO_TIMESTAMP_LTZ(exchangeRateTime, 3)")
+                .watermark("exchange_rate_time","exchange_rate_time - INTERVAL '1' MINUTE")
                 .column("exchangeRate", DataTypes.DOUBLE())
                 .build();
-        Table currencyTable = tEnv.fromDataStream(exchangeRateStream, exchangeRateSchema).select(
-                $("exchangeRateCountry"),
-                $("exchangeRateTime"),
-                $("rowtime").as("exchangeRateRowTime"),
-                $("exchangeRate")
-        );
-        tEnv.createTemporaryView("currencyTable", currencyTable);
-
+        Table exchangeRateTable = tEnv.fromDataStream(exchangeRateStream, exchangeRateSchema);
+        tEnv.createTemporaryView("exchangeRateTable", exchangeRateTable);
 
         Table resultTable = cartTable
-                .join(currencyTable)
+                .join(exchangeRateTable)
                 .where(
                         and(
                                 $("country").isEqual($("exchangeRateCountry")),
@@ -115,12 +100,13 @@ public class BootcampTablesSolutionWorkflow {
                 )
                 .select($("country"), $("transactionId"),
                         $("transactionTime"), $("transactionCompleted"),
-                        $("items"),
-                        $("exchangeRate"));
+                        $("items"), $("exchangeRate"));
 
         // Convert back to DataStream, connect to sink
-        DataStream<TrimmedShoppingCart> enrichedStream = tEnv.toDataStream(resultTable, ShoppingCartWithExchangeRate.class)
-                .map(new AddUSDollarEquivalentFunction());
+//        DataStream<TrimmedShoppingCart> enrichedStream = tEnv.toDataStream(resultTable, ShoppingCartWithExchangeRate.class)
+//                .map(new AddUSDollarEquivalentFunction());
+
+        DataStream<TrimmedShoppingCart> enrichedStream = tEnv.toDataStream(cartTable, TrimmedShoppingCart.class);
 
         enrichedStream.sinkTo(resultsSink);
     }

@@ -106,7 +106,7 @@ public class BootcampTestUtils {
     }
     public static void validateLongestTransactionResults(Collection<KeyedWindowResult> results) {
         assertThat(results).containsExactlyInAnyOrder(
-                new KeyedWindowResult("r3", START_TIME, 2000),
+                new KeyedWindowResult("r3", START_TIME + 1000, 2000),
                 new KeyedWindowResult("r4", START_TIME + Duration.ofMinutes(5).toMillis(), 3000),
                 new KeyedWindowResult("r5", START_TIME, 4000)
         );

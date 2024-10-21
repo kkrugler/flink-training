@@ -26,8 +26,6 @@ class BootcampTablesSolutionWorkflowTest {
     private static final Date START_DATE = new Date(START_TIME);
 
     @Test
-    // FIXME - reenable
-    @Disabled
     public void testWorkflow() throws Exception {
         List<ShoppingCartRecord> fullCarts = BootcampTestUtils.makeCartRecords();
         List<TrimmedShoppingCart> trimmedCarts = new ArrayList<>();
@@ -55,6 +53,7 @@ class BootcampTablesSolutionWorkflowTest {
 
         client.cancel();
 
+        System.out.println(sink.getSink());
         // Validate we get the expected results.
         assertThat(sink.getSink()).containsExactlyInAnyOrder(
                 makeResultCart(trimmedCarts, "r3"),
