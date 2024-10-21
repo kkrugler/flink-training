@@ -1,31 +1,26 @@
-package com.ververica.flink.training.solutions;
+# Lab: Bootcamp Tables (Discussion)
 
-import com.ververica.flink.training.exercises.BootcampTablesWorkflow;
-import org.apache.flink.table.api.*;
-import org.apache.flink.util.Preconditions;
+## Exercise 1 Solution
 
-import java.time.Duration;
+See the [README](README.md#exercise-1) file for the steps.
 
-import static org.apache.flink.table.api.Expressions.*;
+To define the table schema...
 
-/**
- * Use the Table API to group by country and count transactions per minute
- */
-public class BootcampTablesSolutionWorkflow extends BootcampTablesWorkflow {
-
-    public BootcampTablesSolutionWorkflow(TableEnvironment tEnv) {
-        super(tEnv);
-    }
-
-    @Override
-    public Table build() {
+```java
         Schema schema = Schema.newBuilder()
                 .column("transactionId", DataTypes.BIGINT())
                 .column("customerId", DataTypes.BIGINT())
                 .column("transactionCompleted", DataTypes.BOOLEAN())
                 .column("transactionTime", DataTypes.BIGINT())
                 .build();
+```
 
+To create the table descriptor, we'll set a bunch of options for the `datagen`
+connector, then specify the schema via `.schema(schema)`, and build it. In order
+to set reasonable transaction times, we'll set the min/max based on the current
+system time.
+
+```java
         long startTime = System.currentTimeMillis();
         TableDescriptor tableDescriptor = TableDescriptor.forConnector("datagen")
                 .option("number-of-rows", "100")
@@ -37,10 +32,22 @@ public class BootcampTablesSolutionWorkflow extends BootcampTablesWorkflow {
                 .option("fields.transactionTime.max", Long.toString(startTime + Duration.ofMinutes(1).toMillis()))
                 .schema(schema)
                 .build();
+```
 
+In order to define a table based on the descriptor, we need to create a temporary table that
+gives it a name in the Table execution environment. Once we have this, we can create
+a Table object that we'll need to actually perform Table API operations.
+
+```java
         tEnv.createTemporaryTable("carts", tableDescriptor);
-        Table cartsTable = tEnv.from("carts");
+        Table cartsTable = tEnv.from("carts");=
+```
 
+Finally, we can use a `groupBy`, followed by a `select`, where we use the
+grouping field's `.count()` to get the count for each group, which we then
+rename as the `transaction_count`.
+
+```java
         Table resultTable = cartsTable
                 .groupBy($("customerId"))
                 .select(
@@ -48,7 +55,7 @@ public class BootcampTablesSolutionWorkflow extends BootcampTablesWorkflow {
                         $("customerId").count().as("transaction_count")
                 );
 
-        return resultTable;
-    }
+```
+-----
 
-}
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)
