@@ -43,7 +43,7 @@ For this first exercise, you can improve performance a few different ways:
 - Modify the `ShoppingCartRecord` (in the common sub-project) to also use the `@TypeInfo` annotation.
 
 To test that your changes haven't broken anything, run the
-[BootcampSerializationWorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflowTest.java)
+[BootcampSerializationWorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflowTest.java)
 in IntelliJ.
 
 ## Exercise 2
@@ -60,4 +60,4 @@ These changes are harder...
 
 -----
 
-[**Back to Bootcamp Overview**](../../README-bootcamp.md)
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)

@@ -33,7 +33,7 @@ to calculate the total value of all items in the shopping cart, normalized to
 US dollars.
 
 In order to do this, it makes use of a "Currency Exchange Rate" API
-that is provided by the [CurrencyRateAPI](src/provided/java/com/ververica/flink/training/provided/CurrencyRateAPI.java)
+that is provided by the [CurrencyRateAPI](../common/src/main/java/com/ververica/flink/training/common/CurrencyRateAPI.java)
 class. This simulates an external service, one that would typically be called via
 HTTP requests.
 
@@ -67,7 +67,7 @@ when calculating the total value of all items in the shopping cart, normalized t
 US dollars.
 
 This new function is the same as the old `CalcTotalUSDollarPriceFunction`, except
-that it (should) use a cache to avoid unnecessary lookups. Modify the
+that it (should) use a cache to avoid unnecessary look-ups. Modify the
 new version to support caching.
 
 You can test this via running the
@@ -75,4 +75,4 @@ You can test this via running the
 
 -----
 
-[**Back to eCommerce Overview**](../README.md)
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)

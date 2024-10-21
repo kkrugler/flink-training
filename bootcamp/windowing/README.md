@@ -35,10 +35,10 @@ class to:
   all the records found in each 1-minute/country window. You can use the [CountCartItemsAggregator](src/main/java/com/ververica/flink/training/exercises/CountCartItemsAggregator.java) 
   class as the starting point for the aggregator, and the `SetKeyAndTimeFuntion` as-is for the `ProcessWindowFunction`.
 
-To test, run the [BootcampWindowing1WorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java)
+To test, run the [BootcampWindowing1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java)
 in IntelliJ.
 
-If you get stuck, classes for a working solution are located in the [provided](src/main/provided/com/ververica/flink/training/solutions/) directory.
+If you get stuck, classes for a working solution are located in the [solution](src/solution/java/com/ververica/flink/training/solutions/) directory.
 
 ## Exercise 2
 
@@ -56,8 +56,10 @@ class to calculate an additional result for completed transactions:
   `ProcessWindowFunction` to calculate the total number of cart items for 
   all the records found in each 5-minute window (across all countries).
 
-To test, run the [BootcampWindowing2WorkflowTest](src/main/java/com/ververica/flink/training/exercises/BootcampWindowing2WorkflowTest.java)
+To test, run the [BootcampWindowing2WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampWindowing2WorkflowTest.java)
 in IntelliJ.
+
+If you get stuck, classes for a working solution are located in the [solution](src/solution/java/com/ververica/flink/training/solutions/) directory.
 
 ## Exercise 3
 
@@ -80,4 +82,4 @@ If you get stuck, the `BootcampWindowingSolution3Workflow` implements a working 
 
 -----
 
-[**Back to Bootcamp Overview**](../../README-bootcamp.md)
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)

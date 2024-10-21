@@ -39,7 +39,7 @@ is being spent doing serialization.
    ```java
    PojoTestUtils.assertSerializedAsPojoWithoutKryo(TrimmedShoppingCart.class);
    ```
-1. Modify the `ShoppingCartRecord` (in the common sub-project) to also use the `@ListInfoFactory`
+1. Modify the `ShoppingCartRecord` (in the common sub-project) to also use the `@TypeInfo` annotation.
 
 ## Exercise 2 Solutions
 
@@ -187,4 +187,4 @@ See the [README](README.md#exercise-2) file for the steps.
 
 -----
 
-[**Back to Bootcamp Overview**](../../README-bootcamp.md)
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)

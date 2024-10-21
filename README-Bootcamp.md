@@ -7,8 +7,8 @@ Exercises that accompany the training content in the documentation.
 [**Set up your development environment**](#set-up-your-development-environment)
 
 1. [Software requirements](#software-requirements)
-1. [Download and build the flink-training project](#download-and-build-the-flink-training-project)
-1. [Import the flink-training project into your IDE](#import-the-flink-training-project-into-your-ide)
+1. [Clone and build the flink-training project](#clone-and-build-the-flink-training-bootcamp-project)
+1. [Import the flink-training project into your IDE](#import-the-flink-training-bootcamp-project-into-your-ide)
 
 [**How to do the lab exercises**](#how-to-do-the-lab-exercises)
 
@@ -96,6 +96,10 @@ implementing your Flink streaming program, and executing your program in your ID
 
 We assume you have set up your development environment according to our
 [setup guide](#set-up-your-development-environment).
+
+**:information_source: Important Note:** Classes and methods annotated with `@DoNotChangeThis` should not be
+modified as part of any exercise. Doing so could cause issues with unit tests and/or
+future lab exercises.
 
 ### Run and debug Flink programs in your IDE
 

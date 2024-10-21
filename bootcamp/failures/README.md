@@ -9,7 +9,7 @@ workflow's sources & sinks to generate correct results even if the workflow fail
 ## Exercise 1
 
 Run the `testGettingCorrectResultsAfterFailure` test in the 
-[BootcampFailures1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampFailures1WorkflowTest.java).
+[BootcampFailures1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampFailuresWorkflowTest.java).
 It should fail, due to duplicate results being generated as a result of the
 workflow being restarted after a failure.
 
@@ -30,7 +30,7 @@ for exactly once.
 ## Exercise 2
 
 After completing Exercise 1, run the `testLatency` test in the
-[BootcampFailures1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampFailures1WorkflowTest.java).
+[BootcampFailures1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampFailuresWorkflowTest.java).
 It should succeed, and print out latency results that look something like:
 
 ```bash
@@ -43,4 +43,4 @@ that's being returned by the `BootcampFailuresConfig` class.
 
 -----
 
-[**Back to Bootcamp Overview**](../../README-bootcamp.md)
+[**Back to Bootcamp Overview**](../../README-Bootcamp.md)
