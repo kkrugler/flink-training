@@ -19,13 +19,26 @@ under the License.
 
 # Lab: eCommerce Workflow Design
 
-## Introduction
+## Exercise 1
 
-This lab is the hands-on part of the "Apache Flink Bootcamp" Workflow design
-training by Ververica. Please follow the [Setup Instructions](../../README-Bootcamp.md#setup-your-development-environment) first
-and then continue reading here.
+You'll start with the [BootcampDesignMamboWorkflow](src/provided/java/com/ververica/flink/training/provided/BootcampDesignMamboWorkflow.java),
+which is an example of a workflow that's gotten a bit too big for its own good. This workflow
+consumes a stream of ShoppingCartRecords, and generates two results. One is analytics,
+calculating the number of unique transactions per hour per customer. The second
+result is a "bogus shopper" detector, which calculates the number of abandoned
+products per customer per minute, and returns any that exceed a configurable limit.
 
-FIXME - fill out
+You need to split it into two separate workflows, one called `BootcampDesignAnalyticsWorkflow`,
+and the other called `BootcampDesignDetectionWorkflow` The first workflow generates
+both analytics results and abandoned cart item results.
+
+The second workflow takes as input the abandoned cart items, and generates
+bad customer results, using the logic already found in the mambo workflow.
+
+So you'll need to split the manbo workflow into two pieces, where the first workflow
+generates multiple results (both analytics and input to the detection workflow).
+
+To test, run the `testBridgingWorkflows` test in [BootcampDesignTest](src/test/java/com/ververica/flink/training/exercises/BootcampDesignTest.java)
 
 -----
 
