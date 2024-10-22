@@ -257,7 +257,7 @@ public class BootcampSerializationSolutionWorkflow extends BootcampSerialization
                 }
 
                 // If we just call out.collect(), the record's event time is set to the timer's timestamp. But
-                // that's not what we want, as this timer is for when we "close" a session, so it's some time
+                // that's not what we want, as this timer is for when we end a session, so it's some time
                 // after the end of the session. We need to do the funky cast of the collector to a TimestampedCollector,
                 // which lets us set the timestamp to use when we call collect.
                 TimestampedCollector<Tuple2<String, Long>> outWithTime = (TimestampedCollector)out;
