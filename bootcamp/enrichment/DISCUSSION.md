@@ -177,6 +177,15 @@ class CalcTotalUSDollarPriceWithCacheSolutionFunction extends CalcTotalUSDollarP
 }
 ```
 
+## More Optimizations
+
+1. Are there more caching optimizations we could do in the `CalcTotalUSDollarPriceWithCacheSolutionFunction`?
+1. What would happen if we called the `CalcTotalUSDollarPriceWithCacheSolutionFunction`
+   map function after we did `.keyBy(country)`? Would that help or hurt our performance?
+1. Assuming doing #1 above hurt, how could we adjust the workflow to mitigate
+   the impact of key skew?
+2. What would change if we used AsyncIO when calling the API?
+3. What would need to change if the API only returned current exchange rates?
 -----
 
 [**Back to Bootcamp Overview**](../../README-Bootcamp.md)
