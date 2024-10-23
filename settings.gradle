@@ -41,6 +41,7 @@ include 'bootcamp:enrichment'
 include 'bootcamp:example'
 include 'bootcamp:failures'
 include 'bootcamp:serialization'
+include 'bootcamp:state'
 include 'bootcamp:tables'
 include 'bootcamp:windowing'
 
