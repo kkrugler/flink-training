@@ -18,47 +18,43 @@
 
 package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.common.WindowAllResult;
 import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.OpenContext;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.connector.sink2.Sink;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
 import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
-import org.apache.flink.util.OutputTag;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+
+import com.ververica.flink.training.solutions.ECommerceRecord;
 
 /**
- *
+ * We want to take a stream of ShoppingCartRecords, and output
+ * them  as a TSV (tab separated value) text file, in sorted order.
+ * This means a global sort, and a single writer, for a batch
+ * Flink job. Normally this would be limited by the amount of
+ * memory available to do an in-memory sort, and constrained by
+ * the performance of a single CPU which is handling all of the
+ * data, but we'll illustrate several optimizations.
  */
 public class BootcampSortingSolutionWorkflow {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootcampSortingSolutionWorkflow.class);
 
-    protected DataStream<ShoppingCartRecord> cartStream;
+    protected DataStream<ECommerceRecord> cartStream;
     protected Sink<String> resultsSink;
 
     protected int maxParallelism = -1;
 
-    public BootcampSortingSolutionWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampSortingSolutionWorkflow setCartStream(DataStream<ECommerceRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
@@ -81,23 +77,13 @@ public class BootcampSortingSolutionWorkflow {
         final int reportNumber = 1;
         final int numReports = 5;
 
-        // List<OutputTag<Tuple2<String, ShoppingCartRecord>>> tags = new ArrayList<>();
+        // Do a map-side pre-sort, where we group records into "batches" that all
+        // share the same sorting key.
+        DataStream<BatchedCarts> batched = cartStream
+                .map(new CreateBatchedCarts(maxParallelism, reportNumber, numReports));
 
-//        for (int i = 1; i <= numReports; i++) {
-//            tags.add(new OutputTag<>("report-" + i));
-//        }
-
-        // Create a version of the record with a custom key that (a) has the all the
-        // records going to the same slot, and (b) sorts based on the country and then
-        // the customer.
-        DataStream<MyKeyClass> sortable = cartStream
-                .assignTimestampsAndWatermarks(
-                        WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()))
-                .map(new CreateKeyFunction(maxParallelism, reportNumber, numReports));
-
-        sortable
-                .keyBy(r -> r)
+        batched
+                .keyBy(r -> r.getKey())
                 .window(TumblingEventTimeWindows.of(Duration.ofDays(1000)))
                 .process(new ConvertToText())
                 .sinkTo(resultsSink);
@@ -142,14 +128,15 @@ public class BootcampSortingSolutionWorkflow {
             return result;
         }
     }
-    private static class CreateKeyFunction extends RichMapFunction<ShoppingCartRecord, MyKeyClass> {
+    private static class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, BatchedCarts> {
 
         private final int maxParallelism;
         private final int reportNumber;
         private final int numReports;
 
+        private transient Map<String, BatchedCarts.Builder> pendingBatches;
 
-        public CreateKeyFunction(int maxParallelism, int reportNumber, int numReports) {
+        public CreateBatchedCarts(int maxParallelism, int reportNumber, int numReports) {
             this.maxParallelism = maxParallelism;
             this.reportNumber = reportNumber;
             this.numReports = numReports;
@@ -157,12 +144,16 @@ public class BootcampSortingSolutionWorkflow {
 
         @Override
         public void open(OpenContext openContext) throws Exception {
+
         }
 
         @Override
-        public MyKeyClass map(ShoppingCartRecord in) throws Exception {
-            Integer key = makeKeyForOperatorIndex(maxParallelism, numReports, reportNumber - 1);
-            return new MyKeyClass(in, key);
+        public void flatMap(ECommerceRecord in, Collector<BatchedCarts> out) throws Exception {
+            // Get the key from the incoming record, and see if we already have a batch for it.
+            String keyTemplate = String.format("%s|%s|%%d", in.getCountry(), in.getPaymentMethod());
+            String key = makeKeyForOperatorIndex(keyTemplate, maxParallelism, numReports, reportNumber - 1);
+
+
         }
     }
 

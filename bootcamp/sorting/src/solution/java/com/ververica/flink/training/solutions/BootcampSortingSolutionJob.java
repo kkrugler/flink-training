@@ -19,6 +19,7 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.FlinkClusterUtils;
+import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.ShoppingCartSource;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.RuntimeExecutionMode;
@@ -27,9 +28,12 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ExecutionOptions;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
+
+import java.time.Duration;
 
 public class BootcampSortingSolutionJob {
 
@@ -48,8 +52,14 @@ public class BootcampSortingSolutionJob {
 
         final boolean bounded = numRecords != 0L;
         ShoppingCartSource source = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();
+
+        WatermarkStrategy<ShoppingCartRecord> wmStrategy = WatermarkStrategy
+                .<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime());
+
+        // TODO - support writing to a FileSink
         new BootcampSortingSolutionWorkflow()
-                .setCartStream(env.fromSource(source, WatermarkStrategy.noWatermarks(), "Shopping Cart Stream"))
+                .setCartStream(env.fromSource(source, wmStrategy, "Shopping Cart Stream"))
                 .setResultsSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .setMaxParallelism(maxParallelism)
                 .build();
