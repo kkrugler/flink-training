@@ -1,5 +1,7 @@
 package com.ververica.flink.training.solutions;
 
+import com.ververica.flink.training.common.ShoppingCartRecord;
+
 /*
  * A version of ShoppingCartRecord that only has the fields we use.
  */
@@ -18,7 +20,7 @@ public class ECommerceRecord {
 
     public ECommerceRecord() { }
 
-    public ECommerceRecord(ECommerceRecord base) {
+    public ECommerceRecord(ShoppingCartRecord base) {
         setCountry(base.getCountry());
         setPaymentMethod(base.getPaymentMethod());
         setTransactionId(base.getTransactionId());

@@ -18,20 +18,22 @@
 
 package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.FlinkClusterUtils;
-import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.common.ShoppingCartSource;
+import com.ververica.flink.training.common.*;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.connector.source.Source;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ExecutionOptions;
+import org.apache.flink.connector.base.source.hybrid.HybridSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.sink.v2.DiscardingSink;
+
+import com.ververica.flink.training.solutions.ECommerceRecord;
 
 import java.time.Duration;
 
@@ -39,7 +41,7 @@ public class BootcampSortingSolutionJob {
 
     public static void main(String[] args) throws Exception {
         final boolean discarding = false; // We always want to discard, to avoid performance impact from printing.
-        final int parallelism = 2;
+        final int parallelism = 5;
         final long numRecords = 1_000; // Set to 0 for unbounded source
         final int maxParallelism = 400;
 
@@ -51,20 +53,36 @@ public class BootcampSortingSolutionJob {
         env.setMaxParallelism(maxParallelism);
 
         final boolean bounded = numRecords != 0L;
-        ShoppingCartSource source = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();
+        ShoppingCartSource realSource = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();
+        FakeParallelSource<ShoppingCartRecord> endSource = new FakeParallelSource<ShoppingCartRecord>(parallelism, 0, true, new EndRecordGenerator());
 
-        WatermarkStrategy<ShoppingCartRecord> wmStrategy = WatermarkStrategy
-                .<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                .withTimestampAssigner((element, timestamp) -> element.getTransactionTime());
+        HybridSource<ShoppingCartRecord> realPlusEnd = HybridSource.builder()
+                .addSource(realSource)
+                .addSource(endSource)
+                .build();
+
+        DataStream<ECommerceRecord> records = env.fromSource(realPlusEnd, WatermarkStrategy.noWatermarks(), "Shopping Cart Stream")
+                .map(r -> new ECommerceRecord(r));
 
         // TODO - support writing to a FileSink
         new BootcampSortingSolutionWorkflow()
-                .setCartStream(env.fromSource(source, wmStrategy, "Shopping Cart Stream"))
+                .setCartStream(records)
                 .setResultsSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .setMaxParallelism(maxParallelism)
                 .build();
 
         JobExecutionResult jobResult = env.execute("BootcampSortingSolutionJob");
+    }
+
+    private static class EndRecordGenerator implements SerializableFunction<Long, ShoppingCartRecord> {
+
+        @Override
+        public ShoppingCartRecord apply(Long aLong) {
+            ShoppingCartRecord result = new ShoppingCartRecord();
+            result.setCountry(null);
+            result.setPaymentMethod(null);
+            return result;
+        }
     }
 
 }

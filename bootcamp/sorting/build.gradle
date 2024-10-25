@@ -20,6 +20,8 @@ apply plugin: 'application'
 dependencies {
     implementation project(path: ':bootcamp:common')
     testImplementation testFixtures(project(path: ':bootcamp:common'))
+
+    implementation "org.apache.flink:flink-connector-base:${flinkVersion}"
 }
 
 sourceSets {

@@ -21,19 +21,18 @@ package com.ververica.flink.training.solutions;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.ververica.flink.training.solutions.ECommerceRecord;
 
@@ -79,62 +78,24 @@ public class BootcampSortingSolutionWorkflow {
 
         // Do a map-side pre-sort, where we group records into "batches" that all
         // share the same sorting key.
-        DataStream<BatchedCarts> batched = cartStream
-                .map(new CreateBatchedCarts(maxParallelism, reportNumber, numReports));
+        DataStream<Tuple2<String, BatchedCarts>> batched = cartStream
+                .flatMap(new CreateBatchedCarts(maxParallelism, reportNumber, numReports));
 
         batched
-                .keyBy(r -> r.getKey())
-                .window(TumblingEventTimeWindows.of(Duration.ofDays(1000)))
+                .partitionCustom(r -> r.get)
+                .keyBy(t -> t.f0)
                 .process(new ConvertToText())
                 .sinkTo(resultsSink);
     }
 
-    private static class MyKeyClass implements Comparable<MyKeyClass> {
-        private final ShoppingCartRecord cart;
-        private final Integer partitionKey;
-
-        public MyKeyClass(ShoppingCartRecord cart, Integer partitionKey) {
-            this.cart = cart;
-            this.partitionKey = partitionKey;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-
-            if (o == null || getClass() != o.getClass()) return false;
-
-            MyKeyClass that = (MyKeyClass) o;
-//            return cart.getCountry().equals(that.cart.getCountry());
-            return partitionKey == that.partitionKey;
-        }
-
-        @Override
-        public int hashCode() {
-            // Used for partitioning, so we use the calculated value.
-            return partitionKey.hashCode();
-        }
-
-        @Override
-        public int compareTo(MyKeyClass o) {
-            int result = Integer.compare(partitionKey, o.partitionKey);
-//            if (result == 0) {
-//                result = cart.getCountry().compareTo(o.cart.getCountry());
-//            }
-//            if (result == 0) {
-//                result = cart.getPaymentMethod().compareTo(o.cart.getPaymentMethod());
-//            }
-
-            return result;
-        }
-    }
-    private static class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, BatchedCarts> {
+    private static class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, Tuple2<String, BatchedCarts>> {
 
         private final int maxParallelism;
         private final int reportNumber;
         private final int numReports;
 
         private transient Map<String, BatchedCarts.Builder> pendingBatches;
+        private transient int totalBatchedRecords;
 
         public CreateBatchedCarts(int maxParallelism, int reportNumber, int numReports) {
             this.maxParallelism = maxParallelism;
@@ -144,38 +105,47 @@ public class BootcampSortingSolutionWorkflow {
 
         @Override
         public void open(OpenContext openContext) throws Exception {
-
+            pendingBatches = new HashMap<>();
+            totalBatchedRecords = 0;
         }
 
         @Override
-        public void flatMap(ECommerceRecord in, Collector<BatchedCarts> out) throws Exception {
+        public void flatMap(ECommerceRecord in, Collector<Tuple2<String, BatchedCarts>> out) throws Exception {
+            if ((in.getCountry() == null) && (in.getPaymentMethod() == null)) {
+                for (String key : pendingBatches.keySet()) {
+                    out.collect(Tuple2.of(key, pendingBatches.get(key).build()));
+                }
+
+                return;
+            }
+
             // Get the key from the incoming record, and see if we already have a batch for it.
             String keyTemplate = String.format("%s|%s|%%d", in.getCountry(), in.getPaymentMethod());
             String key = makeKeyForOperatorIndex(keyTemplate, maxParallelism, numReports, reportNumber - 1);
 
-
-        }
-    }
-
-    private static class ConvertToText extends ProcessWindowFunction<MyKeyClass, String, MyKeyClass, TimeWindow> {
-
-        @Override
-        public void process(MyKeyClass key, Context ctx, Iterable<MyKeyClass> elements, Collector<String> out) throws Exception {
-            System.out.println("Starting group for: " + key.cart.getCountry() + "|" + key.cart.getPaymentMethod());
-
-            int numEntries = 0;
-            for (MyKeyClass in : elements) {
-                numEntries++;
-                ShoppingCartRecord cart = in.cart;
-                out.collect(String.format("%s\t%s\t%s\n",
-                        cart.getCountry(), cart.getPaymentMethod(), cart.getTransactionId()));
-
+            BatchedCarts.Builder builder = pendingBatches.get(totalBatchedRecords);
+            if (builder == null) {
+                builder = new BatchedCarts.Builder();
+                pendingBatches.put(key, builder);
             }
 
-            System.out.println("Group size: " + numEntries);
+            builder.add(in);
 
+            // TODO - flush based on max count. Can we use LRU to figure out which one to flush?
+            // We could have linked list of keys acting as LRU.
+            totalBatchedRecords++;
         }
 
+    }
+
+    private static class ConvertToText extends KeyedProcessFunction<String, Tuple2<String, BatchedCarts>, String> {
+
+        @Override
+        public void processElement(Tuple2<String, BatchedCarts> in, Context ctx, Collector<String> out) throws Exception {
+            for (ECommerceRecord record : in.f1) {
+                out.collect(record.toString());
+            }
+        }
     }
 
     private static Integer makeKeyForOperatorIndex(int maxParallelism, int parallelism,
