@@ -46,7 +46,7 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
             }
         } else {
             numBatches++;
-            totalRecords += in.f1.getNumCarts();
+            totalRecords += in.f1.size();
 
             // TODO - add BatchedCarts to merge-sort dataset
             for (ECommerceRecord record : in.f1) {

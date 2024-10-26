@@ -15,7 +15,7 @@ class BatchedCartsTest {
 
     @Test
     public void testBuildAndIterator() throws Exception {
-        BatchedCarts.Builder builder = new BatchedCarts.Builder();
+        BatchedCarts.Builder builder = new BatchedCarts.Builder(new ReportByCountrySortByShippingCost());
         assertEquals(0, builder.getNumCarts());
 
         long recordIndex = 0;
@@ -44,7 +44,7 @@ class BatchedCartsTest {
 
         BatchedCarts batched = builder.build();
         assertEquals("US", batched.getKey());
-        assertEquals(2, batched.getNumCarts());
+        assertEquals(2, batched.size());
 
         List<ECommerceRecord> results = new ArrayList<>();
         batched.iterator().forEachRemaining(r -> results.add(r));

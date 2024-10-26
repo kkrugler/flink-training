@@ -37,7 +37,7 @@ import java.util.*;
 public class BootcampSortingSolutionJob {
 
     public static void main(String[] args) throws Exception {
-        final boolean discarding = true; // We always want to discard, to avoid performance impact from printing.
+        final boolean discarding = true;
         final int numReports = 5;
         final long numRecords = 100_000;
         final int maxParallelism = 400;
