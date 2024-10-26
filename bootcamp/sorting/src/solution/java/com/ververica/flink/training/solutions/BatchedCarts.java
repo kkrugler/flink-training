@@ -10,33 +10,46 @@ import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
-import com.ververica.flink.training.solutions.ECommerceRecord;
+import com.ververica.flink.training.provided.ECommerceRecord;
+import org.apache.flink.util.CloseableIterator;
 
+/**
+ * A set of carts that share a common key, where we compress the
+ * carts using Gzip to reduce record size and thus
+ */
 public class BatchedCarts implements Iterable<ECommerceRecord> {
-    private String country;
-    private String paymentMethod;
+    private String key;
+    private int numCarts;
     private byte[] compressedCarts;
 
     public BatchedCarts() {}
 
-    public String getCountry() {
-        return country;
+    public BatchedCarts(String key, int numCarts, byte[] compressedCarts) {
+        this.key = key;
+        this.numCarts = numCarts;
+        this.compressedCarts = compressedCarts;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
+    public String getKey() {
+        return key;
     }
 
-    public String getPaymentMethod() {
-        return paymentMethod;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public int getNumCarts() {
+        return numCarts;
+    }
+
+    public void setNumCarts(int numCarts) {
+        this.numCarts = numCarts;
     }
 
     public byte[] getCompressedCarts() {
@@ -49,35 +62,96 @@ public class BatchedCarts implements Iterable<ECommerceRecord> {
 
     @Override
     public Iterator<ECommerceRecord> iterator() {
-        return new Iterator<ECommerceRecord>() {
+        return new CloseableIterator<ECommerceRecord>() {
+
+            int curCount = 0;
+            DataInputStream dis = new DataInputStream(makeGZIPInputStream(compressedCarts));
+
             @Override
             public boolean hasNext() {
-                return false;
+                return curCount < numCarts;
             }
 
             @Override
             public ECommerceRecord next() {
-                return null;
+                if (curCount >= numCarts) {
+                    throw new NoSuchElementException();
+                }
+
+                curCount++;
+
+                try {
+                    ECommerceRecord result = new ECommerceRecord();
+                    result.read(dis);
+                    return result;
+                } catch (IOException e) {
+                    throw new RuntimeException("Corrupt data", e);
+                }
+
             }
+
+            @Override
+            public void close() throws Exception {
+                dis.close();
+            }
+
         };
+    }
+
+    private static InputStream makeGZIPInputStream(byte[] data) {
+        try {
+            return new GZIPInputStream(new ByteArrayInputStream(data));
+        } catch (IOException e) {
+            throw new RuntimeException("Impossible exception", e);
+        }
     }
 
     public static class Builder {
 
-        private int numCarts = 0;
+        private String key;
+        private int numCarts;
+        private DataOutputStream compressedDOS;
+        private ByteArrayOutputStream compressedBytes;
 
-        public Builder() {}
+        public Builder() {
+            compressedBytes = new ByteArrayOutputStream();
+
+            try {
+                compressedDOS = new DataOutputStream(new GZIPOutputStream(compressedBytes, true));
+            } catch (IOException e) {
+                throw new RuntimeException("Impossible exception", e);
+            }
+
+            numCarts = 0;
+        }
 
         public int getNumCarts() {
             return numCarts;
         }
 
-        public void add(ECommerceRecord in) {
+        public void add(ECommerceRecord in) throws IOException {
+            // TODO - Use KeySelector
+            String addedKey = in.getCountry();
+            if (numCarts == 0) {
+                key = addedKey;
+            } else if (!key.equals(addedKey)) {
+                throw new IllegalArgumentException("Key doesn't match batch!");
+            }
+
+            in.write(compressedDOS);
+
             numCarts++;
         }
 
+        // TODO - would it help to sort each batch before building?
         public BatchedCarts build() {
-            return null;
+            try {
+                compressedDOS.close();
+            } catch (IOException e) {
+                throw new RuntimeException("Error flushing output streams", e);
+            }
+
+            return new BatchedCarts(key, numCarts, compressedBytes.toByteArray());
         }
     }
 }

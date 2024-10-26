@@ -19,22 +19,16 @@
 package com.ververica.flink.training.solutions;
 
 import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.functions.Partitioner;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.ververica.flink.training.solutions.ECommerceRecord;
+import com.ververica.flink.training.provided.ECommerceRecord;
 
 /**
  * We want to take a stream of ShoppingCartRecords, and output
@@ -50,6 +44,7 @@ public class BootcampSortingSolutionWorkflow {
 
     protected DataStream<ECommerceRecord> cartStream;
     protected Sink<String> resultsSink;
+    protected int numReports = -1;
 
     protected int maxParallelism = -1;
 
@@ -68,83 +63,45 @@ public class BootcampSortingSolutionWorkflow {
         return this;
     }
 
+    public BootcampSortingSolutionWorkflow setNumReports(int numReports) {
+        this.numReports = numReports;
+        return this;
+    }
+
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultsSink, "resultsSink must be set");
         Preconditions.checkArgument(maxParallelism > 0, "Max parallelism must be set");
 
         final int reportNumber = 1;
-        final int numReports = 5;
+
+        Preconditions.checkArgument(numReports > 0);
+        Preconditions.checkArgument(reportNumber >= 1);
+        Preconditions.checkArgument(reportNumber <= numReports);
+
+        ReportBy reportBy = new ReportByCountrySortByShippingCost();
 
         // Do a map-side pre-sort, where we group records into "batches" that all
-        // share the same sorting key.
-        DataStream<Tuple2<String, BatchedCarts>> batched = cartStream
-                .flatMap(new CreateBatchedCarts(maxParallelism, reportNumber, numReports));
+        // share the same top-level sorting key.
+        int reportKey = 0; // makeKeyForOperatorIndex(maxParallelism, numReports, reportNumber);
+        DataStream<Tuple2<Integer, BatchedCarts>> batched = cartStream
+                .flatMap(new CreateBatchedCarts(reportKey, reportBy));
 
         batched
-                .partitionCustom(r -> r.get)
-                .keyBy(t -> t.f0)
-                .process(new ConvertToText())
-                .sinkTo(resultsSink);
+                .partitionCustom(new PartitionByReport(), t -> t.f0)
+                .process(new MergeSortRecords(reportBy))
+                .setParallelism(numReports)
+                .map(r -> r.toString())
+                .setParallelism(numReports)
+                .sinkTo(resultsSink)
+                .setParallelism(numReports);
     }
 
-    private static class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, Tuple2<String, BatchedCarts>> {
-
-        private final int maxParallelism;
-        private final int reportNumber;
-        private final int numReports;
-
-        private transient Map<String, BatchedCarts.Builder> pendingBatches;
-        private transient int totalBatchedRecords;
-
-        public CreateBatchedCarts(int maxParallelism, int reportNumber, int numReports) {
-            this.maxParallelism = maxParallelism;
-            this.reportNumber = reportNumber;
-            this.numReports = numReports;
-        }
+    private static class PartitionByReport implements Partitioner<Integer> {
 
         @Override
-        public void open(OpenContext openContext) throws Exception {
-            pendingBatches = new HashMap<>();
-            totalBatchedRecords = 0;
-        }
-
-        @Override
-        public void flatMap(ECommerceRecord in, Collector<Tuple2<String, BatchedCarts>> out) throws Exception {
-            if ((in.getCountry() == null) && (in.getPaymentMethod() == null)) {
-                for (String key : pendingBatches.keySet()) {
-                    out.collect(Tuple2.of(key, pendingBatches.get(key).build()));
-                }
-
-                return;
-            }
-
-            // Get the key from the incoming record, and see if we already have a batch for it.
-            String keyTemplate = String.format("%s|%s|%%d", in.getCountry(), in.getPaymentMethod());
-            String key = makeKeyForOperatorIndex(keyTemplate, maxParallelism, numReports, reportNumber - 1);
-
-            BatchedCarts.Builder builder = pendingBatches.get(totalBatchedRecords);
-            if (builder == null) {
-                builder = new BatchedCarts.Builder();
-                pendingBatches.put(key, builder);
-            }
-
-            builder.add(in);
-
-            // TODO - flush based on max count. Can we use LRU to figure out which one to flush?
-            // We could have linked list of keys acting as LRU.
-            totalBatchedRecords++;
-        }
-
-    }
-
-    private static class ConvertToText extends KeyedProcessFunction<String, Tuple2<String, BatchedCarts>, String> {
-
-        @Override
-        public void processElement(Tuple2<String, BatchedCarts> in, Context ctx, Collector<String> out) throws Exception {
-            for (ECommerceRecord record : in.f1) {
-                out.collect(record.toString());
-            }
+        public int partition(Integer key, int numPartitions) {
+            return key % numPartitions;
         }
     }
 
@@ -167,45 +124,6 @@ public class BootcampSortingSolutionWorkflow {
         throw new RuntimeException(String.format(
                 "Unable to find key for target operator index %d (max parallelism = %d, parallelism = %d",
                 operatorIndex, maxParallelism, parallelism));
-    }
-
-    /*
-     * Return an String key that will get partitioned to the target <operatorIndex>, given the workflow's
-     * <maxParallelism> (for key groups) and the operator <parallelism>.
-     *
-     * @param format - format for key that we'll append to (must have one %d param in it)
-     * @param maxParallelism
-     * @param parallelism
-     * @param operatorIndex
-     * @return Integer suitable for use in a record as the key.
-     */
-    public static String makeKeyForOperatorIndex(String format, int maxParallelism, int parallelism,
-                                                 int operatorIndex) {
-        if (!format.contains("%d")) {
-            throw new IllegalArgumentException("Format string must contain %d");
-        }
-
-        if (maxParallelism == ExecutionConfig.PARALLELISM_AUTO_MAX) {
-            maxParallelism = KeyGroupRangeAssignment.computeDefaultMaxParallelism(parallelism);
-        }
-
-        for (int i = 0; i < maxParallelism * 2; i++) {
-            String key = String.format(format, i);
-            int index = getOperatorIndexForKey(key, maxParallelism, parallelism);
-            if (index == operatorIndex) {
-                return key;
-            }
-        }
-
-        throw new RuntimeException(String.format(
-                "Unable to find key for target operator index %d (max parallelism = %d, parallelism = %d",
-                operatorIndex, maxParallelism, parallelism));
-    }
-
-    public static int getOperatorIndexForKey(String key, int maxParallelism, int parallelism) {
-        int keyGroup = KeyGroupRangeAssignment.assignToKeyGroup(key, maxParallelism);
-        return KeyGroupRangeAssignment.computeOperatorIndexForKeyGroup(maxParallelism,
-                parallelism, keyGroup);
     }
 
 }
