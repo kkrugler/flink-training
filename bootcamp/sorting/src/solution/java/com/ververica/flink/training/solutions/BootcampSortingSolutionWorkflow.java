@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.ververica.flink.training.provided.ECommerceRecord;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * We want to take a stream of ShoppingCartRecords, and output
  * them  as a TSV (tab separated value) text file, in sorted order.
@@ -44,7 +47,7 @@ public class BootcampSortingSolutionWorkflow {
 
     protected DataStream<ECommerceRecord> cartStream;
     protected Sink<String> resultsSink;
-    protected int numReports = -1;
+    protected List<ReportBy> reports = new ArrayList<>();
 
     protected int maxParallelism = -1;
 
@@ -63,8 +66,8 @@ public class BootcampSortingSolutionWorkflow {
         return this;
     }
 
-    public BootcampSortingSolutionWorkflow setNumReports(int numReports) {
-        this.numReports = numReports;
+    public BootcampSortingSolutionWorkflow addReport(ReportBy reportBy) {
+        this.reports.add(reportBy);
         return this;
     }
 
@@ -73,25 +76,19 @@ public class BootcampSortingSolutionWorkflow {
         Preconditions.checkNotNull(resultsSink, "resultsSink must be set");
         Preconditions.checkArgument(maxParallelism > 0, "Max parallelism must be set");
 
-        final int reportNumber = 1;
-
+        final int numReports = reports.size();
         Preconditions.checkArgument(numReports > 0);
-        Preconditions.checkArgument(reportNumber >= 1);
-        Preconditions.checkArgument(reportNumber <= numReports);
-
-        ReportBy reportBy = new ReportByCountrySortByShippingCost();
 
         // Do a map-side pre-sort, where we group records into "batches" that all
         // share the same top-level sorting key.
-        int reportKey = 0; // makeKeyForOperatorIndex(maxParallelism, numReports, reportNumber);
         DataStream<Tuple2<Integer, BatchedCarts>> batched = cartStream
-                .flatMap(new CreateBatchedCarts(reportKey, reportBy));
+                .flatMap(new CreateBatchedCarts(reports));
 
         batched
                 .partitionCustom(new PartitionByReport(), t -> t.f0)
-                .process(new MergeSortRecords(reportBy))
+                .process(new MergeSortRecords(reports))
                 .setParallelism(numReports)
-                .map(r -> r.toString())
+                .flatMap(new CreateTSVRecord())
                 .setParallelism(numReports)
                 .sinkTo(resultsSink)
                 .setParallelism(numReports);

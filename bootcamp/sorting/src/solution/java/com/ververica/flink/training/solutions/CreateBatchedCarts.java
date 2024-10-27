@@ -8,32 +8,38 @@ import org.apache.flink.util.Collector;
 
 import java.util.*;
 
+/**
+ *
+ */
 public class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, Tuple2<Integer, BatchedCarts>> {
 
     private static final int MAX_BATCHED_RECORDS = 1000;
 
-    private final Integer reportKey;
-    private final ReportBy reportBy;
+    private final List<ReportBy> reports;
 
+    // TODO - just have one batch per report, not one per key
     private transient Map<String, BatchedCarts.Builder> pendingBatches;
-    private transient LinkedHashMap<String, Void> keyLRU;
     private transient int totalBatchedRecords;
 
-    public CreateBatchedCarts(int reportKey, ReportBy reportBy) {
-        this.reportKey = reportKey;
-        this.reportBy = reportBy;
+    public CreateBatchedCarts(List<ReportBy> reports) {
+        this.reports = reports;
     }
 
     @Override
     public void open(OpenContext openContext) throws Exception {
-        pendingBatches = new HashMap<>();
+        pendingBatches = new LinkedHashMap<>(1000, 0.75f, true);
         totalBatchedRecords = 0;
-        keyLRU = new LinkedHashMap<>(1000, 0.75f, true);
+
+        // TODO - track pending batched records per report
+        // TODO - calc per-report limit, equal to max total / number of reports.
     }
 
     @Override
     public void flatMap(ECommerceRecord in, Collector<Tuple2<Integer, BatchedCarts>> out) throws Exception {
-        String newKey = reportBy.getKey(in);
+        // TODO - for each report, call method with code below to handle it.
+        // reportKey is 0...n-1
+        final int reportKey = 0;
+        String newKey = reports.get(0).getKey(in);
         if (newKey == null) {
             pendingBatches.forEach((k, v) -> out.collect(Tuple2.of(reportKey, v.build())));
             pendingBatches.clear();
@@ -45,29 +51,21 @@ public class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, Tup
         }
 
         // Get the key from the incoming record, and see if we already have a batch for it.
-
-        keyLRU.get(newKey);
         BatchedCarts.Builder builder = pendingBatches.get(newKey);
         if (builder == null) {
             builder = new BatchedCarts.Builder(new ReportByCountrySortByShippingCost());
             pendingBatches.put(newKey, builder);
-
-            keyLRU.put(newKey, null);
         }
 
         builder.add(in);
 
         totalBatchedRecords++;
 
-
-        for (String key : keyLRU.keySet()) {
-            if (totalBatchedRecords > MAX_BATCHED_RECORDS) {
-                BatchedCarts bc = pendingBatches.remove(key).build();
-                out.collect(Tuple2.of(reportKey, bc));
-                totalBatchedRecords -= bc.size();
-            } else {
-                break;
-            }
+        while (totalBatchedRecords > MAX_BATCHED_RECORDS) {
+            String key = pendingBatches.keySet().iterator().next();
+            BatchedCarts bc = pendingBatches.remove(key).build();
+            out.collect(Tuple2.of(reportKey, bc));
+            totalBatchedRecords -= bc.size();
         }
     }
 

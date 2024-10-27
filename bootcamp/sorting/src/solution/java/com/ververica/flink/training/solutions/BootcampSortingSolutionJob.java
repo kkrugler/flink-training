@@ -39,7 +39,7 @@ public class BootcampSortingSolutionJob {
     public static void main(String[] args) throws Exception {
         final boolean discarding = true;
         final int numReports = 5;
-        final long numRecords = 100_000;
+        final long numRecords = 1_000_000;
         final int maxParallelism = 400;
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -65,7 +65,8 @@ public class BootcampSortingSolutionJob {
                 // TODO - support writing to a FileSink
                 .setResultsSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .setMaxParallelism(maxParallelism)
-                .setNumReports(numReports)
+                .addReport(new ReportByCountrySortByShippingCost())
+                // TODO - add another report, maybe per customer by shipping cost?
                 .build();
 
         // Verify no acc is expected.

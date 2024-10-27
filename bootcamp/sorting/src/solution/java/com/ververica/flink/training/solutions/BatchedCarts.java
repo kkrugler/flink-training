@@ -21,8 +21,19 @@ import com.ververica.flink.training.provided.ECommerceRecord;
 import org.apache.flink.util.CloseableIterator;
 
 /**
- * A set of carts that share a common key, where we compress the
- * carts using Gzip to reduce record size and thus
+ * A set of carts that share a common key.
+ *
+ * TODO - see below
+ *
+ * We could maybe make this entire workflow more performant by
+ * building an array of key/sort value/offsets, and bytes of
+ * serialized values (which is what the offset references). Then
+ * in MergeSortRecords we could write the serialized bytes to disk,
+ * and add the (smaller) key/sort value/offset (updated to be
+ * file-based) records to the merge-sorter. This would let it have
+ * maybe 10x more data in memory for the same number of bytes, and
+ * we're not moving a bunch of unused bytes around during the merge-
+ * sort process.
  */
 public class BatchedCarts implements Iterable<ECommerceRecord> {
     private String key;
