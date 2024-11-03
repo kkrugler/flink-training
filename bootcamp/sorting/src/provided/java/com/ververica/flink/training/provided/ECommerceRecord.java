@@ -2,6 +2,7 @@ package com.ververica.flink.training.provided;
 
 import com.ververica.flink.training.common.ShoppingCartRecord;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -178,10 +179,12 @@ public class ECommerceRecord {
             shippingAddress = in.readUTF();
             shippingCost = in.readDouble();
             couponCode = in.readUTF();
+        } else {
+            country = COUNTRY_FOR_END_RECORD;
         }
     }
 
-    public void read(RandomAccessFile in) throws IOException {
+    public void read(DataInput in) throws IOException {
         if (!in.readBoolean()) {
             country = in.readUTF();
             paymentMethod = in.readUTF();
@@ -191,6 +194,8 @@ public class ECommerceRecord {
             shippingAddress = in.readUTF();
             shippingCost = in.readDouble();
             couponCode = in.readUTF();
+        } else {
+            country = COUNTRY_FOR_END_RECORD;
         }
     }
 }

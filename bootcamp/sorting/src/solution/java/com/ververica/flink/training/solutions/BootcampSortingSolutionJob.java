@@ -20,10 +20,10 @@ package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.*;
 import com.ververica.flink.training.provided.ECommerceRecord;
+import com.ververica.flink.training.provided.EndRecordGenerator;
+import com.ververica.flink.training.provided.EnrichWithShippingCost;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.source.hybrid.HybridSource;
@@ -65,6 +65,7 @@ public class BootcampSortingSolutionJob {
                 // TODO - support writing to a FileSink
                 .setResultsSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
                 .setBatchingParallelism(env.getParallelism())
+                .setMaxParallelism(env.getMaxParallelism())
                 .addReport(new ReportByCountrySortByShippingCost())
                 // TODO - add another report, maybe per customer by shipping cost?
                 .build();
@@ -74,56 +75,6 @@ public class BootcampSortingSolutionJob {
         Map<String, Object> acc = jobResult.getAllAccumulatorResults();
         for (String accKey : acc.keySet()) {
             System.out.format("%s: %s\n", accKey, acc.get(accKey));
-        }
-    }
-
-    private static class EndRecordGenerator implements SerializableFunction<Long, ShoppingCartRecord> {
-
-        @Override
-        public ShoppingCartRecord apply(Long aLong) {
-            ECommerceRecord endRecord = ECommerceRecord.makeEndRecord();
-            ShoppingCartRecord result = new ShoppingCartRecord();
-
-            result.setCountry(endRecord.getCountry());
-            result.setCouponCode(endRecord.getCouponCode());
-            result.setCustomerId(endRecord.getCustomerId());
-            result.setPaymentMethod(endRecord.getPaymentMethod());
-            result.setShippingCost(endRecord.getShippingCost());
-
-            return result;
-        }
-    }
-
-    private static class EnrichWithShippingCost extends RichMapFunction<ShoppingCartRecord, ShoppingCartRecord> {
-
-        private transient Map<String, ProductInfoRecord> products;
-
-        @Override
-        public ShoppingCartRecord map(ShoppingCartRecord value) throws Exception {
-            double totalWeight = 0.0;
-            for (CartItem item : value.getItems()) {
-                ProductInfoRecord pir = products.get(item.getProductId());
-                if (pir == null) {
-                    throw new NoSuchElementException();
-                }
-
-                totalWeight += (pir.getWeightKg() * item.getQuantity());
-            }
-
-            // Cost is weight * costPerKg
-            value.setShippingCost(totalWeight * 0.73);
-            return value;
-        }
-
-        @Override
-        public void open(OpenContext openContext) throws Exception {
-            products = new HashMap<>();
-
-            ProductInfoGenerator productGenerator = new ProductInfoGenerator();
-            for (long i = 0; i < ProductInfoGenerator.NUM_UNIQUE_PRODUCTS; i++) {
-                ProductInfoRecord pir = productGenerator.apply(i);
-                products.put(pir.getProductId(), pir);
-            }
         }
     }
 

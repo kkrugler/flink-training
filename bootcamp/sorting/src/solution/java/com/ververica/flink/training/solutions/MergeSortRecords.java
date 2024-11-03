@@ -3,7 +3,6 @@ package com.ververica.flink.training.solutions;
 import com.fasterxml.sort.DataReader;
 import com.fasterxml.sort.SortConfig;
 import com.ververica.flink.training.provided.ECommerceRecord;
-import com.ververica.flink.training.provided.RandomAccessFile;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -12,10 +11,7 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -28,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Process a partitioned (by report number) set of records. We need to sort them using
  * a merge-sorter, so that we aren't dependent on the amount of available memory.
  */
-public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCarts>, ECommerceRecord> {
+public class MergeSortRecords extends SortRecordsFunction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MergeSortRecords.class);
 
     private static final int MAX_QUEUED_ELEMENTS = 10_000;
@@ -173,8 +169,7 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
             dos.close();
             dos = null;
 
-            RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r",
-                    BUFFER_SIZE);
+            RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r");
 
             Iterator<ReportByRecord> iter = sortIterator.get();
             while (iter.hasNext()) {

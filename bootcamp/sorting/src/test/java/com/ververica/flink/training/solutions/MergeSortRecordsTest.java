@@ -28,9 +28,21 @@ class MergeSortRecordsTest {
         List<ReportBy> reports = new ArrayList<>();
         reports.add(reportBy);
 
-        MergeSortRecords processFunction = new MergeSortRecords(reports);
+        final int upstreamParallelism = 2;
+        MergeSortRecords processFunction = new MergeSortRecords(reports, upstreamParallelism);
         OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>, ECommerceRecord> testHarness =
                 new OneInputStreamOperatorTestHarness<>(new ProcessOperator<>(processFunction));
+
+        testSortFunction(testHarness);
+    }
+
+    public static void testSortFunction(OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>,
+            ECommerceRecord> testHarness) throws Exception {
+        ReportBy reportBy = new ReportByCountrySortByShippingCost();
+        List<ReportBy> reports = new ArrayList<>();
+        reports.add(reportBy);
+
+        final int upstreamParallelism = 2;
 
         testHarness.open();
 
@@ -61,6 +73,10 @@ class MergeSortRecordsTest {
         testHarness.processElement(Tuple2.of(6, builder.build()), 0L);
         assertTrue(testHarness.getOutput().isEmpty());
 
+        // Because upstreamParallelism is 2, we need two records to trigger our
+        // batch to be flushed.
+        testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
+        assertTrue(testHarness.getOutput().isEmpty());
         testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
 
         // Filter out "keep-alive" records generated while we wait for the merge-sort
@@ -80,5 +96,4 @@ class MergeSortRecordsTest {
 
         testHarness.close();
     }
-
 }

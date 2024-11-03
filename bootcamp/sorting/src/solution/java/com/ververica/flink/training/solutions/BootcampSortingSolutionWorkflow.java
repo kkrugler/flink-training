@@ -18,11 +18,9 @@
 
 package com.ververica.flink.training.solutions;
 
-import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.Partitioner;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
@@ -49,7 +47,8 @@ public class BootcampSortingSolutionWorkflow {
     protected Sink<String> resultsSink;
     protected List<ReportBy> reports = new ArrayList<>();
 
-    protected int bachingParallelism = -1;
+    protected int batchingParallelism = -1;
+    protected int maxParallelism = -1;
 
     public BootcampSortingSolutionWorkflow setCartStream(DataStream<ECommerceRecord> cartStream) {
         this.cartStream = cartStream;
@@ -61,8 +60,13 @@ public class BootcampSortingSolutionWorkflow {
         return this;
     }
 
-    public BootcampSortingSolutionWorkflow setBatchingParallelism(int bachingParallelism) {
-        this.bachingParallelism = bachingParallelism;
+    public BootcampSortingSolutionWorkflow setBatchingParallelism(int batchingParallelism) {
+        this.batchingParallelism = batchingParallelism;
+        return this;
+    }
+
+    public BootcampSortingSolutionWorkflow setMaxParallelism(int maxParallelism) {
+        this.maxParallelism = maxParallelism;
         return this;
     }
 
@@ -74,7 +78,8 @@ public class BootcampSortingSolutionWorkflow {
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultsSink, "resultsSink must be set");
-        Preconditions.checkArgument(bachingParallelism > 0, "bachingParallelism must be set");
+        Preconditions.checkArgument(batchingParallelism > 0, "batchingParallelism must be set");
+        Preconditions.checkArgument(maxParallelism > 0, "maxParallelism must be set");
 
         final int numReports = reports.size();
         Preconditions.checkArgument(numReports > 0);
@@ -82,11 +87,11 @@ public class BootcampSortingSolutionWorkflow {
         // Do a map-side pre-sort, where we group records into "batches" that all
         // share the same top-level sorting key.
         DataStream<Tuple2<Integer, BatchedCarts>> batched = cartStream
-                .flatMap(new CreateBatchedCarts(reports));
+                .flatMap(new CreateBatchedCarts(reports, maxParallelism));
 
         batched
                 .partitionCustom(new PartitionByReport(), t -> t.f0)
-                .process(new MemeorySortRecords(reports, bachingParallelism))
+                .process(new MemorySortRecords(reports, batchingParallelism))
                 .setParallelism(numReports)
                 .flatMap(new CreateTSVRecord())
                 .setParallelism(numReports)

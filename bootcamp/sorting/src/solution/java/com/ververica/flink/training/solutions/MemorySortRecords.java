@@ -1,7 +1,6 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.provided.ECommerceRecord;
-import com.ververica.flink.training.provided.RandomAccessFile;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,8 +22,8 @@ import java.util.List;
  * Process a partitioned (by report number) set of records. We need to sort them using
  * a merge-sorter, so that we aren't dependent on the amount of available memory.
  */
-public class MemeorySortRecords extends ProcessFunction<Tuple2<Integer, BatchedCarts>, ECommerceRecord> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MemeorySortRecords.class);
+public class MemorySortRecords extends SortRecordsFunction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MemorySortRecords.class);
 
     private static final int WRITE_BUFFER_SIZE = 10 * 1024 * 1024;
     private static final int READ_BUFFER_SIZE = 256;
@@ -37,7 +37,7 @@ public class MemeorySortRecords extends ProcessFunction<Tuple2<Integer, BatchedC
     private transient int upstreamCompleted;
     private List<ReportByRecord> records;
 
-    public MemeorySortRecords(List<ReportBy> reports, int numUpstreamOperators) {
+    public MemorySortRecords(List<ReportBy> reports, int numUpstreamOperators) {
         this.reports = reports;
         this.numUpstreamOperators = numUpstreamOperators;
     }
@@ -86,8 +86,7 @@ public class MemeorySortRecords extends ProcessFunction<Tuple2<Integer, BatchedC
             dos.close();
             dos = null;
 
-            RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r",
-                    READ_BUFFER_SIZE);
+            RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r");
 
             Collections.sort(records, reports.get(0).getSortableRecord(null));
 

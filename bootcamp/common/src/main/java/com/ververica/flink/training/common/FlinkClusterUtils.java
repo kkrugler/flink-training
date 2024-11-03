@@ -54,6 +54,11 @@ public class FlinkClusterUtils {
         return createEnvironment(parameters, new Configuration(), parallelism, true, NO_WEBUI_PORT);
     }
 
+    public static StreamExecutionEnvironment createConfiguredTestEnvironment(
+            Configuration extraConfig, int parallelism) throws IOException, URISyntaxException {
+        return createEnvironment(ParameterTool.fromArgs(new String[]{}), extraConfig, parallelism, true, NO_WEBUI_PORT);
+    }
+
     public static StreamExecutionEnvironment createConfiguredLocalEnvironment(
             final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
         return createEnvironment(parameters, new Configuration(), parallelism, true,
@@ -107,9 +112,6 @@ public class FlinkClusterUtils {
             flinkConfig.set(TASK_OFF_HEAP_MEMORY, MemorySize.ofMebiBytes(256));
             flinkConfig.set(MANAGED_MEMORY_SIZE, MemorySize.ofMebiBytes(1024));
 
-            // Enable Flamegraphs
-            flinkConfig.set(ENABLE_FLAMEGRAPH, true);
-
             // configure directory for JobManager log files
             Files.createTempDirectory("flink-logfiles");
             System.setProperty("log.file", Files.createTempDirectory("flink-logfiles").toString());
@@ -151,6 +153,7 @@ public class FlinkClusterUtils {
             if (webUIPort != NO_WEBUI_PORT) {
                 // configure Web UI
                 flinkConfig.set(BIND_PORT, Integer.toString(webUIPort));
+                flinkConfig.set(ENABLE_FLAMEGRAPH, true);
                 env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
             } else {
                 env = StreamExecutionEnvironment.createLocalEnvironment(flinkConfig);
