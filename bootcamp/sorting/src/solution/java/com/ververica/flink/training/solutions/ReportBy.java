@@ -9,8 +9,6 @@ import java.util.function.Function;
 
 public interface ReportBy extends Comparator<ECommerceRecord>, Serializable {
 
-    // TODO - Remove this - don't have a special key concept for records.
-    // TODO - have call to return a merge-sort record, which is comparable
-    // and has an offset (to track full record bytes in memory/on disk)
-    public String getKey(ECommerceRecord in);
+    public ReportByRecord getSortableRecord(ECommerceRecord in);
+
 }

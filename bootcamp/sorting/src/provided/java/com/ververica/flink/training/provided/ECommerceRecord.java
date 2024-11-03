@@ -11,6 +11,8 @@ import java.util.Objects;
  * A version of ShoppingCartRecord that only has the fields we use.
  */
 public class ECommerceRecord {
+    private static final String COUNTRY_FOR_END_RECORD = "end_country";
+
     // Fields we sort on.
     private String country;
     private String paymentMethod;
@@ -100,6 +102,21 @@ public class ECommerceRecord {
         this.couponCode = couponCode;
     }
 
+    public boolean isEndRecord() {
+        return country.equals(COUNTRY_FOR_END_RECORD);
+    }
+
+    /**
+     * @return A special ECommerceRecord that we can identify as
+     * an "end" record.
+     */
+    public static ECommerceRecord makeEndRecord() {
+        ECommerceRecord result = new ECommerceRecord();
+        result.setCountry(COUNTRY_FOR_END_RECORD);
+        return result;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -137,24 +154,43 @@ public class ECommerceRecord {
     }
 
     public void write(DataOutputStream dos) throws IOException {
-        dos.writeUTF(country);
-        dos.writeUTF(paymentMethod);
-        dos.writeUTF(transactionId);
-        dos.writeLong(transactionTime);
-        dos.writeUTF(customerId);
-        dos.writeUTF(shippingAddress);
-        dos.writeDouble(shippingCost);
-        dos.writeUTF(couponCode);
+        boolean isEndRecord = isEndRecord();
+        dos.writeBoolean(isEndRecord);
+        if (!isEndRecord) {
+            dos.writeUTF(country);
+            dos.writeUTF(paymentMethod);
+            dos.writeUTF(transactionId);
+            dos.writeLong(transactionTime);
+            dos.writeUTF(customerId);
+            dos.writeUTF(shippingAddress);
+            dos.writeDouble(shippingCost);
+            dos.writeUTF(couponCode);
+        }
     }
 
-    public void read(DataInputStream dis) throws IOException {
-        country = dis.readUTF();
-        paymentMethod = dis.readUTF();
-        transactionId = dis.readUTF();
-        transactionTime = dis.readLong();
-        customerId = dis.readUTF();
-        shippingAddress = dis.readUTF();
-        shippingCost = dis.readDouble();
-        couponCode = dis.readUTF();
+    public void read(DataInputStream in) throws IOException {
+        if (!in.readBoolean()) {
+            country = in.readUTF();
+            paymentMethod = in.readUTF();
+            transactionId = in.readUTF();
+            transactionTime = in.readLong();
+            customerId = in.readUTF();
+            shippingAddress = in.readUTF();
+            shippingCost = in.readDouble();
+            couponCode = in.readUTF();
+        }
+    }
+
+    public void read(RandomAccessFile in) throws IOException {
+        if (!in.readBoolean()) {
+            country = in.readUTF();
+            paymentMethod = in.readUTF();
+            transactionId = in.readUTF();
+            transactionTime = in.readLong();
+            customerId = in.readUTF();
+            shippingAddress = in.readUTF();
+            shippingCost = in.readDouble();
+            couponCode = in.readUTF();
+        }
     }
 }

@@ -1,8 +1,8 @@
-# Lab: Bootcamp State
+# Lab: Bootcamp Sorting
 
 ## Introduction
 
-Lab focused on state
+Lab focused on Sorting
 
 -----
 

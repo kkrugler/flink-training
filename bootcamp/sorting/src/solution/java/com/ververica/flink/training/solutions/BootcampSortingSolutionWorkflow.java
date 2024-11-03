@@ -49,7 +49,7 @@ public class BootcampSortingSolutionWorkflow {
     protected Sink<String> resultsSink;
     protected List<ReportBy> reports = new ArrayList<>();
 
-    protected int maxParallelism = -1;
+    protected int bachingParallelism = -1;
 
     public BootcampSortingSolutionWorkflow setCartStream(DataStream<ECommerceRecord> cartStream) {
         this.cartStream = cartStream;
@@ -61,8 +61,8 @@ public class BootcampSortingSolutionWorkflow {
         return this;
     }
 
-    public BootcampSortingSolutionWorkflow setMaxParallelism(int maxParallelism) {
-        this.maxParallelism = maxParallelism;
+    public BootcampSortingSolutionWorkflow setBatchingParallelism(int bachingParallelism) {
+        this.bachingParallelism = bachingParallelism;
         return this;
     }
 
@@ -74,7 +74,7 @@ public class BootcampSortingSolutionWorkflow {
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultsSink, "resultsSink must be set");
-        Preconditions.checkArgument(maxParallelism > 0, "Max parallelism must be set");
+        Preconditions.checkArgument(bachingParallelism > 0, "bachingParallelism must be set");
 
         final int numReports = reports.size();
         Preconditions.checkArgument(numReports > 0);
@@ -86,7 +86,7 @@ public class BootcampSortingSolutionWorkflow {
 
         batched
                 .partitionCustom(new PartitionByReport(), t -> t.f0)
-                .process(new MergeSortRecords(reports))
+                .process(new MemeorySortRecords(reports, bachingParallelism))
                 .setParallelism(numReports)
                 .flatMap(new CreateTSVRecord())
                 .setParallelism(numReports)
@@ -100,27 +100,6 @@ public class BootcampSortingSolutionWorkflow {
         public int partition(Integer key, int numPartitions) {
             return key % numPartitions;
         }
-    }
-
-    private static Integer makeKeyForOperatorIndex(int maxParallelism, int parallelism,
-                                                  int operatorIndex) {
-        if (maxParallelism == ExecutionConfig.PARALLELISM_AUTO_MAX) {
-            maxParallelism = KeyGroupRangeAssignment.computeDefaultMaxParallelism(parallelism);
-        }
-
-        for (int i = 0; i < maxParallelism * 2; i++) {
-            Integer key = i;
-            int keyGroup = KeyGroupRangeAssignment.assignToKeyGroup(key, maxParallelism);
-            int index = KeyGroupRangeAssignment.computeOperatorIndexForKeyGroup(maxParallelism,
-                    parallelism, keyGroup);
-            if (index == operatorIndex) {
-                return key;
-            }
-        }
-
-        throw new RuntimeException(String.format(
-                "Unable to find key for target operator index %d (max parallelism = %d, parallelism = %d",
-                operatorIndex, maxParallelism, parallelism));
     }
 
 }

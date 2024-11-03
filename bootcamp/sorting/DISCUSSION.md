@@ -1,4 +1,4 @@
-# Lab: Bootcamp State (Discussion)
+# Lab: Bootcamp Sorting (Discussion)
 
 We'll work through the solutions to the exercises.
 

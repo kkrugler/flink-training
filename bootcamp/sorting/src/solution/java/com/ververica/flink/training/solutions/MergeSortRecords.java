@@ -3,13 +3,21 @@ package com.ververica.flink.training.solutions;
 import com.fasterxml.sort.DataReader;
 import com.fasterxml.sort.SortConfig;
 import com.ververica.flink.training.provided.ECommerceRecord;
+import com.ververica.flink.training.provided.RandomAccessFile;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,21 +29,28 @@ import java.util.concurrent.atomic.AtomicReference;
  * a merge-sorter, so that we aren't dependent on the amount of available memory.
  */
 public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCarts>, ECommerceRecord> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MergeSortRecords.class);
 
     private static final int MAX_QUEUED_ELEMENTS = 10_000;
-
     private static final long MAX_MEMORY = 100 * 1000 * 1000;
+    private static final int BUFFER_SIZE = 10 * 1000 * 1000;
 
     private final List<ReportBy> reports;
+    private final int numUpstreamOperators;
 
-    private transient ECommerceSorter sorter;
-    private transient ArrayBlockingQueue<ECommerceRecord> queue;
+    private transient ReportBySorter sorter;
+    private transient ArrayBlockingQueue<ReportByRecord> queue;
     private transient AtomicBoolean haveMoreData;
     private transient Thread sortThread;
-    private transient AtomicReference<Iterator<ECommerceRecord>> sortIterator;
+    private transient AtomicReference<Iterator<ReportByRecord>> sortIterator;
+    private transient Path tempFile;
+    private transient DataOutputStream dos;
+    private transient long outOffset;
+    private transient int upstreamCompleted;
 
-    public MergeSortRecords(List<ReportBy> reports) {
+    public MergeSortRecords(List<ReportBy> reports, int numUpstreamOperators) {
         this.reports = reports;
+        this.numUpstreamOperators = numUpstreamOperators;
     }
 
     @Override
@@ -50,11 +65,20 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
         SortConfig config = new SortConfig()
                 .withMaxMemoryUsage(perReportMemory);
         ReportBy reportBy = reports.get(0);
-        sorter = new ECommerceSorter(config, reportBy);
 
+        sorter = new ReportBySorter(config, reportBy);
         queue = new ArrayBlockingQueue<>(MAX_QUEUED_ELEMENTS);
         haveMoreData = new AtomicBoolean(true);
         sortIterator = new AtomicReference<>(null);
+
+        tempFile = Files.createTempFile("merge-sort", ".bin");
+        System.out.println("Writing records to: " + tempFile);
+
+        dos = new DataOutputStream(
+                new BufferedOutputStream(new FileOutputStream(tempFile.toFile()),
+                        BUFFER_SIZE));
+        outOffset = 0;
+        upstreamCompleted = 0;
 
         final RuntimeContext ctx = getRuntimeContext();
 
@@ -69,9 +93,12 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
                     // has finished merge-sorting all the data. So we can use that as a
                     // flag to indicate that we're ready to output data.
 
-                    sortIterator.set(sorter.sort(new DataReader<ECommerceRecord>() {
+                    // We'll save it in an Atomic reference, so that this thread can set
+                    // the iterator while our process() operator is trying to read it.
+
+                    sortIterator.set(sorter.sort(new DataReader<ReportByRecord>() {
                         @Override
-                        public ECommerceRecord readNext() throws IOException {
+                        public ReportByRecord readNext() throws IOException {
                             // Loop waiting for more data to return for sorting.
                             while (queue.isEmpty()) {
                                 if (haveMoreData.get()) {
@@ -89,9 +116,8 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
                         }
 
                         @Override
-                        public int estimateSizeInBytes(ECommerceRecord item) {
-                            // TODO - make this better.
-                            return 100;
+                        public int estimateSizeInBytes(ReportByRecord item) {
+                            return item.estimateSerializedBytes();
                         }
 
                         @Override
@@ -110,8 +136,27 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
     }
 
     @Override
+    public void close() throws Exception {
+        if (dos != null) {
+            dos.close();
+        }
+
+        Files.delete(tempFile);
+        tempFile = null;
+    }
+
+    @Override
     public void processElement(Tuple2<Integer, BatchedCarts> in, Context ctx, Collector<ECommerceRecord> out) throws Exception {
-        if (in.f1.getKey() == null) {
+        if (in.f1.isEnd()) {
+
+            // We'll get N end records, one for each upstream CreateBatchedCarts. So we have to
+            // count the number we've received, and only really finish when we have all N.
+            upstreamCompleted++;
+
+            if (upstreamCompleted < numUpstreamOperators) {
+                return;
+            }
+
             // No more data coming in, so tell the sorter's DataReader that it can
             // stop waiting when the queue is empty.
             haveMoreData.set(false);
@@ -120,24 +165,44 @@ public class MergeSortRecords extends ProcessFunction<Tuple2<Integer, BatchedCar
             while (sortIterator.get() == null) {
                 // Generate an empty record, which get filtered out in the conversion to string, so
                 // that Flink knows we're still alive.
-                out.collect(new ECommerceRecord());
-                Thread.sleep(10L);
+                out.collect(ECommerceRecord.makeEndRecord());
+                Thread.sleep(100L);
             }
 
-            Iterator<ECommerceRecord> iter = sortIterator.get();
+            // Close (and thus flush) the file where we write the full ECommerceRecord bytes.
+            dos.close();
+            dos = null;
+
+            RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r",
+                    BUFFER_SIZE);
+
+            Iterator<ReportByRecord> iter = sortIterator.get();
             while (iter.hasNext()) {
-                // TODO - get the sortable piece from the iterator, then use its
-                // offset to get the full record from the disk file. Does that file
-                // need to be a random-access file for good performance?
-                out.collect(iter.next());
+                ReportByRecord record = iter.next();
+                raf.seek(record.getOffset());
+                ECommerceRecord result = new ECommerceRecord();
+                result.read(raf);
+
+                out.collect(result);
             }
+
+            raf.close();
         } else {
-            // TODO - write the bytes in the batched record to a temp file,
+            byte[] cartData = in.f1.getCartData();
+            dos.write(cartData);
+
+            // Write the bytes in the batched record to a temp file,
             // and only put the sortable piece into the queue.
-            for (ECommerceRecord record : in.f1) {
-                // This will block when the queue becomes full.
+            for (ReportByRecord record : in.f1) {
+                record.setOffset(record.getOffset() + outOffset);
+
+                // This will block when the queue becomes full. When that
+                // happens, we wind up waiting for the merge-sort thread to
+                // fetch an entry to free up some space.
                 queue.put(record);
             }
+
+            outOffset += cartData.length;
         }
 
     }

@@ -9,63 +9,60 @@ import org.apache.flink.util.Collector;
 import java.util.*;
 
 /**
- *
+ * For each report, create "BatchedCart" records that contain data for N incoming records,
+ * by leveraging support in BatchedCart.Builder class to create optimized sets of records.
  */
 public class CreateBatchedCarts extends RichFlatMapFunction<ECommerceRecord, Tuple2<Integer, BatchedCarts>> {
 
-    private static final int MAX_BATCHED_RECORDS = 1000;
+    private static final int MAX_BATCHED_RECORDS = 10_000;
 
     private final List<ReportBy> reports;
+    private final int maxBatchedRecordsPerReport;
 
-    // TODO - just have one batch per report, not one per key
-    private transient Map<String, BatchedCarts.Builder> pendingBatches;
-    private transient int totalBatchedRecords;
+    // One batch per report, keyed by reportKey (0..n-1)
+    private transient Map<Integer, BatchedCarts.Builder> pendingBatches;
 
     public CreateBatchedCarts(List<ReportBy> reports) {
         this.reports = reports;
+        this.maxBatchedRecordsPerReport = MAX_BATCHED_RECORDS / reports.size();
     }
 
     @Override
     public void open(OpenContext openContext) throws Exception {
-        pendingBatches = new LinkedHashMap<>(1000, 0.75f, true);
-        totalBatchedRecords = 0;
-
-        // TODO - track pending batched records per report
-        // TODO - calc per-report limit, equal to max total / number of reports.
+        pendingBatches = new HashMap<>();
     }
 
     @Override
     public void flatMap(ECommerceRecord in, Collector<Tuple2<Integer, BatchedCarts>> out) throws Exception {
         // TODO - for each report, call method with code below to handle it.
-        // reportKey is 0...n-1
+        // reportNumber is 0...numReports-1, and we need to use the pre-calculated key that
+        // will send report 0 to slot 0, report 1 to slot 1, and so on. This assumes one
+        // slot per TM, if we have more than one slot per TM then we'd need to figure out
+        // an optimal slot assignment that evenly spreads out the load.
         final int reportKey = 0;
-        String newKey = reports.get(0).getKey(in);
-        if (newKey == null) {
+        if (in.isEndRecord()) {
             pendingBatches.forEach((k, v) -> out.collect(Tuple2.of(reportKey, v.build())));
             pendingBatches.clear();
 
             // Generate special last BatchedCart record, to trigger flush of merge-sorted
             // records downstream.
-            out.collect(Tuple2.of(reportKey, new BatchedCarts()));
+            out.collect(Tuple2.of(reportKey, BatchedCarts.makeEndRecord()));
             return;
         }
 
         // Get the key from the incoming record, and see if we already have a batch for it.
-        BatchedCarts.Builder builder = pendingBatches.get(newKey);
+        BatchedCarts.Builder builder = pendingBatches.get(reportKey);
         if (builder == null) {
             builder = new BatchedCarts.Builder(new ReportByCountrySortByShippingCost());
-            pendingBatches.put(newKey, builder);
+            pendingBatches.put(reportKey, builder);
         }
 
         builder.add(in);
 
-        totalBatchedRecords++;
-
-        while (totalBatchedRecords > MAX_BATCHED_RECORDS) {
-            String key = pendingBatches.keySet().iterator().next();
-            BatchedCarts bc = pendingBatches.remove(key).build();
+        if (builder.getNumCarts() >= maxBatchedRecordsPerReport) {
+            BatchedCarts bc = builder.build();
             out.collect(Tuple2.of(reportKey, bc));
-            totalBatchedRecords -= bc.size();
+            pendingBatches.remove(reportKey);
         }
     }
 

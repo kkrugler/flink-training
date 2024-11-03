@@ -23,43 +23,40 @@ import org.apache.flink.util.CloseableIterator;
 /**
  * A set of carts that share a common key.
  *
- * TODO - see below
- *
- * We could maybe make this entire workflow more performant by
- * building an array of key/sort value/offsets, and bytes of
- * serialized values (which is what the offset references). Then
- * in MergeSortRecords we could write the serialized bytes to disk,
- * and add the (smaller) key/sort value/offset (updated to be
- * file-based) records to the merge-sorter. This would let it have
- * maybe 10x more data in memory for the same number of bytes, and
- * we're not moving a bunch of unused bytes around during the merge-
- * sort process.
  */
-public class BatchedCarts implements Iterable<ECommerceRecord> {
-    private String key;
-    private ECommerceRecord[] carts;
+public class BatchedCarts implements Iterable<ReportByRecord> {
+    private ReportByRecord[] carts;
+    private byte[] cartData;
 
     public BatchedCarts() {}
 
-    public BatchedCarts(String key, ECommerceRecord[] carts) {
-        this.key = key;
+    public BatchedCarts(ReportByRecord[] carts, byte[] cartData) {
         this.carts = carts;
+        this.cartData = cartData;
     }
 
-    public String getKey() {
-        return key;
+    public static BatchedCarts makeEndRecord() {
+        return new BatchedCarts(new ReportByRecord[0], new byte[0]);
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public boolean isEnd() {
+        return (carts.length == 0) && (cartData.length == 0);
     }
 
-    public ECommerceRecord[] getCarts() {
+    public ReportByRecord[] getCarts() {
         return carts;
     }
 
-    public void setCarts(ECommerceRecord[] carts) {
+    public void setCarts(ReportByRecord[] carts) {
         this.carts = carts;
+    }
+
+    public byte[] getCartData() {
+        return cartData;
+    }
+
+    public void setCartData(byte[] cartData) {
+        this.cartData = cartData;
     }
 
     public int size() {
@@ -67,8 +64,8 @@ public class BatchedCarts implements Iterable<ECommerceRecord> {
     }
 
     @Override
-    public Iterator<ECommerceRecord> iterator() {
-        return new Iterator<ECommerceRecord>() {
+    public Iterator<ReportByRecord> iterator() {
+        return new Iterator<ReportByRecord>() {
 
             int curCount = 0;
             int numCarts = carts.length;
@@ -79,7 +76,7 @@ public class BatchedCarts implements Iterable<ECommerceRecord> {
             }
 
             @Override
-            public ECommerceRecord next() {
+            public ReportByRecord next() {
                 if (curCount >= numCarts) {
                     throw new NoSuchElementException();
                 }
@@ -92,13 +89,16 @@ public class BatchedCarts implements Iterable<ECommerceRecord> {
 
     public static class Builder {
 
-        private String key;
         private ReportBy reportBy;
-        private ArrayList<ECommerceRecord> carts;
+        private ArrayList<ReportByRecord> carts;
+        private ByteArrayOutputStream baos;
+        private DataOutputStream dos;
 
         public Builder(ReportBy reportBy) {
             this.reportBy = reportBy;
             carts = new ArrayList<>();
+            baos = new ByteArrayOutputStream();
+            dos = new DataOutputStream(baos);
         }
 
         public int getNumCarts() {
@@ -106,22 +106,21 @@ public class BatchedCarts implements Iterable<ECommerceRecord> {
         }
 
         public void add(ECommerceRecord in) throws IOException {
+            // Get sortable record for in, put that in array, and write
+            // record out to byte array.
+            ReportByRecord rbr = reportBy.getSortableRecord(in);
+            int offset = baos.size();
+            in.write(dos);
 
-            // TODO - Use KeySelector
-            String newKey = reportBy.getKey(in);
-            if (carts.isEmpty()) {
-                key = newKey;
-            } else if (!key.equals(newKey)) {
-                throw new IllegalArgumentException("Key doesn't match batch!");
-            }
+            rbr.setOffset(offset);
 
-            carts.add(in);
+            carts.add(rbr);
         }
 
         public BatchedCarts build() {
-            Collections.sort(carts, reportBy);
+            Collections.sort(carts);
 
-            return new BatchedCarts(key, carts.toArray(new ECommerceRecord[0]));
+            return new BatchedCarts(carts.toArray(new ReportByRecord[0]), baos.toByteArray());
         }
     }
 }

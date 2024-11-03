@@ -39,7 +39,7 @@ public class BootcampSortingSolutionJob {
     public static void main(String[] args) throws Exception {
         final boolean discarding = true;
         final int numReports = 5;
-        final long numRecords = 1_000_000;
+        final long numRecords = 5_000_000;
         final int maxParallelism = 400;
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
@@ -64,7 +64,7 @@ public class BootcampSortingSolutionJob {
                 .setCartStream(records)
                 // TODO - support writing to a FileSink
                 .setResultsSink(discarding ? new DiscardingSink<>() : new PrintSink<>())
-                .setMaxParallelism(maxParallelism)
+                .setBatchingParallelism(env.getParallelism())
                 .addReport(new ReportByCountrySortByShippingCost())
                 // TODO - add another report, maybe per customer by shipping cost?
                 .build();
@@ -81,9 +81,15 @@ public class BootcampSortingSolutionJob {
 
         @Override
         public ShoppingCartRecord apply(Long aLong) {
+            ECommerceRecord endRecord = ECommerceRecord.makeEndRecord();
             ShoppingCartRecord result = new ShoppingCartRecord();
-            result.setCountry(null);
-            result.setPaymentMethod(null);
+
+            result.setCountry(endRecord.getCountry());
+            result.setCouponCode(endRecord.getCouponCode());
+            result.setCustomerId(endRecord.getCustomerId());
+            result.setPaymentMethod(endRecord.getPaymentMethod());
+            result.setShippingCost(endRecord.getShippingCost());
+
             return result;
         }
     }
