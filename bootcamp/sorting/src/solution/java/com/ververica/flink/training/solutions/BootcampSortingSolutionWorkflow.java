@@ -18,6 +18,7 @@
 
 package com.ververica.flink.training.solutions;
 
+import com.ververica.flink.training.solutions.inmemory.MemorySortRecords;
 import org.apache.flink.api.common.functions.Partitioner;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;

@@ -19,9 +19,7 @@
 package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.*;
-import com.ververica.flink.training.provided.ECommerceRecord;
-import com.ververica.flink.training.provided.EndRecordGenerator;
-import com.ververica.flink.training.provided.EnrichWithShippingCost;
+import com.ververica.flink.training.provided.*;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -38,27 +36,24 @@ public class BootcampSortingSolutionJob {
 
     public static void main(String[] args) throws Exception {
         final boolean discarding = true;
-        final int numReports = 5;
         final long numRecords = 5_000_000;
         final int maxParallelism = 400;
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
-//        Configuration config = new Configuration();
-//        config.set(ExecutionOptions.RUNTIME_MODE, RuntimeExecutionMode.BATCH);
         final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredLocalEnvironment(parameters);
         env.setMaxParallelism(maxParallelism);
 
-        ShoppingCartSource realSource = new ShoppingCartSource(numRecords, 0L);
-        FakeParallelSource<ShoppingCartRecord> endSource = new FakeParallelSource<ShoppingCartRecord>(env.getParallelism(), 0, true, new EndRecordGenerator());
+        ECommerceSource realSource = new ECommerceSource(numRecords);
+        ECommerceEndSource endSource = new ECommerceEndSource(env.getParallelism());
 
-        HybridSource<ShoppingCartRecord> realPlusEnd = HybridSource.builder(realSource)
+        HybridSource<ECommerceRecord> realPlusEnd = HybridSource.builder(realSource)
                 .addSource(endSource)
                 .build();
 
         DataStream<ECommerceRecord> records = env.fromSource(realPlusEnd,
-                        WatermarkStrategy.noWatermarks(), "Shopping Cart Stream", TypeInformation.of(ShoppingCartRecord.class))
-                .map(new EnrichWithShippingCost())
-                .map(r -> new ECommerceRecord(r));
+                            WatermarkStrategy.noWatermarks(),
+                "ECommerce Stream",
+                            TypeInformation.of(ECommerceRecord.class));
 
         new BootcampSortingSolutionWorkflow()
                 .setCartStream(records)

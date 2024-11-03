@@ -1,12 +1,12 @@
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.solutions.mergesort;
 
 import com.fasterxml.sort.DataReader;
 import com.fasterxml.sort.SortConfig;
 import com.ververica.flink.training.provided.ECommerceRecord;
+import com.ververica.flink.training.solutions.*;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class MergeSortRecords extends SortRecordsFunction {
         sortIterator = new AtomicReference<>(null);
 
         tempFile = Files.createTempFile("merge-sort", ".bin");
-        System.out.println("Writing records to: " + tempFile);
+        LOGGER.info("Writing records to: " + tempFile);
 
         dos = new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(tempFile.toFile()),

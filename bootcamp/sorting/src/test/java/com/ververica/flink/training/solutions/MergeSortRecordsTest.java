@@ -1,19 +1,13 @@
 package com.ververica.flink.training.solutions;
 
-import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.provided.ECommerceRecord;
+import com.ververica.flink.training.solutions.mergesort.MergeSortRecords;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.operators.ProcessOperator;
-import org.apache.flink.streaming.api.operators.StreamMap;
-import org.apache.flink.streaming.api.operators.StreamOperator;
-import org.apache.flink.streaming.runtime.io.StreamOneInputProcessor;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
-import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness;
 import org.apache.flink.streaming.util.OneInputStreamOperatorTestHarness;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 

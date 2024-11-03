@@ -1,6 +1,8 @@
-package com.ververica.flink.training.solutions;
+package com.ververica.flink.training.solutions.mergesort;
 
 import com.fasterxml.sort.*;
+import com.ververica.flink.training.solutions.ReportBy;
+import com.ververica.flink.training.solutions.ReportByRecord;
 
 import java.io.*;
 

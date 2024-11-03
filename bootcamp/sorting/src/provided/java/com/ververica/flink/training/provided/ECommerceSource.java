@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 public class ECommerceSource extends FakeParallelSource<ECommerceRecord> {
     public ECommerceSource(long numRecords) {
-        super(numRecords, getECommerceGenerator());
+        super(numRecords, 0L, true, getECommerceGenerator());
     }
 
     public ECommerceSource(long numRecords, long delay, boolean bounded) {

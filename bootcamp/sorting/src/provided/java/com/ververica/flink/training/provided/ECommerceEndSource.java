@@ -6,12 +6,12 @@ import com.ververica.flink.training.common.SerializableFunction;
 import java.time.Duration;
 
 public class ECommerceEndSource extends FakeParallelSource<ECommerceRecord> {
-    public ECommerceEndSource(long parallelism) {
-        super(parallelism, getECommerceEndGenerator());
+    public ECommerceEndSource(long numRecords) {
+        super(numRecords, 0L, true, getECommerceEndGenerator());
     }
 
-    public ECommerceEndSource(long parallelism, long delay, boolean bounded) {
-        super(parallelism, delay, bounded, getECommerceEndGenerator());
+    public ECommerceEndSource(long numRecords, long delay, boolean bounded) {
+        super(numRecords, delay, bounded, getECommerceEndGenerator());
     }
 
     private static SerializableFunction<Long, ECommerceRecord> getECommerceEndGenerator() {
