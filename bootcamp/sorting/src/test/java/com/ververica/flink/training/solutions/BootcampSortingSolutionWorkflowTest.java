@@ -63,7 +63,7 @@ class BootcampSortingSolutionWorkflowTest {
                 .addReport(new ReportByCountrySortByShippingCost())
                 .build();
 
-        JobClient client = env.executeAsync("BootcampSortingSolutionJob");
+        JobClient client = env.executeAsync("BootcampSortingSolutionWorkflow");
 
         while (!isDone(client) && (client.getJobStatus().get() != JobStatus.RUNNING)) {
             Thread.sleep(1L);
