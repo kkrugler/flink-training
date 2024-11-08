@@ -27,16 +27,12 @@ class MergeSortRecordsTest {
         OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>, ECommerceRecord> testHarness =
                 new OneInputStreamOperatorTestHarness<>(new ProcessOperator<>(processFunction));
 
-        testSortFunction(testHarness);
+        testSortByCountryFunction(testHarness, upstreamParallelism);
     }
 
-    public static void testSortFunction(OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>,
-            ECommerceRecord> testHarness) throws Exception {
+    public static void testSortByCountryFunction(OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>,
+            ECommerceRecord> testHarness, int upstreamParallelism) throws Exception {
         ReportBy reportBy = new ReportByCountrySortByShippingCost();
-        List<ReportBy> reports = new ArrayList<>();
-        reports.add(reportBy);
-
-        final int upstreamParallelism = 2;
 
         testHarness.open();
 
@@ -64,16 +60,21 @@ class MergeSortRecordsTest {
         builder.add(r1);
         builder.add(r2);
 
+        // Adding one BatchedCart record won't trigger any output.
         testHarness.processElement(Tuple2.of(6, builder.build()), 0L);
         assertTrue(testHarness.getOutput().isEmpty());
 
-        // Because upstreamParallelism is 2, we need two records to trigger our
-        // batch to be flushed.
-        testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
-        assertTrue(testHarness.getOutput().isEmpty());
-        testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
+        // We need <upstreamParallelism> records to trigger our batch to be flushed.
+        for (int i = 0; i < upstreamParallelism - 1; i++) {
+            testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
+            assertTrue(testHarness.getOutput().isEmpty());
+        }
 
-        // Filter out "keep-alive" records generated while we wait for the merge-sort
+        // With the last "end" record, we should now have output.
+        testHarness.processElement(Tuple2.of(6, BatchedCarts.makeEndRecord()), 0L);
+        assertFalse(testHarness.getOutput().isEmpty());
+
+        // Filter out "keep-alive" records generated while we wait for the sort
         // to complete.
         List<ECommerceRecord> filteredResults = new ArrayList<>();
         for (StreamRecord<ECommerceRecord> sr : testHarness.getRecordOutput()) {

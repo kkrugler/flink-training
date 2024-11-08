@@ -62,7 +62,7 @@ public class BootcampSortingSolutionJob {
                 .setBatchingParallelism(env.getParallelism())
                 .setMaxParallelism(env.getMaxParallelism())
                 .addReport(new ReportByCountrySortByShippingCost())
-                // TODO - add another report, maybe per customer by shipping cost?
+                .addReport(new ReportByCustomerIdSortByTransactionTime())
                 .build();
 
         // Verify no acc is expected.

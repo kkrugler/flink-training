@@ -28,49 +28,20 @@ import java.util.List;
 public class MemorySortRecords extends SortRecordsFunction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MemorySortRecords.class);
 
-    private static final int WRITE_BUFFER_SIZE = 10 * 1024 * 1024;
-    private static final int READ_BUFFER_SIZE = 256;
-
-    private final List<ReportBy> reports;
-    private final int numUpstreamOperators;
-
-    private transient Path tempFile;
-    private transient DataOutputStream dos;
-    private transient long outOffset;
     private transient int upstreamCompleted;
-    private List<ReportByRecord> records;
+    private transient List<ReportByRecord> records;
 
     public MemorySortRecords(List<ReportBy> reports, int numUpstreamOperators) {
-        this.reports = reports;
-        this.numUpstreamOperators = numUpstreamOperators;
+        super(reports, numUpstreamOperators);
     }
 
     @Override
     public void open(OpenContext openContext) throws Exception {
-        // TODO - for each report, do a separate open call with the
-        // set of values below (create a new class). We want to divide
-        // up the total memory by the number of reports.
+        super.open(openContext);
 
-        tempFile = Files.createTempFile("merge-sort", ".bin");
-        LOGGER.info("Writing records to: " + tempFile);
-
-        dos = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(tempFile.toFile()),
-                        WRITE_BUFFER_SIZE));
-        outOffset = 0;
         upstreamCompleted = 0;
 
         records = new ArrayList<>();
-    }
-
-    @Override
-    public void close() throws Exception {
-        if (dos != null) {
-            dos.close();
-        }
-
-        Files.delete(tempFile);
-        tempFile = null;
     }
 
     @Override
@@ -91,7 +62,7 @@ public class MemorySortRecords extends SortRecordsFunction {
 
             RandomAccessFile raf = new RandomAccessFile(tempFile.toFile().getAbsolutePath(), "r");
 
-            Collections.sort(records, reports.get(0).getSortableRecord(null));
+            Collections.sort(records, report.getSortableRecord(null));
 
             ECommerceRecord result = new ECommerceRecord();
             for (ReportByRecord record : records) {

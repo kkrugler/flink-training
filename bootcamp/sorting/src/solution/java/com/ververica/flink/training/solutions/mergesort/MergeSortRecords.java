@@ -5,7 +5,6 @@ import com.fasterxml.sort.SortConfig;
 import com.ververica.flink.training.provided.ECommerceRecord;
 import com.ververica.flink.training.solutions.*;
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
@@ -23,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Process a partitioned (by report number) set of records. We need to sort them using
  * a merge-sorter, so that we aren't dependent on the amount of available memory.
+ *
  */
 public class MergeSortRecords extends SortRecordsFunction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MergeSortRecords.class);
@@ -31,52 +31,31 @@ public class MergeSortRecords extends SortRecordsFunction {
     private static final long MAX_MEMORY = 100 * 1000 * 1000;
     private static final int BUFFER_SIZE = 10 * 1000 * 1000;
 
-    private final List<ReportBy> reports;
-    private final int numUpstreamOperators;
-
     private transient ReportBySorter sorter;
     private transient ArrayBlockingQueue<ReportByRecord> queue;
     private transient AtomicBoolean haveMoreData;
     private transient Thread sortThread;
     private transient AtomicReference<Iterator<ReportByRecord>> sortIterator;
-    private transient Path tempFile;
-    private transient DataOutputStream dos;
-    private transient long outOffset;
     private transient int upstreamCompleted;
 
     public MergeSortRecords(List<ReportBy> reports, int numUpstreamOperators) {
-        this.reports = reports;
-        this.numUpstreamOperators = numUpstreamOperators;
+        super(reports, numUpstreamOperators);
     }
 
     @Override
     public void open(OpenContext openContext) throws Exception {
-        // TODO - for each report, do a separate open call with the
-        // set of values below (create a new class). We want to divide
-        // up the total memory by the number of reports.
-        long perReportMemory = MAX_MEMORY / reports.size();
+        super.open(openContext);
 
-        // TODO - use the TM temp file location as the temp file location
-        // for the merge-sort, via the config.
         SortConfig config = new SortConfig()
-                .withMaxMemoryUsage(perReportMemory);
-        ReportBy reportBy = reports.get(0);
+                .withMaxMemoryUsage(MAX_MEMORY)
+                .withTempFileProvider(() -> makeTempFile("merge-sort").toFile());
 
-        sorter = new ReportBySorter(config, reportBy);
+        sorter = new ReportBySorter(config, report);
         queue = new ArrayBlockingQueue<>(MAX_QUEUED_ELEMENTS);
         haveMoreData = new AtomicBoolean(true);
         sortIterator = new AtomicReference<>(null);
 
-        tempFile = Files.createTempFile("merge-sort", ".bin");
-        LOGGER.info("Writing records to: " + tempFile);
-
-        dos = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(tempFile.toFile()),
-                        BUFFER_SIZE));
-        outOffset = 0;
         upstreamCompleted = 0;
-
-        final RuntimeContext ctx = getRuntimeContext();
 
         // We have to run the sorter in the background, so that we're not blocked on it
         // when data arrives.
@@ -129,16 +108,6 @@ public class MergeSortRecords extends SortRecordsFunction {
             }}, "sorting thread");
 
         sortThread.start();
-    }
-
-    @Override
-    public void close() throws Exception {
-        if (dos != null) {
-            dos.close();
-        }
-
-        Files.delete(tempFile);
-        tempFile = null;
     }
 
     @Override

@@ -16,16 +16,16 @@ class MemorySortRecordsTest {
 
     @Test
     public void testMemorySort() throws Exception {
-        ReportBy reportBy = new ReportByCountrySortByShippingCost();
         List<ReportBy> reports = new ArrayList<>();
-        reports.add(reportBy);
+        reports.add(new ReportByCountrySortByShippingCost());
+        reports.add(new ReportByCustomerIdSortByTransactionTime());
 
         final int upstreamParallelism = 2;
         MemorySortRecords processFunction = new MemorySortRecords(reports, upstreamParallelism);
         OneInputStreamOperatorTestHarness<Tuple2<Integer, BatchedCarts>, ECommerceRecord> testHarness =
                 new OneInputStreamOperatorTestHarness<>(new ProcessOperator<>(processFunction));
 
-        MergeSortRecordsTest.testSortFunction(testHarness);
+        MergeSortRecordsTest.testSortByCountryFunction(testHarness, upstreamParallelism);
     }
 
 }

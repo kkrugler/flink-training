@@ -28,7 +28,11 @@ class BootcampSortingSolutionWorkflowTest {
 
     @Test
     public void testWorkflow() throws Exception {
-        // TODO - use small/fixed dataset, validate results.
+        // TODO - validate results.
+        // We should use two reports, and a file sink, and verify that
+        // what gets written matches our expectations.
+        // We could generate 1000 random records, process them, then
+        // sort by each report and verify we get the expected result.
 
     }
 
