@@ -36,11 +36,18 @@ tasks.register('zipBootcamp', Zip) {
     exclude("**/.*")
     exclude("troubleshooting")
     exclude("state-processor")
-    exclude("README-troubleshooting.md")
+    exclude("hourly-tips")
+    exclude("long-ride-alerts")
+    exclude("ride-cleansing")
+    exclude("rides-and-fares")
+    exclude("README.md")
+    exclude("README_zh.md")
+    exclude("README-Troubleshooting.md")
+    exclude("CONTRIBUTING.md")
     exclude("LICENSE")
 }
 
-// Set up so build will create the bootcamp zi file
+// Set up so build will create the bootcamp zip file
 tasks.assemble {
     dependsOn(zipBootcamp)
 }

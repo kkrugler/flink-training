@@ -45,8 +45,8 @@ tests, and reference solutions for the programming exercises. To get started, yo
 
 ```bash
 cd /path/to/flink-training-bootcamp.zip
-unzip flink-training-bootcamp.zip
-cd flink-training-bootcamp
+unzip flink-training-bootcamp.zip -d flink-training
+cd flink-training
 ./gradlew clean testSolutions
 ```
 
