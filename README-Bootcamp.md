@@ -40,13 +40,13 @@ be installed on your system:
 
 ### Clone and build the flink-training-bootcamp project
 
-The `master-2025` branch in the `flink-training` repo in GitHub contains exercises, tests, and reference solutions for 
-the programming exercises. To get started, you need to:
+The `flink-training-bootcamp.zip` file that you previously downloaded contains exercises,
+tests, and reference solutions for the programming exercises. To get started, you need to:
 
 ```bash
-git clone https://github.com/ververica/flink-training
-cd flink-training
-git checkout master-2025
+cd /path/to/flink-training-bootcamp.zip
+unzip flink-training-bootcamp.zip
+cd flink-training-bootcamp
 ./gradlew clean testSolutions
 ```
 
@@ -59,8 +59,9 @@ If all the tests pass and the build is successful, you are off to a good start.
 
 The project needs to be imported as a gradle project into your IDE.
 
-Then you should be able to open [`BootcampWindowing1WorkflowTest`](bootcamp/windowing/src/test/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java) 
-and run this test.
+Then you should be able to open [`BootcampWindowingSolution1WorkflowTest`](bootcamp/windowing/src/test/java/com/ververica/flink/training/solutions/BootcampWindowingSolution1WorkflowTest.java) 
+and run this test. When you do this the first time, you'll get a popup menu with two options, `test` and `testSolutions`.
+Select `testSolutions`, since this test is for the exercise solution.
 
 > **:information_source: Note for Eclipse users:** Several Gradle projects in this repo 
 > depend on the Gradle project `common`. In order for Eclipse to detect the Gradle project dependencies correctly:
@@ -110,8 +111,11 @@ All of the `*Job` applications and `*WorkflowTest` JUnit
 tests will start a local Flink instance (aka `FlinkMiniCluster`). Because all the code is 
 running in one JVM that is started by your IDE, you can put breakpoints in your code for debugging.
 
-The first time you run each different JUnit test, a popup menu will appear with two run options: test and testSolutions.
+The first time you run each different JUnit test, a popup menu will appear with two run options: `test` and `testSolutions`.
 For your code, you should pick `test`. If you are running the unit test for a solution, pick `testSolutions`.
+If you pick the wrong menu item, the test will fail with a "no tests found" error. You can fix this by
+selecting Run > Edit Configurations... from the menu, and deleting that run configuration. Then run the
+test again, and you'll get the popup menu where you can select the correct option.
 
 ![Selecting test task](images/selecting-test-action-intellij.png)
 
