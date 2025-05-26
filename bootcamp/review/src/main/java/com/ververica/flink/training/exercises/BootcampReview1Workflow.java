@@ -55,6 +55,6 @@ public class BootcampReview1Workflow {
         // ==================================================================
 
         // TODO - replace this with a .sinkTo(resultSink);
-        cartStream.map(r -> new CartItemWithShoppingCartInfo(null, "", 0)).sinkTo(resultSink);
+        cartStream.map(r -> new CartItemWithShoppingCartInfo(r.getItems().get(0), "", 0)).sinkTo(resultSink);
     }
 }
