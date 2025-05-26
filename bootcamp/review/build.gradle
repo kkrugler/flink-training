@@ -1,0 +1,11 @@
+apply plugin: 'application'
+
+dependencies {
+    implementation project(path: ':bootcamp:common')
+    testImplementation testFixtures(project(path: ':bootcamp:common'))
+}
+
+sourceSets {
+    main.java.srcDirs += 'src/solution/java'
+    main.java.srcDirs += 'src/provided/java'
+}
