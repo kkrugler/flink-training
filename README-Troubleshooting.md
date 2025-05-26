@@ -7,8 +7,8 @@ Exercises that accompany the troubleshooting training content in the documentati
 [**Set up your development environment**](#set-up-your-development-environment)
 
 1. [Software requirements](#software-requirements)
-1. [Download and build the flink-training project](#clone-and-build-the-flink-training-project)
-1. [Import the flink-training project into your IDE](#import-the-flink-training-project-into-your-ide)
+1. [Unpack and build the flink-training-troubleshooting project](#unpack-and-build-the-flink-training-troubleshooting-project)
+1. [Import the flink-training project into your IDE](#import-the-flink-training-troubleshooting-project-into-your-ide)
 
 [**How to do the lab exercises**](#how-to-do-the-lab-exercises)
 
@@ -38,27 +38,29 @@ be installed on your system:
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
 
-### Download and build the flink-training project
+### Unpack and build the flink-training-troubleshooting project
 
-The `flink-training-troubleshooting.zip` archive contains exercises, tests, and reference solutions for 
-the programming exercises.
-
-Download the `flink-training-troubleshooting.zip` archive, unpack it, and build it:
+The `flink-training-troubleshooting.zip` file that you previously downloaded contains exercises,
+tests, and reference solutions for the programming exercises. To get started, you need to:
 
 ```bash
-wget -qO- http://blah | tar xvz -C /target/directory
-cd /target/directory/flink-training-troubleshooting
-./gradlew testSolutions shadowJar
+cd /path/to/flink-training-troubleshooting.zip
+unzip flink-training-troubleshooting.zip -d flink-training-troubleshooting
+cd flink-training-troubleshooting
+./gradlew clean shadowJar
 ```
 
-If this is your first time building it, you will end up downloading all of the dependencies for this Flink training
+If this is your first time building it, you will end up downloading all the dependencies for this Flink training
 project. This usually takes a few minutes, depending on the speed of your internet connection.
 
-If all of the tests pass and the build is successful, you are off to a good start.
+If all the tests pass and the build is successful, you are off to a good start.
 
 ### Import the flink-training-troubleshooting project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
+
+Next, you need to add a JVM argument to your IntelliJ configuration. Select the Help > Edit Custom VM Options...
+menu item, then add the line `--add-opens=java.base/java.util=ALL-UNNAMED`, and close the `idea.vmoptions` file.
 
 Then you should be able to open [`TroubledStreamingJob`](troubleshooting/introduction/src/main/java/com/ververica/flink/training/exercises/TroubledStreamingJob.java) 
 and run the main method.

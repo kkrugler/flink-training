@@ -26,30 +26,6 @@ apply plugin: 'base'
 description = "Flink Training Exercises"
 
 // Create a zip of just the required files for students. This excludes
-// the troubleshooting & state-processor projects.
-tasks.register('zipBootcamp', Zip) {
-    archiveFileName = "flink-training-bootcamp.zip"
-    destinationDirectory = layout.buildDirectory
-
-    from(layout.projectDirectory)
-    exclude("**/build")
-    exclude("**/.*")
-    exclude("troubleshooting")
-    exclude("state-processor")
-    exclude("hourly-tips")
-    exclude("long-ride-alerts")
-    exclude("ride-cleansing")
-    exclude("rides-and-fares")
-    exclude("README.md")
-    exclude("README_zh.md")
-    exclude("README-Troubleshooting.md")
-    exclude("CONTRIBUTING.md")
-    exclude("LICENSE")
-    exclude("adv.settings.gradle")
-    exclude("adv.build.gradle")
-}
-
-// Create a zip of just the required files for students. This excludes
 // the bootcamp & state-processor & beginner (taxi ride) projects.
 tasks.register('zipTroubleshooting', Zip) {
     archiveFileName = "flink-training-troubleshooting.zip"
@@ -71,13 +47,10 @@ tasks.register('zipTroubleshooting', Zip) {
     exclude("LICENSE")
     exclude("settings.gradle")
     rename("adv.settings.gradle", "settings.gradle")
-    exclude("build.gradle")
-    rename("adv.build.gradle", "build.gradle")
 }
 
-// Set up so build will create the bootcamp and troubleshooting zip files
+// Set up so build will create the advanced zip files
 tasks.assemble {
-    dependsOn(zipBootcamp)
     dependsOn(zipTroubleshooting)
 }
 
@@ -144,7 +117,7 @@ allprojects {
 }
 
 subprojects {
-    if (project == project(":troubleshooting") || project == project(":bootcamp") || project == project(":troubleshooting:state-migration")) {
+    if (project == project(":troubleshooting") || project == project(":troubleshooting:state-migration")) {
         // this is just an additional grouping layer, not a project!
         return
     }
@@ -165,16 +138,6 @@ subprojects {
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
         jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
-    }
-
-    if (project.parent == project(":bootcamp")) {
-        tasks.register('testSolutions', Test) {
-            group = 'verification'
-            filter { excludeTestsMatching("*.exercises.*") }
-        }
-        tasks.named('test', Test) {
-            filter { includeTestsMatching("*.exercises.*") }
-        }
     }
 
     sourceCompatibility = javaVersion
@@ -198,33 +161,18 @@ subprojects {
 
     // common set of dependencies
     dependencies {
-        if (project.parent.name == 'bootcamp') {
-            implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-            implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-            implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+        shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
 
-            implementation "org.apache.flink:flink-clients:${flinkVersion}"
-            implementation "org.apache.flink:flink-java:${flinkVersion}"
-            implementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
+        shadow "org.apache.flink:flink-clients:${flinkVersion}"
+        shadow "org.apache.flink:flink-java:${flinkVersion}"
+        shadow "org.apache.flink:flink-streaming-java:${flinkVersion}"
 
-            // allows using Flink's web UI when running in the IDE:
-            implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
-            // allow using RocksDB when running in the IDE:
-            implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
-        } else {
-            shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-            shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-            shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
-
-            shadow "org.apache.flink:flink-clients:${flinkVersion}"
-            shadow "org.apache.flink:flink-java:${flinkVersion}"
-            shadow "org.apache.flink:flink-streaming-java:${flinkVersion}"
-
-            // allows using Flink's web UI when running in the IDE:
-            shadow "org.apache.flink:flink-runtime-web:${flinkVersion}"
-            // allow using RocksDB when running in the IDE:
-            shadow "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
-        }
+        // allows using Flink's web UI when running in the IDE:
+        shadow "org.apache.flink:flink-runtime-web:${flinkVersion}"
+        // allow using RocksDB when running in the IDE:
+        shadow "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
 
         // common set for testing
         testImplementation "junit:junit:${junitVersion}"
@@ -291,28 +239,26 @@ subprojects {
         }
     }
 
-    if (project.parent.name != 'bootcamp') {
-        shadowJar {
-            mergeServiceFiles()
-            dependencies {
-                exclude(dependency("org.apache.flink:force-shading"))
-                exclude(dependency('com.google.code.findbugs:jsr305'))
-                exclude(dependency('org.slf4j:.*'))
-                exclude(dependency('log4j:.*'))
-                exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
-                // already provided dependencies from serializer frameworks
-                exclude(dependency('com.esotericsoftware.kryo:kryo'))
-                exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
-                exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
-            }
-            if (project.parent != rootProject) {
-                archiveBaseName.set("${project.parent.name}-${project.name}")
-            }
+    shadowJar {
+        mergeServiceFiles()
+        dependencies {
+            exclude(dependency("org.apache.flink:force-shading"))
+            exclude(dependency('com.google.code.findbugs:jsr305'))
+            exclude(dependency('org.slf4j:.*'))
+            exclude(dependency('log4j:.*'))
+            exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
+            // already provided dependencies from serializer frameworks
+            exclude(dependency('com.esotericsoftware.kryo:kryo'))
+            exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
+            exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
         }
+        if (project.parent != rootProject) {
+            archiveBaseName.set("${project.parent.name}-${project.name}")
+        }
+    }
 
-        tasks.assemble {
-            dependsOn(shadowJar)
-        }
+    tasks.assemble {
+        dependsOn(shadowJar)
     }
 
     // add FLINK_TRAINING_LOCAL to the environment variables if run via gradle
@@ -330,7 +276,7 @@ tasks.register('printRunTasks') {
         subprojects.findAll { project ->
             boolean first = true;
             project.tasks.withType(JavaExec) { task ->
-                if (task.group == 'flink-training-bootcamp') {
+                if (task.group == 'flink-training-troubleshooting') {
                     if (first) {
                         println ''
                         println '> Subproject \'' + project.name + '\''
@@ -350,7 +296,7 @@ static def void createTrainingRunTask(Project project, String property) {
             classpath = project.sourceSets.main.runtimeClasspath
             mainClass = project.ext.get(property)
             jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
-            group = 'flink-training-bootcamp'
+            group = 'flink-training-troubleshooting'
         }
     }
 }

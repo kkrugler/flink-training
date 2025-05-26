@@ -7,7 +7,7 @@ Exercises that accompany the training content in the documentation.
 [**Set up your development environment**](#set-up-your-development-environment)
 
 1. [Software requirements](#software-requirements)
-1. [Clone and build the flink-training project](#clone-and-build-the-flink-training-bootcamp-project)
+1. [Clone and build the flink-training project](#unpack-and-build-the-flink-training-bootcamp-project)
 1. [Import the flink-training project into your IDE](#import-the-flink-training-bootcamp-project-into-your-ide)
 
 [**How to do the lab exercises**](#how-to-do-the-lab-exercises)
@@ -38,15 +38,15 @@ be installed on your system:
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
 
-### Clone and build the flink-training-bootcamp project
+### Unpack and build the flink-training-bootcamp project
 
 The `flink-training-bootcamp.zip` file that you previously downloaded contains exercises,
 tests, and reference solutions for the programming exercises. To get started, you need to:
 
 ```bash
 cd /path/to/flink-training-bootcamp.zip
-unzip flink-training-bootcamp.zip -d flink-training
-cd flink-training
+unzip flink-training-bootcamp.zip -d flink-training-bootcamp
+cd flink-training-bootcamp
 ./gradlew clean testSolutions
 ```
 
@@ -58,6 +58,9 @@ If all the tests pass and the build is successful, you are off to a good start.
 ### Import the flink-training-bootcamp project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
+
+Next, you need to add a JVM argument to your IntelliJ configuration. Select the Help > Edit Custom VM Options...
+menu item, then add the line `--add-opens=java.base/java.util=ALL-UNNAMED`, and close the `idea.vmoptions` file.
 
 Then you should be able to open [`BootcampWindowingSolution1WorkflowTest`](bootcamp/windowing/src/test/java/com/ververica/flink/training/solutions/BootcampWindowingSolution1WorkflowTest.java) 
 and run this test. When you do this the first time, you'll get a popup menu with two options, `test` and `testSolutions`.
