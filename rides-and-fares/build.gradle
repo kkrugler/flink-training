@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
+dependencies {
+    implementation project(path: ':common')
+    testImplementation testFixtures(project(':common'))
+}
+
 ext.javaExerciseClassName = 'org.apache.flink.training.exercises.ridesandfares.RidesAndFaresExercise'
-ext.scalaExerciseClassName = 'org.apache.flink.training.exercises.ridesandfares.scala.RidesAndFaresExercise'
 ext.javaSolutionClassName = 'org.apache.flink.training.solutions.ridesandfares.RidesAndFaresSolution'
-ext.scalaSolutionClassName = 'org.apache.flink.training.solutions.ridesandfares.scala.RidesAndFaresSolution'
 
 apply plugin: 'application'
 

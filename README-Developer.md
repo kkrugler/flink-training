@@ -17,8 +17,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-[中文版](./README_zh.md)
-
 # Apache Flink Training Exercises
 
 Exercises that accompany the training content in the documentation.
@@ -57,13 +55,11 @@ You will need to set up your environment in order to develop, debug, and execute
 Flink supports Linux, OS X, and Windows as development environments for Flink programs and local execution. The following software is required for a Flink development setup and should be installed on your system:
 
 - Git
-- a JDK for Java 8 or Java 11 (a JRE is not sufficient; other versions of Java are currently not supported)
-- an IDE for Java (and/or Scala) development with Gradle support
+- a JDK for Java 17 (a JRE is not sufficient; other versions of Java are currently not supported)
+- an IDE for Java development with Gradle support
   - We recommend [IntelliJ](https://www.jetbrains.com/idea/), but [Eclipse](https://www.eclipse.org/downloads/) or 
     [Visual Studio Code](https://code.visualstudio.com/) (with the [Java extension pack](https://code.visualstudio.
     com/docs/java/java-tutorial)) can also be used so long as you stick to Java. 
-  - The recent Eclipse comes with Java 17, make sure you configure the Gradle plugin to use Java 8 or 11.
-  - For Scala, you will need to use IntelliJ (and its [Scala plugin](https://plugins.jetbrains.com/plugin/1347-scala/))
 
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
 > You may find it worthwhile to setup cygwin or WSL. For developing Flink jobs, Windows works reasonably well: you can run a Flink cluster on a single machine, submit jobs, run the webUI, and execute jobs in the IDE.
@@ -81,14 +77,15 @@ This `flink-training` repository contains exercises, tests, and reference soluti
 Clone the `flink-training` repository from GitHub, navigate into the project repository, and build it:
 
 ```bash
-git clone https://github.com/ververica/flink-training.git
+git clone https://github.com/scaleunlimited/flink-training.git
 cd flink-training
+git checkout master-2025
 ./gradlew test shadowJar
 ```
 
-If this is your first time building it, you will end up downloading all of the dependencies for this Flink training project. This usually takes a few minutes, depending on the speed of your internet connection.
+If this is your first time building it, you will end up downloading all the dependencies for this Flink training project. This usually takes a few minutes, depending on the speed of your internet connection.
 
-If all of the tests pass and the build is successful, you are off to a good start.
+If all the tests pass and the build is successful, you are off to a good start.
 
 <details>
 <summary><strong>:cn: Users in China: click here for instructions on using a local Maven mirror.</strong></summary>
@@ -110,44 +107,11 @@ If you are in China, we recommend configuring the Maven repository to use a mirr
 ```
 </details>
 
-<details>
-<summary><strong>Enable Scala (optional)</strong></summary>
-
-The exercises in this project are also available in Scala but due to a couple
-of reported problems from non-Scala users, we decided to disable these by
-default. You can re-enable all Scala exercises and solutions adapting the
-[`gradle.properties`](gradle.properties) file like this:
-
-```properties
-#...
-
-# Scala exercises can be enabled by setting this to true
-org.gradle.project.enable_scala = true
-```
-
-You can also selectively apply this plugin in a single subproject if desired.
-</details>
-
-
 ### Import the flink-training project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
 
 Then you should be able to open [`RideCleansingIntegrationTest`](ride-cleansing/src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java) and run this test.
-
-> **:information_source: Note for Scala users:** You will need to use IntelliJ with the JetBrains Scala plugin, and you will need to add a Scala 2.12 SDK to the Global Libraries section of the Project Structure as well as to the module you are working on.
-> IntelliJ will ask you for the latter when you open a Scala file.
-> Please note that Scala 2.12.8 and above are not supported (see [Flink Scala Versions](https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/project-configuration/#scala-versions for details))!
-
-> **:information_source: Note for Eclipse users:** Several Gradle projects (e.g., ride-cleansing) in this repo 
-> depend on the Gradle project `common`. In order for Eclipse to detect the Gradle project dependencies correctly:
-> You likely need to run the following command:
-> 
-> `cd flink-training; ./gradlew cleanEclipse cleanEclipseProject cleanEclipseClasspath eclipse`
-> 
-> Then, in the Gradle project that depends on `common`, set `Without test code` to `No` in the project dependence 
-> setting. See the screenshot: 
-> ![dependency-fix](images/project-dependency-fix-test-code.png)
 
 ## Use the taxi data streams
 
@@ -202,11 +166,11 @@ We assume you have set up your development environment according to our [setup g
 ### Learn about the data
 
 The initial set of exercises are all based on data streams of events about taxi rides and taxi fares. These streams are produced by source functions which reads data from input files.
-Read the [instructions](#using-the-taxi-data-streams) to learn how to use them.
+Read the [instructions](#use-the-taxi-data-streams) to learn how to use them.
 
 ### Run and debug Flink programs in your IDE
 
-Flink programs can be executed and debugged from within an IDE. This significantly eases the development process and provides an experience similar to working on any other Java (or Scala) application.
+Flink programs can be executed and debugged from within an IDE. This significantly eases the development process and provides an experience similar to working on any other Java application.
 
 To start a Flink program in your IDE, run its `main()` method. Under the hood, the execution environment will start a local Flink instance within the same process. Hence, it is also possible to put breakpoints in your code and debug it.
 
@@ -222,7 +186,7 @@ Each of these exercises include:
 - a JUnit Test class (`...Test`) with a few tests for your implementation
 - a `...Solution` class with a complete solution
 
-There are Java and Scala versions of all the exercise, test, and solution classes. They can each be run from IntelliJ.
+There are Java versions of all the exercise, test, and solution classes. They can each be run from IntelliJ.
 
 > **:information_source: Note:** As long as your `...Exercise` class is throwing a `MissingSolutionException`, the provided JUnit test classes will ignore that failure and verify the correctness of the solution implementation instead.
 
@@ -235,7 +199,7 @@ To run tests:
 ./gradlew :<subproject>:test
 ```
 
-For Java/Scala exercises and solutions, we provide special tasks that can be listed with:
+For Java exercises and solutions, we provide special tasks that can be listed with:
 
 ```bash
 ./gradlew printRunTasks
@@ -245,15 +209,14 @@ For Java/Scala exercises and solutions, we provide special tasks that can be lis
 
 ## Lab exercises
 
-1. [Filtering a Stream (Ride Cleansing)](ride-cleansing)
-1. [Stateful Enrichment (Rides and Fares)](rides-and-fares)
+1. [Filtering a Stream (Ride Cleansing)](ride-cleansing/README.md)
+1. [Stateful Enrichment (Rides and Fares)](rides-and-fares/README.md)
 1. [Windowed Analytics (Hourly Tips)](hourly-tips)
    - [Exercise](hourly-tips/README.md)
    - [Discussion](hourly-tips/DISCUSSION.md)
 1. [`ProcessFunction` and Timers (Long Ride Alerts)](long-ride-alerts)
    - [Exercise](long-ride-alerts/README.md)
    - [Discussion](long-ride-alerts/DISCUSSION.md)
-1. [Tuning & Troubleshooting Labs](troubleshooting)
 
 ## Contribute
 

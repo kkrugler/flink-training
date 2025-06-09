@@ -17,6 +17,7 @@
 
 plugins {
     id 'java-library'
+    id 'java-test-fixtures'
 }
 
 java {
@@ -27,10 +28,10 @@ java {
 
 // common set of dependencies
 dependencies {
-    testApi "junit:junit:${junitVersion}"
-    testApi "org.apache.flink:flink-streaming-java:${flinkVersion}:tests"
-    testApi "org.apache.flink:flink-runtime:${flinkVersion}:tests"
-    testApi "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
-    testApi "org.apache.flink:flink-test-utils:${flinkVersion}"
-    testApi 'org.assertj:assertj-core:3.20.2'
+    testFixturesImplementation "junit:junit:${junitVersion}"
+    testFixturesImplementation "org.apache.flink:flink-streaming-java:${flinkVersion}:tests"
+    testFixturesImplementation "org.apache.flink:flink-runtime:${flinkVersion}:tests"
+    testFixturesImplementation "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
+    testFixturesImplementation "org.apache.flink:flink-test-utils:${flinkVersion}"
+    testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
 }

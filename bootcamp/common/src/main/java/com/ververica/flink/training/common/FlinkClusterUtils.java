@@ -50,6 +50,13 @@ public class FlinkClusterUtils {
     }
 
     public static StreamExecutionEnvironment createConfiguredTestEnvironment(
+            final ParameterTool parameters) throws IOException, URISyntaxException {
+        int parallelism = parameters.getInt("parallelism", -1);
+        return createConfiguredTestEnvironment(parameters, parallelism);
+    }
+
+
+    public static StreamExecutionEnvironment createConfiguredTestEnvironment(
             final ParameterTool parameters, int parallelism) throws IOException, URISyntaxException {
         return createEnvironment(parameters, new Configuration(), parallelism, true, NO_WEBUI_PORT);
     }

@@ -5,8 +5,15 @@
 
 package com.ververica.flink.training.exercises;
 
+import org.apache.flink.api.common.functions.OpenContext;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.streaming.api.functions.sink.PrintSink;
+import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
 import com.ververica.flink.training.common.ShoppingCartRecord;
@@ -39,6 +46,29 @@ public class BootcampReview1Workflow {
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
+
+        cartStream.keyBy(r -> r.getCountry())
+                .process(new KeyedProcessFunction<String, ShoppingCartRecord, Tuple2<String, Integer>>() {
+                    private transient ValueState<Integer> state;
+                    @Override
+                    public void open(OpenContext openContext) throws Exception {
+                        ValueStateDescriptor vsd = new ValueStateDescriptor("state", Integer.class);
+                        state = getRuntimeContext().getState(vsd);
+                    }
+
+                    @Override
+                    public void processElement(ShoppingCartRecord value, Context ctx, Collector<Tuple2<String,Integer>> out) throws Exception {
+                        Integer v = state.value();
+                        if (v == null) {
+                            v = 1;
+                        } else {
+                            v = v + 1;
+                        }
+                        state.update(v);
+                        out.collect(Tuple2.of(ctx.getCurrentKey(), v));
+                    }
+                })
+                        .sinkTo(new PrintSink<>());
 
         // TODO - filter out transactions out that are NOT completed.
         // TODO - Implement this as a filter function.

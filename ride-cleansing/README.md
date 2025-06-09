@@ -17,11 +17,9 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-[中文版](./README_zh.md)
-
 # Lab: Filtering a Stream (Ride Cleansing)
 
-If you haven't already done so, you'll need to first [setup your Flink development environment](../README.md). See [How to do the Labs](../README.md#how-to-do-the-labs) for an overall introduction to these exercises.
+If you haven't already done so, you'll need to first [setup your Flink development environment](../README-Developer.md). See [How to do the Labs](../README-Developer.md#how-to-do-the-lab-exercises) for an overall introduction to these exercises.
 
 The task of the "Taxi Ride Cleansing" exercise is to cleanse a stream of TaxiRide events by removing events that start or end outside of New York City.
 
@@ -29,7 +27,7 @@ The `GeoUtils` utility class provides a static method `isInNYC(float lon, float 
 
 ### Input Data
 
-This exercise is based on a stream of `TaxiRide` events, as described in [Using the Taxi Data Streams](../README.md#use-the-taxi-data-streams).
+This exercise is based on a stream of `TaxiRide` events, as described in [Using the Taxi Data Streams](../README-Developer.md#use-the-taxi-data-streams).
 
 ### Expected Output
 
@@ -46,17 +44,14 @@ The resulting stream should be printed to standard out.
 
 This exercise uses these classes:
 
-- Java:  [`org.apache.flink.training.exercises.ridecleansing.RideCleansingExercise`](src/main/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingExercise.java)
-- Scala: [`org.apache.flink.training.exercises.ridecleansing.scala.RideCleansingExercise`](src/main/scala/org/apache/flink/training/exercises/ridecleansing/scala/RideCleansingExercise.scala)
+[`org.apache.flink.training.exercises.ridecleansing.RideCleansingExercise`](src/main/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingExercise.java)
 
 ### Tests
 
 You will find the tests for this exercise in
 
-- Java:  [`org.apache.flink.training.exercises.ridecleansing.RideCleansingIntegrationTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java)
-- Java:  [`org.apache.flink.training.exercises.ridecleansing.RideCleansingUnitTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingUnitTest.java)
-- Scala: [`org.apache.flink.training.exercises.ridecleansing.scala.RideCleansingIntegrationTest`](src/test/scala/org/apache/flink/training/exercises/ridecleansing/scala/RideCleansingIntegrationTest.scala)
-- Scala: [`org.apache.flink.training.exercises.ridecleansing.scala.RideCleansingUnitTest`](src/test/scala/org/apache/flink/training/exercises/ridecleansing/scala/RideCleansingUnitTest.scala)
+- [`org.apache.flink.training.exercises.ridecleansing.RideCleansingIntegrationTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java)
+- [`org.apache.flink.training.exercises.ridecleansing.RideCleansingUnitTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingUnitTest.java)
 
 Like most of these exercises, at some point the `RideCleansingExercise` class throws an exception
 
@@ -89,9 +84,8 @@ Flink's DataStream API features a `DataStream.filter(FilterFunction)` transforma
 
 Reference solutions are available in this project:
 
-- Java:  [`org.apache.flink.training.solutions.ridecleansing.RideCleansingSolution`](src/solution/java/org/apache/flink/training/solutions/ridecleansing/RideCleansingSolution.java)
-- Scala: [`org.apache.flink.training.solutions.ridecleansing.scala.RideCleansingSolution`](src/solution/scala/org/apache/flink/training/solutions/ridecleansing/scala/RideCleansingSolution.scala)
+[`org.apache.flink.training.solutions.ridecleansing.RideCleansingSolution`](src/solution/java/org/apache/flink/training/solutions/ridecleansing/RideCleansingSolution.java)
 
 -----
 
-[**Back to Labs Overview**](../README.md#lab-exercises)
+[**Back to Labs Overview**](../README-Developer.md#lab-exercises)
