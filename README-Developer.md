@@ -77,7 +77,7 @@ This `flink-training` repository contains exercises, tests, and reference soluti
 Clone the `flink-training` repository from GitHub, navigate into the project repository, and build it:
 
 ```bash
-git clone https://github.com/scaleunlimited/flink-training.git
+git clone https://github.com/kkrugler/flink-training.git
 cd flink-training
 git checkout master-2025
 ./gradlew test shadowJar
@@ -179,12 +179,36 @@ If you have an IDE with this `flink-training` project imported, you can run (or 
 - opening the `org.apache.flink.training.examples.ridecount.RideCountExample` class in your IDE
 - running (or debugging) the `main()` method of the `RideCountExample` class using your IDE
 
+### Java 17 issue with Kryo
+
+The serialization library used by Flink accesses internal fields, which (as of Java 17)
+is no longer supported out-of-the-box. So if you run a `main()` method to trigger a Flink
+program, you'll get this type of error:
+
+```java
+Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field private final 
+java.lang.Object[] java.util.Arrays$ArrayList.a accessible: module java.base does not "opens java.util" to unnamed module @673bfdf3
+```
+
+The solution is to edit your `main()` program's Run configuration used by IntelliJ, and add the following
+VM arguments:
+
+```properties
+--add-opens=java.base/java.util=ALL-UNNAMED
+--add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+--add-opens=java.base/java.lang=ALL-UNNAMED
+--add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+--add-opens=java.base/java.io=ALL-UNNAMED
+```
+
 ### Exercises, tests, and solutions
 
 Each of these exercises include:
 - an `...Exercise` class with most of the necessary boilerplate code for getting started
 - a JUnit Test class (`...Test`) with a few tests for your implementation
 - a `...Solution` class with a complete solution
+
+> **:information_source: Note:** DO NOT modify any classes/methods annotated with @DoNotTouchThis!!!
 
 There are Java versions of all the exercise, test, and solution classes. They can each be run from IntelliJ.
 
