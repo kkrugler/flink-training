@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-rootProject.name = 'flink-training-troubleshooting'
+rootProject.name = 'flink-training-developer'
 
-include 'troubleshooting:checkpointing'
+include 'common'
+include 'hourly-tips'
+include 'long-ride-alerts'
+include 'ride-cleansing'
+include 'rides-and-fares'
+
 include 'troubleshooting:common'
-include 'troubleshooting:external-enrichment'
 include 'troubleshooting:introduction'
-include 'troubleshooting:object-reuse'
-include 'troubleshooting:rocksdb'
-include 'troubleshooting:state-migration:common'
-include 'troubleshooting:state-migration:exercise'
-include 'troubleshooting:state-migration:solution'
-include 'troubleshooting:state-migration:solution-custom-to-avro'
-include 'troubleshooting:throughput'
+

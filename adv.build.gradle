@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
-    id "com.diffplug.spotless" version "6.25.0" apply false
-}
-
 // Get access to tasks.assemble below
 apply plugin: 'base'
 
