@@ -21,8 +21,7 @@ package com.ververica.flink.training.common;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.*;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.state.StateBackend;
@@ -38,9 +37,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.flink.configuration.RestOptions.BIND_PORT;
+import static org.apache.flink.configuration.RestOptions.ENABLE_FLAMEGRAPH;
+
 import static org.apache.flink.configuration.TaskManagerOptions.CPU_CORES;
 import static org.apache.flink.configuration.TaskManagerOptions.MANAGED_MEMORY_SIZE;
 import static org.apache.flink.configuration.TaskManagerOptions.TASK_HEAP_MEMORY;
@@ -79,7 +81,13 @@ public class EnvironmentUtils {
             flinkConfig.set(TASK_HEAP_MEMORY, MemorySize.ofMebiBytes(1024));
             flinkConfig.set(TASK_OFF_HEAP_MEMORY, MemorySize.ofMebiBytes(256));
             flinkConfig.set(MANAGED_MEMORY_SIZE, MemorySize.ofMebiBytes(1024));
-            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
+            flinkConfig.set(ENABLE_FLAMEGRAPH, parameters.has("flamegraph"));
+
+            if (parameters.has("useRocksDB")) {
+                flinkConfig.set(StateBackendOptions.STATE_BACKEND, "rocksdb");
+            } else {
+                flinkConfig.set(StateBackendOptions.STATE_BACKEND, "hashmap");
+            }
 
             // configure filesystem state backend
             String statePath = parameters.get("fsStatePath");
@@ -92,20 +100,17 @@ public class EnvironmentUtils {
                         Path.fromLocalFile(Files.createTempDirectory("checkpoints").toFile());
             }
 
-            final StateBackend stateBackend;
-            if (parameters.has("useRocksDB")) {
-                stateBackend = new RocksDBStateBackend(checkpointPath.toUri());
-            } else {
-                stateBackend = new FsStateBackend(checkpointPath);
-            }
             LOG.info("Writing checkpoints to {}", checkpointPath);
-            env.setStateBackend(stateBackend);
+            flinkConfig.set(CheckpointingOptions.CHECKPOINT_STORAGE, "filesystem");
+            flinkConfig.set(CheckpointingOptions.CHECKPOINTS_DIRECTORY, checkpointPath.toString());
 
             // set a restart strategy for better IDE debugging
-            env.setRestartStrategy(
-                    RestartStrategies.fixedDelayRestart(
-                            Integer.MAX_VALUE, Time.of(15, TimeUnit.SECONDS) // delay
-                            ));
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS, Integer.MAX_VALUE);
+            Duration restartDelay = Duration.ofSeconds(parameters.getInt("restartdelay", 15));
+            flinkConfig.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, restartDelay);
+
+            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(flinkConfig);
         }
 
         final int parallelism = parameters.getInt("parallelism", -1);
