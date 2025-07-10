@@ -23,24 +23,14 @@ import java.util.Objects;
 @SuppressWarnings({"unused", "RedundantSuppression"})
 public class SimpleMeasurement {
 
-    private int sensorId;
     private double value;
     private String location;
 
     public SimpleMeasurement() {}
 
-    public SimpleMeasurement(final int sensorId, final double value, final String location) {
-        this.sensorId = sensorId;
+    public SimpleMeasurement(final double value, final String location) {
         this.value = value;
         this.location = location;
-    }
-
-    public int getSensorId() {
-        return sensorId;
-    }
-
-    public void setSensorId(final int sensorId) {
-        this.sensorId = sensorId;
     }
 
     public double getValue() {
@@ -68,26 +58,22 @@ public class SimpleMeasurement {
             return false;
         }
         final SimpleMeasurement that = (SimpleMeasurement) o;
-        return sensorId == that.sensorId
-                && Double.compare(that.value, value) == 0
+        return Double.compare(that.value, value) == 0
                 && Objects.equals(location, that.location);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sensorId, value, location);
+        return Objects.hash(value, location);
     }
 
     @Override
     public String toString() {
         return "SimpleMeasurement{"
-                + "sensorId="
-                + sensorId
-                + ", value="
-                + value
-                + ", location='"
+                + "location='"
                 + location
-                + '\''
+                + "', value="
+                + value
                 + '}';
     }
 }
