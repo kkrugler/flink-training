@@ -37,15 +37,6 @@ public class RideCleansingIntegrationTest extends RideCleansingTestBase {
 
     private static final int PARALLELISM = 2;
 
-    /** This isn't necessary, but speeds up the tests. */
-    @ClassRule
-    public static MiniClusterWithClientResource flinkCluster =
-            new MiniClusterWithClientResource(
-                    new MiniClusterResourceConfiguration.Builder()
-                            .setNumberSlotsPerTaskManager(PARALLELISM)
-                            .setNumberTaskManagers(1)
-                            .build());
-
     @Test
     public void testAMixtureOfLocations() throws Exception {
 
