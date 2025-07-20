@@ -32,7 +32,7 @@ public class BootcampSerializationJob {
     public static void main(String[] args) throws Exception {
         final boolean discarding = true; // We always want to discard, to avoid performance impact from printing.
         final int parallelism = 2;
-        final long numRecords = 0; // Set to 0 for unbounded source
+        final long numRecords = 1_000_000; // Set to 0 for unbounded source
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
         final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredLocalEnvironment(parameters, parallelism);

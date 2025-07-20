@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static com.ververica.flink.training.provided.BootcampSerializationWorkflowTestUtils.testWorkflow;
 
-class BootcampSerializationSolutionWorkflowTest {
+class BootcampSerializationSolution1WorkflowTest {
 
     @Test
-    public void testBootcampSerializationSolutionWorkflow() throws Exception {
-        testWorkflow(new BootcampSerializationSolutionWorkflow());
+    public void testBootcampSerializationSolution1Workflow() throws Exception {
+        testWorkflow(new BootcampSerializationSolution1Workflow());
     }
 }

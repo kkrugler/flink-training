@@ -32,14 +32,14 @@ public class BootcampSerializationSolutionJob {
     public static void main(String[] args) throws Exception {
         final boolean discarding = true; // We always want to discard, to avoid performance impact from printing.
         final int parallelism = 2;
-        final long numRecords = 10_000_000; // Set to 0 for unbounded source
+        final long numRecords = 1_000_000; // Set to 0 for unbounded source
 
         ParameterTool parameters = ParameterTool.fromArgs(args);
         final StreamExecutionEnvironment env = FlinkClusterUtils.createConfiguredLocalEnvironment(parameters, parallelism);
 
         final boolean bounded = numRecords != 0L;
         ShoppingCartSource source = bounded ? new ShoppingCartSource(numRecords, 0L) : new ShoppingCartSource();
-        new BootcampSerializationSolutionWorkflow()
+        new BootcampSerializationSolution3Workflow()
                 .setCartStream(env.fromSource(source, WatermarkStrategy.noWatermarks(), "Shopping Cart Stream"))
                 .setOneMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("1m count"))
                 .setFiveMinuteSink(discarding ? new DiscardingSink<>() : new PrintSink<>("5m count"))

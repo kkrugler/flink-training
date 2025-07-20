@@ -16,74 +16,42 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
-import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.exercises.BootcampSerializationWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.common.functions.OpenContext;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
+import org.apache.flink.streaming.api.operators.TimestampedCollector;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
 /**
- * Improve the performance of the workflow (throughput) by making
- * changes recommended in the lab's README
+ * Solution to the third exercise in the eCommerce serialization lab
+ *
+ * 1. Use KeyedProcessFunction to find duration, versus session window
+ *
  */
-public class BootcampSerializationWorkflow {
+public class BootcampSerializationSolution3Workflow extends BootcampSerializationWorkflow {
 
-    // Maximum time between transactions where they will still be considered a
-    // single session.
-    protected static final Duration MAX_SESSION_GAP = Duration.ofMinutes(1);
-
-    protected DataStream<ShoppingCartRecord> cartStream;
-    protected Sink<KeyedWindowResult> oneMinuteSink;
-    protected Sink<WindowAllResult> fiveMinuteSink;
-    protected Sink<KeyedWindowResult> longestTransactionsSink;
-    protected int transactionWindowInMinutes = 5;
-
-    public BootcampSerializationWorkflow() {
-    }
-
-    public BootcampSerializationWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
-        this.oneMinuteSink = oneMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
-        this.fiveMinuteSink = fiveMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
-        this.longestTransactionsSink = longestTransactionsSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
-        this.transactionWindowInMinutes = transactionWindowInMinutes;
-        return this;
-    }
+    private static final long MAX_SESSION_GAP_MS = MAX_SESSION_GAP.toMillis();
 
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
@@ -92,9 +60,11 @@ public class BootcampSerializationWorkflow {
         Preconditions.checkNotNull(longestTransactionsSink, "longestTransactionsSink must be set");
 
         // Assign timestamps & watermarks
-        DataStream<ShoppingCartRecord> watermarkedStream = cartStream
+        DataStream<TrimmedShoppingCart> watermarkedStream = cartStream
+                // Convert to a smaller/better version of ShoppingCartRecord.
+                .map(r -> new TrimmedShoppingCart(r))
                 .assignTimestampsAndWatermarks(
-                        WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                        WatermarkStrategy.<TrimmedShoppingCart>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()));
 
         DataStream<KeyedWindowResult> oneMinuteStream = watermarkedStream
@@ -122,10 +92,10 @@ public class BootcampSerializationWorkflow {
                 // Key by transaction id, window by transaction (session) and calculate duration.
                 // Generate result as KeyedWindowResult(transaction id, time, duration)
                 .keyBy(r -> r.getTransactionId())
-                .window(EventTimeSessionWindows.withGap(MAX_SESSION_GAP))
-                .aggregate(new FindTransactionBoundsFunction(), new SetDurationAndTimeFunction())
+                .process(new FindTransactionBoundsFunction())
 
-                // Window by configurable window size, aggregate using PriorityQueue
+                // Use a global window, configurable duration, and aggregate with a simple record
+                // that tracks the two longest transactions.
                 .windowAll(TumblingEventTimeWindows.of(Duration.ofMinutes(transactionWindowInMinutes)))
                 .aggregate(new FindLongestTransactions(), new EmitLongestTransactions())
                 .sinkTo(longestTransactionsSink);
@@ -135,14 +105,14 @@ public class BootcampSerializationWorkflow {
     // Classes for doing aggregation to calculate per-1 minute item counts.
     // ========================================================================================
 
-    private static class CountCartItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
+    private static class CountCartItemsAggregator implements AggregateFunction<TrimmedShoppingCart, Long, Long> {
         @Override
         public Long createAccumulator() {
             return 0L;
         }
 
         @Override
-        public Long add(ShoppingCartRecord value, Long acc) {
+        public Long add(TrimmedShoppingCart value, Long acc) {
             for (CartItem item : value.getItems()) {
                 acc += item.getQuantity();
             }
@@ -210,53 +180,89 @@ public class BootcampSerializationWorkflow {
     /*
      * Find the earliest start and final end time for each transaction
      */
-    private static class FindTransactionBoundsFunction implements AggregateFunction<ShoppingCartRecord, Tuple2<Long, Long>, Tuple2<Long, Long>> {
+    private static class FindTransactionBoundsFunction extends KeyedProcessFunction<String, TrimmedShoppingCart, Tuple2<String, Long>> {
+
+        // Earliest time of any uncompleted transaction
+        private ValueState<Long> earliestTime;
+        // Set if we have a timer running
+        private ValueState<Long> timerTime;
+        // Transaction time for the one completed transaction
+        private ValueState<Long> endTime;
+
         @Override
-        public Tuple2<Long, Long> createAccumulator() {
-            return Tuple2.of(-1L, -1L);
+        public void open(OpenContext openContext) throws Exception {
+            earliestTime = getRuntimeContext().getState(new ValueStateDescriptor<>("earliestTime", Long.class));
+            timerTime = getRuntimeContext().getState(new ValueStateDescriptor<>("timerTime", Long.class));
+            endTime = getRuntimeContext().getState(new ValueStateDescriptor<>("endTime", Long.class));
         }
 
         @Override
-        public Tuple2<Long, Long> add(ShoppingCartRecord value, Tuple2<Long, Long> acc) {
-            long transactionTime = value.getTransactionTime();
-            if (value.isTransactionCompleted()) {
-                acc.f1 = transactionTime;
-            } else if ((acc.f0 == -1) || (transactionTime < acc.f0)) {
-                acc.f0 = transactionTime;
-            }
+        public void processElement(TrimmedShoppingCart in, Context ctx, Collector<Tuple2<String, Long>> out) throws Exception {
+            Long earliest = earliestTime.value();
+            Long timer = timerTime.value();
+            Long end = endTime.value();
 
-            return acc;
+            long transactionTime = in.getTransactionTime();
+
+            // We assume properly ordered data, in that the completed transaction's time will always be >= any
+            // uncompleted transactions, thus we don't need to do any special checks here.
+            if (in.isTransactionCompleted()) {
+                removeTimer(ctx);
+                endTime.update(transactionTime);
+                timerTime.update(transactionTime);
+                startTimer(ctx);
+            } else {
+                if ((earliest == null) || (earliest > transactionTime)) {
+                    earliestTime.update(transactionTime);
+                }
+
+                // See if we need to update the timerTime. If we have an end time
+                // then we are good, otherwise if this is the first non-transaction
+                // record, or it's later than our current timer, we want to stop the
+                // potentially running timer, and start with the later time.
+                if ((end == null) && ((earliest == null) || (transactionTime > timer))) {
+                    removeTimer(ctx);
+                    timerTime.update(transactionTime);
+                    startTimer(ctx);
+                }
+            }
+        }
+
+        private void startTimer(Context ctx) throws IOException {
+            ctx.timerService().registerEventTimeTimer(timerTime.value() + MAX_SESSION_GAP_MS);
+        }
+
+        private void removeTimer(Context ctx) throws IOException {
+            if (timerTime.value() != null) {
+                ctx.timerService().deleteEventTimeTimer(timerTime.value() + MAX_SESSION_GAP_MS);
+                timerTime.clear();
+            }
         }
 
         @Override
-        public Tuple2<Long, Long> getResult(Tuple2<Long, Long> acc) {
-            return acc;
-        }
+        public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<String, Long>> out) throws Exception {
+            // Timer fired. If we have an end transaction, then we have a duration. If there's no start, assume it's
+            // a single action. If we don't have an end transaction, assume it's an abandoned cart (do nothing).
+            Long start = earliestTime.value();
+            Long end = endTime.value();
+            if (end != null) {
+                if (start == null) {
+                    start = end;
+                }
 
-        /**
-         * Merge the two Tuples<start time, end time> by setting the resulting
-         * start time to the min of the two, and the end time to the max of
-         * the two. If the time is -1, ignore it since it hasn't be set yet.
-         *
-         * @param a An accumulator to merge
-         * @param b Another accumulator to merge
-         * @return
-         */
-        @Override
-        public Tuple2<Long, Long> merge(Tuple2<Long, Long> a, Tuple2<Long, Long> b) {
-            if (a.f0 == -1) {
-                a.f0 = b.f0;
-            } else if ((b.f0 != -1) && (b.f0 < a.f0)) {
-                a.f0 = b.f0;
+                // If we just call out.collect(), the record's event time is set to the timer's timestamp. But
+                // that's not what we want, as this timer is for when we end a session, so it's some time
+                // after the end of the session. We need to do the funky cast of the collector to a TimestampedCollector,
+                // which lets us set the timestamp to use when we call collect.
+                TimestampedCollector<Tuple2<String, Long>> outWithTime = (TimestampedCollector)out;
+                outWithTime.setAbsoluteTimestamp(end);
+                outWithTime.collect(Tuple2.of(ctx.getCurrentKey(), end - start));
             }
 
-            if (a.f1 == -1) {
-                a.f1 = b.f1;
-            } else if ((b.f1 != -1) && (b.f1 > a.f1)) {
-                a.f1 = b.f1;
-            }
-
-            return a;
+            // Clear all our state
+            earliestTime.clear();
+            timerTime.clear();
+            endTime.clear();
         }
     }
 
@@ -279,58 +285,89 @@ public class BootcampSerializationWorkflow {
     // Classes for doing aggregation to find the N longest transactions
     // ========================================================================================
 
-    private static class FindLongestTransactions implements AggregateFunction<KeyedWindowResult,
-            PriorityQueue<KeyedWindowResult>, List<KeyedWindowResult>> {
+    private static class FindLongestTransactions implements AggregateFunction<Tuple2<String, Long>,
+            LongestTwoTransactions, List<Tuple2<String, Long>>> {
         @Override
-        public PriorityQueue<KeyedWindowResult> createAccumulator() {
-            return new PriorityQueue<>(new TransactionDurationComparator());
+        public LongestTwoTransactions createAccumulator() {
+            return new LongestTwoTransactions();
         }
 
         @Override
-        public PriorityQueue<KeyedWindowResult> add(KeyedWindowResult value, PriorityQueue<KeyedWindowResult> acc) {
+        public LongestTwoTransactions add(Tuple2<String, Long> value, LongestTwoTransactions acc) {
             acc.add(value);
             return acc;
         }
 
         @Override
-        public List<KeyedWindowResult> getResult(PriorityQueue<KeyedWindowResult> acc) {
-            List<KeyedWindowResult> result = new ArrayList<>();
-            int numToReturn = Math.min(acc.size(), 2);
-            for (int i = 0; i < numToReturn; i++) {
-                result.add(acc.remove());
+        public List<Tuple2<String, Long>> getResult(LongestTwoTransactions acc) {
+            List<Tuple2<String, Long>> result = new ArrayList<>();
+            result.add(acc.getFirst());
+            if (acc.getSecond() != null) {
+                result.add(acc.getSecond());
             }
 
             return result;
         }
 
         @Override
-        public PriorityQueue<KeyedWindowResult> merge(PriorityQueue<KeyedWindowResult> a, PriorityQueue<KeyedWindowResult> b) {
-            a.addAll(b);
+        public LongestTwoTransactions merge(LongestTwoTransactions a, LongestTwoTransactions b) {
+            if (b.getFirst() != null) {
+                a.add(b.getFirst());
+
+                if (b.getSecond() != null) {
+                    a.add(b.getSecond());
+                }
+            }
+
             return a;
         }
     }
 
-    private static class TransactionDurationComparator
-            implements Comparator<KeyedWindowResult> {
-        @Override
-        public int compare(KeyedWindowResult o1, KeyedWindowResult o2) {
-            // Return inverse sort order, longest first
-            return Long.compare(o2.getResult(), o1.getResult());
+    public static class LongestTwoTransactions {
+        private Tuple2<String, Long> first;
+        private Tuple2<String, Long> second;
+
+        public LongestTwoTransactions() {}
+
+        public Tuple2<String, Long> getFirst() {
+            return first;
+        }
+
+        public void setFirst(Tuple2<String, Long> first) {
+            this.first = first;
+        }
+
+        public Tuple2<String, Long> getSecond() {
+            return second;
+        }
+
+        public void setSecond(Tuple2<String, Long> second) {
+            this.second = second;
+        }
+
+        public void add(Tuple2<String, Long> t) {
+            if (first == null) {
+                first = t;
+            } else {
+                if (t.f1 > first.f1) {
+                    second = first;
+                    first = t;
+                } else if ((second == null) || (t.f1 > second.f1)) {
+                    second = t;
+                }
+            }
         }
     }
 
-    private static class EmitLongestTransactions extends ProcessAllWindowFunction<List<KeyedWindowResult>,
+    private static class EmitLongestTransactions extends ProcessAllWindowFunction<List<Tuple2<String, Long>>,
             KeyedWindowResult, TimeWindow> {
 
         @Override
-        public void process(Context ctx, Iterable<List<KeyedWindowResult>> elements,
+        public void process(Context ctx, Iterable<List<Tuple2<String, Long>>> elements,
                             Collector<KeyedWindowResult> out) throws Exception {
-            // The current time for each KeyedWindowResult is the start of the transaction session,
-            // but we want the time to be each tumbling window start time.
             long windowStart = ctx.window().getStart();
-            for (KeyedWindowResult e : elements.iterator().next()) {
-                e.setTime(windowStart);
-                out.collect(e);
+            for (Tuple2<String, Long> e : elements.iterator().next()) {
+                out.collect(new KeyedWindowResult(e.f0, windowStart, e.f1));
             }
         }
     }

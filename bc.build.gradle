@@ -35,45 +35,19 @@ tasks.register('zipBootcamp', Zip) {
     exclude("long-ride-alerts")
     exclude("ride-cleansing")
     exclude("rides-and-fares")
-    exclude("README.md")
-    exclude("README_zh.md")
+    exclude("README-Developer.md")
     exclude("README-Troubleshooting.md")
     exclude("CONTRIBUTING.md")
     exclude("LICENSE")
     exclude("adv.settings.gradle")
     exclude("adv.build.gradle")
+    exclude("dev.settings.gradle")
+    exclude("dev.build.gradle")
 }
 
-// Create a zip of just the required files for students. This excludes
-// the bootcamp & state-processor & beginner (taxi ride) projects.
-tasks.register('zipTroubleshooting', Zip) {
-    archiveFileName = "flink-training-troubleshooting.zip"
-    destinationDirectory = layout.buildDirectory
-
-    from(layout.projectDirectory)
-    exclude("**/build")
-    exclude("**/.*")
-    exclude("**/bootcamp")
-    exclude("**/state-processor")
-    exclude("hourly-tips")
-    exclude("long-ride-alerts")
-    exclude("ride-cleansing")
-    exclude("rides-and-fares")
-    exclude("README.md")
-    exclude("README_zh.md")
-    exclude("README-Bootcamp.md")
-    exclude("CONTRIBUTING.md")
-    exclude("LICENSE")
-    exclude("settings.gradle")
-    rename("adv.settings.gradle", "settings.gradle")
-    exclude("build.gradle")
-    rename("adv.build.gradle", "build.gradle")
-}
-
-// Set up so build will create the bootcamp and troubleshooting zip files
+// Set up so build will create the bootcamp zip file
 tasks.assemble {
     dependsOn(zipBootcamp)
-    dependsOn(zipTroubleshooting)
 }
 
 allprojects {
@@ -139,7 +113,7 @@ allprojects {
 }
 
 subprojects {
-    if (project == project(":troubleshooting") || project == project(":bootcamp") || project == project(":troubleshooting:state-migration")) {
+    if (project == project(":bootcamp")) {
         // this is just an additional grouping layer, not a project!
         return
     }

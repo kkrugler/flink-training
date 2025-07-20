@@ -16,25 +16,31 @@
  * limitations under the License.
  */
 
-package com.ververica.flink.training.exercises;
+package com.ververica.flink.training.solutions;
 
 import com.ververica.flink.training.common.CartItem;
 import com.ververica.flink.training.common.KeyedWindowResult;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.common.WindowAllResult;
+import com.ververica.flink.training.exercises.BootcampSerializationWorkflow;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.common.functions.OpenContext;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.operators.TimestampedCollector;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -42,48 +48,17 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Improve the performance of the workflow (throughput) by making
- * changes recommended in the lab's README
+ * Solution to the first exercise in the eCommerce serialization lab...
+ *
+ * 1. We strip down the incoming records and convert to a TrimmedShoppingCartRecord
+ * 2. TrimmedShoppingCartRecord is serializable as a POJO
+ * 3. ShoppingCartRecord (in the common sub-project) uses `@TypeInfo` annotation
+ *    (only described here, change the common code)
+ *
  */
-public class BootcampSerializationWorkflow {
+public class BootcampSerializationSolution1Workflow extends BootcampSerializationWorkflow {
 
-    // Maximum time between transactions where they will still be considered a
-    // single session.
-    protected static final Duration MAX_SESSION_GAP = Duration.ofMinutes(1);
-
-    protected DataStream<ShoppingCartRecord> cartStream;
-    protected Sink<KeyedWindowResult> oneMinuteSink;
-    protected Sink<WindowAllResult> fiveMinuteSink;
-    protected Sink<KeyedWindowResult> longestTransactionsSink;
-    protected int transactionWindowInMinutes = 5;
-
-    public BootcampSerializationWorkflow() {
-    }
-
-    public BootcampSerializationWorkflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
-        this.cartStream = cartStream;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setOneMinuteSink(Sink<KeyedWindowResult> oneMinuteSink) {
-        this.oneMinuteSink = oneMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setFiveMinuteSink(Sink<WindowAllResult> fiveMinuteSink) {
-        this.fiveMinuteSink = fiveMinuteSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setLongestTransactionsSink(Sink<KeyedWindowResult> longestTransactionsSink) {
-        this.longestTransactionsSink = longestTransactionsSink;
-        return this;
-    }
-
-    public BootcampSerializationWorkflow setTransactionsWindowInMinutes(int transactionWindowInMinutes) {
-        this.transactionWindowInMinutes = transactionWindowInMinutes;
-        return this;
-    }
+    private static final long MAX_SESSION_GAP_MS = MAX_SESSION_GAP.toMillis();
 
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
@@ -92,9 +67,11 @@ public class BootcampSerializationWorkflow {
         Preconditions.checkNotNull(longestTransactionsSink, "longestTransactionsSink must be set");
 
         // Assign timestamps & watermarks
-        DataStream<ShoppingCartRecord> watermarkedStream = cartStream
+        DataStream<TrimmedShoppingCart> watermarkedStream = cartStream
+                // Convert to a smaller/better version of ShoppingCartRecord.
+                .map(r -> new TrimmedShoppingCart(r))
                 .assignTimestampsAndWatermarks(
-                        WatermarkStrategy.<ShoppingCartRecord>forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                        WatermarkStrategy.<TrimmedShoppingCart>forBoundedOutOfOrderness(Duration.ofMinutes(1))
                                 .withTimestampAssigner((element, timestamp) -> element.getTransactionTime()));
 
         DataStream<KeyedWindowResult> oneMinuteStream = watermarkedStream
@@ -135,14 +112,14 @@ public class BootcampSerializationWorkflow {
     // Classes for doing aggregation to calculate per-1 minute item counts.
     // ========================================================================================
 
-    private static class CountCartItemsAggregator implements AggregateFunction<ShoppingCartRecord, Long, Long> {
+    private static class CountCartItemsAggregator implements AggregateFunction<TrimmedShoppingCart, Long, Long> {
         @Override
         public Long createAccumulator() {
             return 0L;
         }
 
         @Override
-        public Long add(ShoppingCartRecord value, Long acc) {
+        public Long add(TrimmedShoppingCart value, Long acc) {
             for (CartItem item : value.getItems()) {
                 acc += item.getQuantity();
             }
@@ -210,14 +187,14 @@ public class BootcampSerializationWorkflow {
     /*
      * Find the earliest start and final end time for each transaction
      */
-    private static class FindTransactionBoundsFunction implements AggregateFunction<ShoppingCartRecord, Tuple2<Long, Long>, Tuple2<Long, Long>> {
+    private static class FindTransactionBoundsFunction implements AggregateFunction<TrimmedShoppingCart, Tuple2<Long, Long>, Tuple2<Long, Long>> {
         @Override
         public Tuple2<Long, Long> createAccumulator() {
             return Tuple2.of(-1L, -1L);
         }
 
         @Override
-        public Tuple2<Long, Long> add(ShoppingCartRecord value, Tuple2<Long, Long> acc) {
+        public Tuple2<Long, Long> add(TrimmedShoppingCart value, Tuple2<Long, Long> acc) {
             long transactionTime = value.getTransactionTime();
             if (value.isTransactionCompleted()) {
                 acc.f1 = transactionTime;
@@ -236,7 +213,7 @@ public class BootcampSerializationWorkflow {
         /**
          * Merge the two Tuples<start time, end time> by setting the resulting
          * start time to the min of the two, and the end time to the max of
-         * the two. If the time is -1, ignore it since it hasn't be set yet.
+         * the two. If the time is -1, ignore it since it hasn't been set yet.
          *
          * @param a An accumulator to merge
          * @param b Another accumulator to merge
@@ -325,8 +302,6 @@ public class BootcampSerializationWorkflow {
         @Override
         public void process(Context ctx, Iterable<List<KeyedWindowResult>> elements,
                             Collector<KeyedWindowResult> out) throws Exception {
-            // The current time for each KeyedWindowResult is the start of the transaction session,
-            // but we want the time to be each tumbling window start time.
             long windowStart = ctx.window().getStart();
             for (KeyedWindowResult e : elements.iterator().next()) {
                 e.setTime(windowStart);

@@ -37,11 +37,11 @@ For this first exercise, you can improve performance a few different ways:
   `ShoppingCartRecord` to the new `TrimmedShoppingCart` in the 
   [BootcampSerializationWorkflow](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflow.java) 
   as soon as possible.
-  
 - Make sure that `TrimmedShoppingCart` is serializable as a POJO, and thus doesn't use the (slower)
   Kryo serializer. Note that you'll need to use the `@TypeInfo` annotation with the (provided)
   `ListInfoFactory`.
-- Modify the [ShoppingCartRecord](../common) (in the common sub-project) to also use the `@TypeInfo` annotation.
+- Modify the [ShoppingCartRecord](../common/src/main/java/com/ververica/flink/training/common/ShoppingCartRecord.java)
+  (in the common sub-project) to also use the `@TypeInfo` annotation.
 
 To test that your changes haven't broken anything, run the
 [BootcampSerializationWorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflowTest.java)
@@ -50,12 +50,16 @@ in IntelliJ.
 ## Exercise 2
 
 There are also inefficiencies caused by the approach being taken to find the longest durations.
-These changes are harder...
 
 - Use a simple structure for top two durations, versus a `PriorityQueue`. This won't change
   the throughput very much, but if you were trying to capture the top N transactions, and there
   were a lot of these, and you had frequent checkpoints, then it would become an issue.
-- (very hard) Use a `KeyedProcessFunction` to find transaction durations, versus Flink's session window
+
+## Exercise 3
+
+This change is very hard...
+
+- Use a `KeyedProcessFunction` to find transaction durations, versus Flink's session window
   support. This is hard because you'll have to set timers yourself, and ensure that the event time
   for the records you generate is based on the end of the session, not the timer's time.
 

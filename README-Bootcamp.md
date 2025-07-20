@@ -31,8 +31,7 @@ be installed on your system:
 - a JDK for Java 17 (a JRE is not sufficient; other versions of Java are currently not supported)
 - an IDE for Java development with Gradle support
   - We recommend [IntelliJ](https://www.jetbrains.com/idea/), but [Eclipse](https://www.eclipse.org/downloads/) or 
-    [Visual Studio Code](https://code.visualstudio.com/) (with the [Java extension pack](https://code.visualstudio.
-    com/docs/java/java-tutorial)) can also be used so long as you stick to Java. 
+    [Visual Studio Code](https://code.visualstudio.com/) (with the [Java extension pack](https://code.visualstudio.com/docs/java/java-tutorial)) can also be used so long as you stick to Java. 
   - The recent Eclipse comes with Java 21, make sure you configure the Gradle plugin to use Java 17.
 
 > **:information_source: Note for Windows users:** The shell command examples provided in the training instructions are for UNIX systems.
@@ -58,9 +57,6 @@ If all the tests pass and the build is successful, you are off to a good start.
 ### Import the flink-training-bootcamp project into your IDE
 
 The project needs to be imported as a gradle project into your IDE.
-
-Next, you need to add a JVM argument to your IntelliJ configuration. Select the Help > Edit Custom VM Options...
-menu item, then add the line `--add-opens=java.base/java.util=ALL-UNNAMED`, and close the `idea.vmoptions` file.
 
 Then you should be able to open [`BootcampWindowingSolution1WorkflowTest`](bootcamp/windowing/src/test/java/com/ververica/flink/training/solutions/BootcampWindowingSolution1WorkflowTest.java) 
 and run this test. When you do this the first time, you'll get a popup menu with two options, `test` and `testSolutions`.
@@ -131,7 +127,8 @@ The Flink instance will also be configured to use a `fixedDelayRestart` failure 
 15s delay and infinite restarts, which is helpful for debugging code.
 
 You can also specify the parallelism via `--parallelism <number>` if needed. This is mostly
-useful when understanding the impact of changing the job's parallelism. Note that if you
+useful when understanding the impact of changing the job's parallelism, or when using Flamegraphs,
+as reducing the parallelism to 2 provides a much better UI experience. Note that if you
 do not specify the parallelism, and you're running locally, the Flink instance will be started
 with its total slots (and thus any job's maximum parallelism) set to the number of CPU cores
 on your system.
@@ -139,12 +136,25 @@ on your system.
 If you have an IDE with this `flink-training-bootcamp` project imported, you can run 
 (or debug) a streaming job by:
 
-- opening the [BootcampExampleJob](bootcamp/example/src/main/java/com/ververica/flink/training/examples/BootcampExampleJob.java)
-- running (or debugging) the `main()` method of this class
+- opening the [BootcampExampleJobTest](bootcamp/example/src/main/java/com/ververica/flink/training/exercises/BootcampExampleJobTest.java)
+- running (or debugging) the `runBootcampExampleJob()` method.
+
+#### Adding VM Options to a Run Configuration
+
+**:information_source: Note when running via main():** If you get an exception starting a program via `main()` that looks 
+like `Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field private final java.lang.Object[]...` then you need to:
+
+1. Stop the program (the `FlinkMiniCuster` is still running)
+2. Select the Run > Edit Configurations... menu item
+3. Select the xxxJob item from the left-hand list in the window.
+4. Select the `Modify Options` popup menu from the right-hand side of the window.
+5. Select the `Add VM Options` menu item, in the Java section.
+6. In the VM options field, add `--add-opens=java.base/java.util=ALL-UNNAMED`
+7. Save your changes, and run it again.
 
 ### The Flink WebUI
 
-When you run a Flink program from the `*Job` class's `main()` method, you can then
+When you run a Flink program (either via a corresponding test, or from the `*Job` class's `main()` method), you can then
 point your browser at http://localhost:8081 to view the Flink Web UI.
 
 For more details, please see the [example README](bootcamp/example/README.md) file.
@@ -161,7 +171,7 @@ there will also be multiple solution classes (one per exercise), called `Bootcam
 
 You can run exercises, solutions, and tests with the `gradlew` command.
 
-To run tests on all your exercise code:
+To run tests on all your exercise code (not very useful):
 
 ```bash
 ./gradlew test

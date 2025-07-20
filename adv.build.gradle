@@ -35,13 +35,14 @@ tasks.register('zipTroubleshooting', Zip) {
     exclude("long-ride-alerts")
     exclude("ride-cleansing")
     exclude("rides-and-fares")
-    exclude("README.md")
-    exclude("README_zh.md")
+    exclude("README-Developer.md")
     exclude("README-Bootcamp.md")
     exclude("CONTRIBUTING.md")
     exclude("LICENSE")
-    exclude("settings.gradle")
-    rename("adv.settings.gradle", "settings.gradle")
+    exclude("bc.settings.gradle")
+    exclude("bc.build.gradle")
+    exclude("dev.settings.gradle")
+    exclude("dev.build.gradle")
 }
 
 // Set up so build will create the advanced zip files

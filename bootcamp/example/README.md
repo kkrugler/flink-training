@@ -17,6 +17,15 @@ written to a sink.
 When you run a Flink program from the `*Job` class's `main()` method, you can then
 point your browser at http://localhost:8081 to view the Flink Web UI.
 
+**:information_source: Note when running via main():** If you get an exception starting a program via `main()` that looks
+like `Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field private final java.lang.Object[]...` 
+then you need to follow the instructions found [here](../../README-Bootcamp.md#adding-vm-options-to-a-run-configuration)
+
+**:information_source: Note when getting bind exception:** If you get an exception that starts with something like
+`Could not create the DispatcherResourceManagerComponent`, and has a final cause of `Caused by: java.net.BindException`,
+then it's likely that you still have a `FlinkMiniCluster` running, which you need to kill first (e.g. by stopping and
+restarting IntelliJ).
+
 ![Flink WebUI](images/flink-webui-top.png)
 
 When you click on the row under "Job Name", you'll see your job's execution graph, along
