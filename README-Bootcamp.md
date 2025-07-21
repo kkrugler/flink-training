@@ -171,7 +171,7 @@ there will also be multiple solution classes (one per exercise), called `Bootcam
 
 You can run exercises, solutions, and tests with the `gradlew` command.
 
-To run tests on all your exercise code (not very useful):
+To run tests on all your exercise code (not very useful, since any unimplemented lab exercises will fail):
 
 ```bash
 ./gradlew test
@@ -189,6 +189,9 @@ file, which talks about the solution(s).
 
 ## Lab exercises
 
+1. [Review](bootcamp/review)
+   - [Exercise](bootcamp/review/README.md)
+   - [Discussion](bootcamp/review/DISCUSSION.md)
 1. [Stream analytics via windowing](bootcamp/windowing)
    - [Exercise](bootcamp/windowing/README.md)
    - [Discussion](bootcamp/windowing/DISCUSSION.md)
