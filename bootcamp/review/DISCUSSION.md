@@ -19,7 +19,7 @@ See the [README](README.md#exercise-1) file for the steps.
    Normally for a simple filter you'd use a lambda, like:
 
    ```java
-      .filter(r -> r.isTransactionCompleted());
+      .filter(r -> r.isTransactionCompleted() && r.getCountry().equals("US"));
     ```
 
    But as the logic gets more complicated, using a separate function makes it easier to

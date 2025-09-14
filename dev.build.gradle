@@ -20,6 +20,42 @@ apply plugin: 'base'
 
 description = "Flink Training Exercises"
 
+// Create a zip of just the required files for students. This excludes
+// the troubleshooting & state-processor projects.
+tasks.register('zipDeveloper', Zip) {
+    archiveFileName = "flink-training-developer.zip"
+    destinationDirectory = layout.buildDirectory
+
+    from(layout.projectDirectory)
+    exclude("**/build")
+    exclude("**/.*")
+    exclude("**/bootcamp")
+    exclude("**/troubleshooting/checkpointing")
+    exclude("**/troubleshooting/external-enrichment")
+    exclude("**/troubleshooting/object-reuse")
+    exclude("**/troubleshooting/rocksdb")
+    exclude("**/troubleshooting/serialization")
+    exclude("**/troubleshooting/state-migration")
+    exclude("**/troubleshooting/throughput")
+    exclude("**/troubleshooting/introduction/README.md")
+    // TODO - rename troubleshooting/introduction/README-Developer.md to README.md
+    // Or call it README-VVP.md versus README-local.md, and fix refs from other .md files
+    exclude("**/state-processor")
+    exclude("README-Troubleshooting.md")
+    exclude("README-Bootcamp.md")
+    exclude("CONTRIBUTING.md")
+    exclude("LICENSE")
+    exclude("bc.settings.gradle")
+    exclude("bc.build.gradle")
+    exclude("adv.settings.gradle")
+    exclude("adv.build.gradle")
+}
+
+// Set up so build will create the bootcamp zip file
+tasks.assemble {
+    dependsOn(zipDeveloper)
+}
+
 allprojects {
     group = 'org.apache.flink'
     version = '1.20'

@@ -17,8 +17,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-[中文版](./README_zh.md)
-
 # Lab: `ProcessFunction` and Timers (Long Ride Alerts)
 
 The goal of the "Long Ride Alerts" exercise is to provide a warning whenever a taxi ride
@@ -49,22 +47,9 @@ The resulting stream should be printed to standard out.
 
 ## Getting Started
 
-> :information_source: Rather than following these links to the sources, you might prefer to open these classes in your IDE.
-
-### Exercise Classes
-
-- Java:  [`org.apache.flink.training.exercises.longrides.LongRidesExercise`](src/main/java/org/apache/flink/training/exercises/longrides/LongRidesExercise.java)
-- Scala: [`org.apache.flink.training.exercises.longrides.scala.LongRidesExercise`](src/main/scala/org/apache/flink/training/exercises/longrides/scala/LongRidesExercise.scala)
-
-### Unit Tests
-
-- Java:  [`org.apache.flink.training.exercises.longrides.LongRidesUnitTest`](src/test/java/org/apache/flink/training/exercises/longrides/LongRidesUnitTest.java)
-- Scala: [`org.apache.flink.training.exercises.longrides.scala.LongRidesUnitTest`](src/test/scala/org/apache/flink/training/exercises/longrides/scala/LongRidesUnitTest.scala)
-
-### Integration Tests
-
-- Java:  [`org.apache.flink.training.exercises.longrides.LongRidesIntegrationTest`](src/test/java/org/apache/flink/training/exercises/longrides/LongRidesIntegrationTest.java)
-- Scala: [`org.apache.flink.training.exercises.longrides.scala.LongRidesIntegrationTest`](src/test/scala/org/apache/flink/training/exercises/longrides/scala/LongRidesIntegrationTest.scala)
+ - Exercise: [`org.apache.flink.training.exercises.longrides.LongRidesExercise`](src/main/java/org/apache/flink/training/exercises/longrides/LongRidesExercise.java)
+ - Unit Tests:  [`org.apache.flink.training.exercises.longrides.LongRidesUnitTest`](src/test/java/org/apache/flink/training/exercises/longrides/LongRidesUnitTest.java)
+ - Integration Tests:  [`org.apache.flink.training.exercises.longrides.LongRidesIntegrationTest`](src/test/java/org/apache/flink/training/exercises/longrides/LongRidesIntegrationTest.java)
 
 ## Implementation Hints
 
@@ -87,10 +72,7 @@ Read the [discussion of the reference solutions](DISCUSSION.md).
 
 ## Reference Solutions
 
-Reference solutions:
-
-- Java API:  [`org.apache.flink.training.solutions.longrides.LongRidesSolution`](src/solution/java/org/apache/flink/training/solutions/longrides/LongRidesSolution.java)
-- Scala API: [`org.apache.flink.training.solutions.longrides.scala.LongRidesSolution`](src/solution/scala/org/apache/flink/training/solutions/longrides/scala/LongRidesSolution.scala)
+Reference solution:  [`org.apache.flink.training.solutions.longrides.LongRidesSolution`](src/solution/java/org/apache/flink/training/solutions/longrides/LongRidesSolution.java)
 
 -----
 

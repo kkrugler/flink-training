@@ -15,8 +15,7 @@ public class CalcTotalCostMap implements MapFunction<ShoppingCartRecord, Shoppin
             totalCost += (item.getPrice() * item.getQuantity());
         }
 
-        ShoppingCartWithCost result = new ShoppingCartWithCost(value);
-        result.setCost(totalCost);
+        ShoppingCartWithCost result = new ShoppingCartWithCost(value, totalCost);
         return result;
     }
 }

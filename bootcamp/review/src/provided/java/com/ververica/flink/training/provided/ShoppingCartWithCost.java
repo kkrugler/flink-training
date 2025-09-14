@@ -10,8 +10,9 @@ public class ShoppingCartWithCost extends ShoppingCartRecord {
         super();
     }
 
-    public ShoppingCartWithCost(ShoppingCartRecord clone) {
+    public ShoppingCartWithCost(ShoppingCartRecord clone, double cost) {
         super(clone);
+        setCost(cost);
     }
 
     public double getCost() {

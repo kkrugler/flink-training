@@ -5,30 +5,32 @@
 
 package com.ververica.flink.training.solutions;
 
+import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.exercises.BootcampReview1Workflow;
+import com.ververica.flink.training.exercises.BootcampReview4Workflow;
+import com.ververica.flink.training.provided.CartItemWithShoppingCartInfo;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.util.Preconditions;
-
-import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.exercises.BootcampReview1Workflow;
-import com.ververica.flink.training.provided.CartItemWithShoppingCartInfo;
 
 /**
  * The Review exercise from Ververica's Flink bootcamp training.
  *
  * <p>The goal of this exercise is to filter a data stream of eCommerce shopping cart records to
- * keep only records for completed transactions.
+ * keep only records for completed transactions in the US, and then calculate a total product cost,
+ * and create separate records for each cart item.
+ * </p>
  */
-public class BootcampReviewSolution1Workflow extends BootcampReview1Workflow {
-
-    public BootcampReviewSolution1Workflow() {}
+public class BootcampReviewSolution4Workflow extends BootcampReview4Workflow {
 
     public void build() {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
 
         cartStream
-                .filter(r -> r.isTransactionCompleted())
+                .filter(new RemoveUncompletedAndNotUSFilter())
+                .map(new CalcTotalCostMap())
+                .flatMap(new ExplodeCartItemsFlatMap())
                 .sinkTo(resultSink);
     }
 }

@@ -37,9 +37,6 @@ The resulting stream should be printed to standard out.
 
 ## Getting Started
 
-> :information_source: Rather than following the links to the sources in this section, you'll do better to find these classes in the flink-training project in your IDE.
-> Both IntelliJ and Eclipse have ways to make it easy to search for and navigate to classes and files. For IntelliJ, see [the help on searching](https://www.jetbrains.com/help/idea/searching-everywhere.html), or simply press the Shift key twice and then continue typing something like `RideCleansing` and then select from the choices that popup.
-
 ### Exercise Classes
 
 This exercise uses these classes:
@@ -48,10 +45,8 @@ This exercise uses these classes:
 
 ### Tests
 
-You will find the tests for this exercise in
-
-- [`org.apache.flink.training.exercises.ridecleansing.RideCleansingIntegrationTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java)
-- [`org.apache.flink.training.exercises.ridecleansing.RideCleansingUnitTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingUnitTest.java)
+- Unit tests: [`org.apache.flink.training.exercises.ridecleansing.RideCleansingUnitTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingUnitTest.java)
+- Integration tests: [`org.apache.flink.training.exercises.ridecleansing.RideCleansingIntegrationTest`](src/test/java/org/apache/flink/training/exercises/ridecleansing/RideCleansingIntegrationTest.java)
 
 Like most of these exercises, at some point the `RideCleansingExercise` class throws an exception
 

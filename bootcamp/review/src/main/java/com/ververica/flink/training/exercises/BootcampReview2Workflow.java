@@ -5,6 +5,8 @@
 
 package com.ververica.flink.training.exercises;
 
+import com.ververica.flink.training.common.ShoppingCartRecord;
+import com.ververica.flink.training.provided.CartItemWithShoppingCartInfo;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -16,28 +18,26 @@ import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
-import com.ververica.flink.training.common.ShoppingCartRecord;
-import com.ververica.flink.training.provided.CartItemWithShoppingCartInfo;
-
 /**
  * The Review exercise from Ververica's Flink bootcamp training.
  *
  * <p>The goal of this exercise is to filter a data stream of eCommerce shopping cart records to
- * keep only records for completed transactions.
+ * keep only records for completed transactions, and only those from the US.
+ * </p>
  */
-public class BootcampReview1Workflow {
+public class BootcampReview2Workflow {
 
     protected DataStream<ShoppingCartRecord> cartStream;
     protected Sink<ShoppingCartRecord> resultSink;
 
-    public BootcampReview1Workflow() {}
+    public BootcampReview2Workflow() {}
 
-    public BootcampReview1Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
+    public BootcampReview2Workflow setCartStream(DataStream<ShoppingCartRecord> cartStream) {
         this.cartStream = cartStream;
         return this;
     }
 
-    public BootcampReview1Workflow setResultSink(Sink<ShoppingCartRecord> resultSink) {
+    public BootcampReview2Workflow setResultSink(Sink<ShoppingCartRecord> resultSink) {
         this.resultSink = resultSink;
         return this;
     }
@@ -46,9 +46,9 @@ public class BootcampReview1Workflow {
         Preconditions.checkNotNull(cartStream, "cartStream must be set");
         Preconditions.checkNotNull(resultSink, "resultSink must be set");
 
-        // TODO - filter out transactions out that are NOT completed.
-        // TODO - Implement this as a filter function.
-
-        cartStream.sinkTo(resultSink);
+        cartStream
+                .filter(r -> r.isTransactionCompleted())
+                // TODO filter to only US transactions
+                .sinkTo(resultSink);
     }
 }

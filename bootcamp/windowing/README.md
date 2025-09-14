@@ -32,8 +32,10 @@ class to:
    tumbling (**not** sliding) windows of 1 minute.
 - Call `DataStream.aggregate()` with a Flink `AggregationFunction` and a
   `ProcessWindowFunction` to calculate the total number of cart items for
-  all the records found in each 1-minute/country window. You can use the [CountCartItemsAggregator](src/main/java/com/ververica/flink/training/exercises/CountCartItemsAggregator.java) 
-  class as the starting point for the aggregator, and the `SetKeyAndTimeFuntion` as-is for the `ProcessWindowFunction`.
+  all the records found in each 1-minute/country window. You can use the
+  [CountCartItemsAggregator](src/main/java/com/ververica/flink/training/exercises/CountCartItemsAggregator.java) 
+  class as the starting point for the aggregator (it has a TODO as well),
+  and the `SetKeyAndTimeFuntion` as-is for the `ProcessWindowFunction` parameter.
 
 To test, run the [BootcampWindowing1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampWindowing1WorkflowTest.java)
 in IntelliJ.
