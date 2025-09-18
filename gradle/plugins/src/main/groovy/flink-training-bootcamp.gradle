@@ -1,0 +1,18 @@
+plugins {
+    id 'flink-training-application'
+}
+
+tasks.register('testSolutions', Test) {
+    group = 'verification'
+    filter { excludeTestsMatching("*.exercises.*") }
+}
+tasks.named('test', Test) {
+    filter { includeTestsMatching("*.exercises.*") }
+}
+
+dependencies {
+    // allows using Flink's web UI when running in the IDE:
+    implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
+    // allow using RocksDB when running in the IDE:
+    implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+}

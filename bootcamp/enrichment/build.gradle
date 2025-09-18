@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply plugin: 'application'
+plugins {
+    id 'flink-training-bootcamp'
+}
 
 dependencies {
-    implementation project(path: ':bootcamp:common')
-    testImplementation testFixtures(project(path: ':bootcamp:common'))
+    implementation project(path: ':common')
+    testImplementation testFixtures(project(path: ':common'))
 }
 
 sourceSets {

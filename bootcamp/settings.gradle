@@ -14,17 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-plugins {
-    id 'flink-training-library'
-    id 'java-test-fixtures'
+pluginManagement {
+    includeBuild("../gradle/plugins")
 }
 
-// common set of dependencies
-dependencies {
-    testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
-}
+rootProject.name = 'flink-training-bootcamp'
 
-tasks.jar {
-    archiveBaseName = "${project.parent.name}-${project.name}"
-}
+include 'common'
+include 'design'
+include 'enrichment'
+include 'example'
+include 'failures'
+include 'review'
+include 'serialization'
+include 'tables'
+include 'windowing'

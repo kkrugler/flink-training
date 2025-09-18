@@ -115,7 +115,7 @@ Then you should be able to open [`RideCleansingIntegrationTest`](ride-cleansing/
 
 ## Use the taxi data streams
 
-These exercises use data [generators](common/src/main/java/org/apache/flink/training/exercises/common/sources) that produce simulated event streams.
+These exercises use data [generators](developer/common/src/main/java/org/apache/flink/training/exercises/common/sources) that produce simulated event streams.
 The data is inspired by the [New York City Taxi & Limousine Commission's](http://www.nyc.gov/html/tlc/html/home/home.shtml) public
 [data set](https://uofi.app.box.com/NYCtaxidata) about taxi rides in New York City.
 
@@ -235,12 +235,12 @@ For Java exercises and solutions, we provide special tasks that can be listed wi
 
 1. [Filtering a Stream (Ride Cleansing)](ride-cleansing/README.md)
 1. [Stateful Enrichment (Rides and Fares)](rides-and-fares/README.md)
-1. [Windowed Analytics (Hourly Tips)](hourly-tips)
-   - [Exercise](hourly-tips/README.md)
-   - [Discussion](hourly-tips/DISCUSSION.md)
-1. [`ProcessFunction` and Timers (Long Ride Alerts)](long-ride-alerts)
-   - [Exercise](long-ride-alerts/README.md)
-   - [Discussion](long-ride-alerts/DISCUSSION.md)
+1. [Windowed Analytics (Hourly Tips)](developer/hourly-tips)
+   - [Exercise](developer/hourly-tips/README.md)
+   - [Discussion](developer/hourly-tips/DISCUSSION.md)
+1. [`ProcessFunction` and Timers (Long Ride Alerts)](developer/long-ride-alerts)
+   - [Exercise](developer/long-ride-alerts/README.md)
+   - [Discussion](developer/long-ride-alerts/DISCUSSION.md)
 
 ## Contribute
 

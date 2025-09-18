@@ -23,6 +23,8 @@ description = "Flink Training Exercises"
 // Create a zip of just the required files for students. This excludes
 // the troubleshooting & state-processor projects.
 tasks.register('zipBootcamp', Zip) {
+    // Run tests before...
+
     archiveFileName = "flink-training-bootcamp.zip"
     destinationDirectory = layout.buildDirectory
 

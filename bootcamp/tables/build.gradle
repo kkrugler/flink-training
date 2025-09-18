@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-apply plugin: 'application'
+plugins {
+    id 'flink-training-bootcamp'
+}
 
 dependencies {
-    implementation project(path: ':bootcamp:common')
+    implementation project(path: ':common')
 
     // We need the Flink Table API jars
     implementation "org.apache.flink:flink-table-api-java:${flinkVersion}"
@@ -27,7 +29,7 @@ dependencies {
     implementation "org.apache.flink:flink-table-planner_2.12:${flinkVersion}"
 
     // Pull in test scope dependencies from the common subproject.
-    testImplementation testFixtures(project(path: ':bootcamp:common'))
+    testImplementation testFixtures(project(path: ':common'))
 }
 
 sourceSets {

@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-apply plugin: 'application'
+plugins {
+    id 'flink-training-bootcamp'
+}
 
 dependencies {
-    implementation project(path: ':bootcamp:common')
+    implementation project(path: ':common')
 
     // We're using the FileSource and FileSink
     implementation "org.apache.flink:flink-connector-files:${flinkVersion}"
 
-    testImplementation testFixtures(project(path: ':bootcamp:common'))
+    testImplementation testFixtures(project(path: ':common'))
 }
 
 sourceSets {

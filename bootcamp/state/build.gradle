@@ -3,11 +3,13 @@
  * This file is part of the Ververica Academy training software.
  */
 
-apply plugin: 'application'
+plugins {
+    id 'flink-training-bootcamp'
+}
 
 dependencies {
-    implementation project(path: ':bootcamp:common')
-    testImplementation testFixtures(project(path: ':bootcamp:common'))
+    implementation project(path: ':common')
+    testImplementation testFixtures(project(path: ':common'))
 }
 
 sourceSets {

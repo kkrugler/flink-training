@@ -1,8 +1,8 @@
-plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
-    id "com.diffplug.spotless" version "6.25.0" apply false
-}
+//plugins {
+//    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
+//    id "com.diffplug.spotless" version "6.25.0" apply false
+//}
 
 // Change this to adv. or bc. or dev. for different targets
 // Note that "adv." means "Troubleshooting"
-apply from: 'dev.build.gradle'
+// apply from: 'dev.build.gradle'

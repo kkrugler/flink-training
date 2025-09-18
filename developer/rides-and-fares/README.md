@@ -75,7 +75,7 @@ You should be using Flink's managed, keyed state to buffer the data that is bein
 
 ## Discussion
 
-For the purposes of this exercise it's okay to assume that the START and fare events are perfectly paired. But in a real-world application you should worry about the fact that whenever an event is missing, the other event for the same `rideId` will be held in state forever. In a [later lab](../long-ride-alerts) we'll look at the `ProcessFunction` and Timers which may also help the situation here.
+For the purposes of this exercise it's okay to assume that the START and fare events are perfectly paired. But in a real-world application you should worry about the fact that whenever an event is missing, the other event for the same `rideId` will be held in state forever. In a [later lab](../developer/long-ride-alerts) we'll look at the `ProcessFunction` and Timers which may also help the situation here.
 
 ## Documentation
 
