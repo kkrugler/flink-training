@@ -5,7 +5,7 @@ plugins {
 }
 
 includeBuild("bootcamp")
-//includeBuild("developer")
+includeBuild("developer")
 //includeBuild("troubleshooting")
 
 // Change this to adv. or bc. or dev. for different targets

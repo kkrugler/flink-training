@@ -25,7 +25,7 @@ public class FilterCompletedTransactions extends ProcessWindowFunction<ShoppingC
             return;
         }
 
-        TimestampedCollector tsc = (TimestampedCollector) out;
+        TimestampedCollector<AbandonedCartItem> tsc = (TimestampedCollector<AbandonedCartItem>) out;
         for (ShoppingCartRecord cart : in) {
             String customerId = cart.getCustomerId();
             long transactionTime = cart.getTransactionTime();

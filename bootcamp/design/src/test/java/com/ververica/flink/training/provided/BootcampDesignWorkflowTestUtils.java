@@ -6,9 +6,6 @@ import com.ververica.flink.training.common.ShoppingCartGenerator;
 import com.ververica.flink.training.common.ShoppingCartRecord;
 import com.ververica.flink.training.exercises.BootcampDesignAnalyticsWorkflow;
 import com.ververica.flink.training.exercises.BootcampDesignDetectionWorkflow;
-import com.ververica.flink.training.solutions.BootcampDesignAnalyticsSolutionWorkflow;
-import com.ververica.flink.training.solutions.BootcampDesignDetectionSolutionWorkflow;
-import com.ververica.flink.training.solutions.BootcampDesignSolutionTest;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.connector.sink2.SinkWriter;
@@ -106,10 +103,10 @@ public class BootcampDesignWorkflowTestUtils {
 
     private static class AbandonedSinkAndSource implements Sink<AbandonedCartItem>, SourceFunction<AbandonedCartItem> {
 
-        private static List<AbandonedCartItem> QUEUE = Collections.synchronizedList(new ArrayList<AbandonedCartItem>());
-        private static AtomicInteger QUEUE_READ_POS = new AtomicInteger(0);
+        private static final List<AbandonedCartItem> QUEUE = Collections.synchronizedList(new ArrayList<>());
+        private static final AtomicInteger QUEUE_READ_POS = new AtomicInteger(0);
 
-        private static AtomicBoolean TERMINATE_SOURCE = new AtomicBoolean(false);
+        private static final AtomicBoolean TERMINATE_SOURCE = new AtomicBoolean(false);
 
         private transient boolean keepRunning = false;
 

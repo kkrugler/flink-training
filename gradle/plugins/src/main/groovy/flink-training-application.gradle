@@ -1,5 +1,9 @@
 plugins {
     id 'flink-training'
     id 'application'
+
+    // TODO - maybe only for troubleshooting, where we need to build uber jar
+    // to deploy to the cluster???
+
     // id 'com.github.johnrengelman.shadow'
 }

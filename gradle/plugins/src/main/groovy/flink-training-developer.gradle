@@ -1,20 +1,13 @@
 plugins {
     id 'flink-training-application'
-}
-
-tasks.register('testSolutions', Test) {
-    group = 'verification'
-    filter { excludeTestsMatching("*.exercises.*") }
-}
-tasks.named('test', Test) {
-    filter { includeTestsMatching("*.exercises.*") }
+    id 'com.github.johnrengelman.shadow'
 }
 
 // Create a zip of just the required files for students.
 tasks.register('zip', Zip) {
     // Run tests before...
 
-    archiveFileName = "flink-training-bootcamp.zip"
+    archiveFileName = "flink-training-developer.zip"
     destinationDirectory = layout.buildDirectory
 
     from(layout.projectDirectory)

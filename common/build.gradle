@@ -13,6 +13,3 @@ dependencies {
     testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
 }
 
-tasks.jar {
-    archiveBaseName = "${project.parent.name}-${project.name}"
-}

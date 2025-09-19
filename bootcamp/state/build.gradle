@@ -12,6 +12,3 @@ dependencies {
     testImplementation testFixtures(project(path: ':common'))
 }
 
-sourceSets {
-    main.java.srcDirs += 'src/solution/java'
-}

@@ -4,6 +4,6 @@
  */
 
 subprojects {
-    group = 'com.ververica.flink.training.bootcamp'
+    group = 'com.ververica.flink.training.developer'
 }
 

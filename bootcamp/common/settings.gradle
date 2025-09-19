@@ -7,7 +7,7 @@ pluginManagement {
     includeBuild("../gradle/plugins")
 }
 
-rootProject.name = 'flink-training-bootcamp'
+rootProject.name = 'flink-training-common'
 
 include 'common'
 include 'design'
