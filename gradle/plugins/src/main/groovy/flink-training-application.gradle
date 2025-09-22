@@ -7,3 +7,10 @@ plugins {
 
     // id 'com.github.johnrengelman.shadow'
 }
+
+dependencies {
+    // allows using Flink's web UI when running in the IDE:
+    implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
+    // allow using RocksDB when running in the IDE:
+    implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+}
