@@ -2,8 +2,29 @@
  * Copyright (C) 2024 Ververica, Inc, Inc. All rights reserved.
  * This file is part of the Ververica Academy training software.
  */
+plugins {
+    id("base")
+}
 
-subprojects {
-    group = 'com.ververica.flink.training.bootcamp'
+// Create a zip of just the required files for students.
+tasks.register('zip', Zip) {
+    // Run tests before...
+
+    archiveFileName = "flink-training-bootcamp.zip"
+    destinationDirectory = layout.buildDirectory
+
+    from(layout.projectDirectory)
+    exclude("**/build")
+    exclude("**/.*")
+}
+
+// Set up so build will create the bootcamp zip file
+tasks.named('assemble') {
+    subprojects.each {
+        if (it.name != 'common') {
+            dependsOn(":$it.name:testSolutions")
+        }
+    }
+    dependsOn(zip)
 }
 

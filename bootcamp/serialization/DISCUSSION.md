@@ -119,7 +119,7 @@ See the [README](README.md#exercise-2) file for the steps.
             Long earliest = earliestTime.value();
             Long timer = timerTime.value();
             Long end = endTime.value();
-            
+
             long transactionTime = in.getTransactionTime();
 
             // We assume properly ordered data, in that the completed transaction's time will always be >= any
@@ -136,7 +136,7 @@ See the [README](README.md#exercise-2) file for the steps.
 
                 // See if we need to update the timerTime. If we have an end time
                 // then we are good, otherwise if this is the first non-transaction
-                // record, or it's later than our current timer, we want to stop the 
+                // record, or it's later than our current timer, we want to stop the
                 // potentially running timer, and start with the later time.
                 if ((end == null) && ((earliest == null) || (transactionTime > timer))) {
                     removeTimer(ctx);

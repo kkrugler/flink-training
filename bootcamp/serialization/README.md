@@ -6,7 +6,7 @@ This workflow is exactly the same as the `BootcampWindowingWorkflow`, in that we
 three different results (per-minute/per-country item count, per-five-minute item count, and
 per five-minute longest transactions).
 
-The goal of this lab is to improve throughput of the workflow, by modifying the 
+The goal of this lab is to improve throughput of the workflow, by modifying the
 [BootcampSerializationWorkflow](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflow.java)
 class to improve serialization performance. Before starting this work, and after each improvement,
 get an estimate of the workflow's throughput via one of two methods:
@@ -34,8 +34,8 @@ where Flink is spending most of its available CPU cycles.
 For this first exercise, you can improve performance a few different ways:
 
 - Convert from the incoming
-  `ShoppingCartRecord` to the new `TrimmedShoppingCart` in the 
-  [BootcampSerializationWorkflow](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflow.java) 
+  `ShoppingCartRecord` to the new `TrimmedShoppingCart` in the
+  [BootcampSerializationWorkflow](src/main/java/com/ververica/flink/training/exercises/BootcampSerializationWorkflow.java)
   as soon as possible.
 - Make sure that `TrimmedShoppingCart` is serializable as a POJO, and thus doesn't use the (slower)
   Kryo serializer. Note that you'll need to use the `@TypeInfo` annotation with the (provided)

@@ -15,25 +15,23 @@ ext {
     junitVersion = '4.13'
 }
 
-// TODO - this causes the build to fail.
-//spotless {
-//    format 'misc', {
-//        target '*.gradle', '*.md', '.gitignore'
-//
-//        trimTrailingWhitespace()
-//        indentWithSpaces(4)
-//        endWithNewline()
-//    }
-//
-//    // TODO reenable when I fix the Java formatting issues
-////    java {
-////        googleJavaFormat().aosp()
-////        importOrder('org.apache.flink', 'org.apache.flink.shaded', '', 'javax', 'java', '\\#')
-////        removeUnusedImports()
-////
-////        targetExclude("**/generated*/**/*.java")
-////    }
+spotless {
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
 
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
+
+    // TODO reenable when I fix the Java formatting issues
+    // java {
+    //     googleJavaFormat().aosp()
+    //     importOrder('org.apache.flink', 'org.apache.flink.shaded', '', 'javax', 'java', '\\#')
+    //     removeUnusedImports()
+    //     targetExclude("**/generated*/**/*.java")
+    // }
+}
 
 repositories {
     // for access from China, you may need to uncomment this line

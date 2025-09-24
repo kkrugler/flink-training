@@ -8,7 +8,7 @@ workflow's sources & sinks to generate correct results even if the workflow fail
 
 ## Exercise 1
 
-Run the `testGettingCorrectResultsAfterFailure` test in the 
+Run the `testGettingCorrectResultsAfterFailure` test in the
 [BootcampFailures1WorkflowTest](src/test/java/com/ververica/flink/training/exercises/BootcampFailuresWorkflowTest.java).
 It should fail, due to duplicate results being generated as a result of the
 workflow being restarted after a failure.

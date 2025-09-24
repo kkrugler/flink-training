@@ -25,7 +25,7 @@ See the [README](README.md#exercise-1) file for the steps.
                 .aggregate(new CountItemsAggregator(), new SetKeyAndTimeFunction())
                 .sinkTo(resultSink);
    ```
-   
+
 The `CountItemsAggregator` function is pretty simple. It's mostly Aggregator boilerplate
 code, with the only real custom bit being the `add()` method.
 
@@ -84,7 +84,7 @@ See the [README](README.md#exercise-2) file for the steps.
                 .sinkTo(oneMinuteSink);
    ```
 1. Now use that `oneMinuteStream` with a `.windowAll()`, which means it's an
-   unkeyed aggregation (for all countries). Aggregate using a custom 
+   unkeyed aggregation (for all countries). Aggregate using a custom
   `AggregationFunction` and `ProcessWindowFunction`, and
    write the results to the `fiveMinuteSink`. Note that the `oneMinuteStream`
    generates records with their event time set to the end of the window that
@@ -144,7 +144,7 @@ In order to calculate the duration of a "session", we have to first group by the
 the records, from first to last. But we can't use a fixed-size window, as a
 user could be repeatedly adding/removing items for a very long time. We could
 compensate for this by using a very large window, but that would impact the
-latency of our results. One solution is to use Flink's `EventTimeSessionWindows` 
+latency of our results. One solution is to use Flink's `EventTimeSessionWindows`
 support for sessions, though this does generate many, many windows that can
 impact performance and significantly increase state size.
 

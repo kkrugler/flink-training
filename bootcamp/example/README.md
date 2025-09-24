@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This subproject is part of the "Apache Flink Bootcamp" training by Ververica. 
+This subproject is part of the "Apache Flink Bootcamp" training by Ververica.
 Please follow the [Setup Instructions](../../README-Bootcamp.md#set-up-your-development-environment) first
 and then continue reading here.
 
@@ -18,7 +18,7 @@ When you run a Flink program from the `*Job` class's `main()` method, you can th
 point your browser at http://localhost:8081 to view the Flink Web UI.
 
 **:information_source: Note when running via main():** If you get an exception starting a program via `main()` that looks
-like `Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field private final java.lang.Object[]...` 
+like `Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make field private final java.lang.Object[]...`
 then you need to follow the instructions found [here](../../README-Bootcamp.md#adding-vm-options-to-a-run-configuration)
 
 **:information_source: Note when getting bind exception:** If you get an exception that starts with something like

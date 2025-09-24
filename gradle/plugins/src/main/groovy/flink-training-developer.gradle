@@ -3,23 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
-// Create a zip of just the required files for students.
-tasks.register('zip', Zip) {
-    // Run tests before...
-
-    archiveFileName = "flink-training-developer.zip"
-    destinationDirectory = layout.buildDirectory
-
-    from(layout.projectDirectory)
-    exclude("**/build")
-    exclude("**/.*")
-}
-
-// Set up so build will create the bootcamp zip file
-tasks.assemble {
-    // TODO - depends on solution tests passing.
-    dependsOn(zip)
-}
+group = 'com.ververica.flink.training.developer'
 
 // TODO - move to flink-training-application.gradle, since likely
 // needed for all three targets (bootcamp, developer, advanced)?

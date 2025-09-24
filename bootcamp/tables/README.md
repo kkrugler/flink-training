@@ -14,7 +14,7 @@ code to use the Table APIs to define the fake table source (using the Flink "dat
 group by the customerId and count the number of transaction.
 
 To test, you should run the `BootcampTablesWorkflowTest.testFlinkSQL()` test. This doesn't do any validation
-per-se, but when you've properly implemented the `BootcampTablesWorkflow`, it will print out results that 
+per-se, but when you've properly implemented the `BootcampTablesWorkflow`, it will print out results that
 should look something like:
 
 ```sql

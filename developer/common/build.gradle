@@ -25,7 +25,6 @@ tasks.jar {
 // common set of dependencies
 dependencies {
     testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
-    testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
 
     // make same set of jars available for testFixtures
     // TODO - leverage set of regular dependencies from flink-training.gradle???

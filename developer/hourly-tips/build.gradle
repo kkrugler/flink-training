@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(path: ':common')
+    implementation project(':common')
     testImplementation project(':common')
     testImplementation testFixtures(project(':common'))
 

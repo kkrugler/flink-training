@@ -8,7 +8,7 @@ See the [README](README.md#exercise-1) file for the steps.
 
 We've taken the `BootcampDesignMamboWorkflow` and split it into two separate
 workflows, the `BootcampDesignAnalyticsSolutionWorkflow` and the
-`BootcampDesignDetectionSolutionWorkflow`. 
+`BootcampDesignDetectionSolutionWorkflow`.
 
 Since all the custom functions have been pulled out as separate provided classes,
 the actual workflow is pretty simple. For example, here's the detection workflow.

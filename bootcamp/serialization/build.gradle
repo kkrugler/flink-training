@@ -11,4 +11,3 @@ dependencies {
     implementation project(path: ':common')
     testImplementation testFixtures(project(path: ':common'))
 }
-

@@ -11,8 +11,10 @@ rootProject.name = 'flink-training-developer'
 
 include 'common'
 include 'hourly-tips'
+// TODO include this again
 //include 'long-ride-alerts'
 include 'ride-cleansing'
+// TODO include this again
 //include 'rides-and-fares'
 
 // TODO - how to also include troubleshooting/introduction

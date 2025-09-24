@@ -2,6 +2,8 @@ plugins {
     id 'flink-training-application'
 }
 
+group = 'com.ververica.flink.training.bootcamp'
+
 tasks.register('testSolutions', Test) {
     group = 'verification'
     filter { excludeTestsMatching("*.exercises.*") }
@@ -9,22 +11,3 @@ tasks.register('testSolutions', Test) {
 tasks.named('test', Test) {
     filter { includeTestsMatching("*.exercises.*") }
 }
-
-// Create a zip of just the required files for students.
-tasks.register('zip', Zip) {
-    // Run tests before...
-
-    archiveFileName = "flink-training-bootcamp.zip"
-    destinationDirectory = layout.buildDirectory
-
-    from(layout.projectDirectory)
-    exclude("**/build")
-    exclude("**/.*")
-}
-
-// Set up so build will create the bootcamp zip file
-tasks.assemble {
-    // TODO - depends on solution tests passing.
-    dependsOn(zip)
-}
-
