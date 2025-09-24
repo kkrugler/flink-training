@@ -7,11 +7,6 @@ plugins {
     id 'flink-training-bootcamp'
 }
 
-dependencies {
-    implementation project(path: ':common')
-    testImplementation testFixtures(project(path: ':common'))
-}
-
 sourceSets {
     main.java.srcDirs += 'src/provided/java'
 }

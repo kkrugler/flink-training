@@ -7,32 +7,3 @@ plugins {
     id 'flink-training-library'
     id 'java-test-fixtures'
 }
-
-// TODO - needed?
-
-tasks.jar {
-    archiveBaseName = "${project.parent.name}-${project.name}"
-}
-
-// TODO - do we need this?
-
-//java {
-//    registerFeature('test') {
-//        usingSourceSet(sourceSets.test)
-//    }
-//}
-
-// common set of dependencies
-dependencies {
-    testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
-
-    // make same set of jars available for testFixtures
-    // TODO - leverage set of regular dependencies from flink-training.gradle???
-    testFixturesImplementation "org.apache.flink:flink-clients:${flinkVersion}"
-    testFixturesImplementation "org.apache.flink:flink-java:${flinkVersion}"
-    testFixturesImplementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
-
-    testFixturesImplementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-    testFixturesImplementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-    testFixturesImplementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
-}

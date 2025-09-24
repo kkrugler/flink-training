@@ -16,20 +16,10 @@
  */
 
 plugins {
-    id 'java-library'
+    id 'flink-training-library'
 }
 
-// common set of dependencies
 dependencies {
-    // --------------------------------------------------------------
-    // Compile-time dependencies that should NOT be part of the
-    // shadow jar and are provided in the lib folder of Flink
-    // --------------------------------------------------------------
-
-    api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    api "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
-}
-
-tasks.jar {
-    archiveBaseName = "${project.parent.name}-${project.name}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
 }

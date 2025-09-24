@@ -8,12 +8,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(path: ':common')
-
     // We're using the FileSource and FileSink
     implementation "org.apache.flink:flink-connector-files:${flinkVersion}"
-
-    testImplementation testFixtures(project(path: ':common'))
 }
 
 sourceSets {

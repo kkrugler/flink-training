@@ -8,11 +8,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(path: ':common')
+    implementation project(':common')
     testImplementation testFixtures(project(':common'))
 }
-
-// TODO - do I need this?
-ext.javaExerciseClassName = 'org.apache.flink.training.exercises.ridecleansing.RideCleansingExercise'
-ext.javaSolutionClassName = 'org.apache.flink.training.solutions.ridecleansing.RideCleansingSolution'
-mainClassName = ext.javaExerciseClassName

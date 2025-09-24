@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 /*
  * Copyright (C) 2024 Ververica, Inc, Inc. All rights reserved.
  * This file is part of the Ververica Academy training software.
@@ -12,13 +14,7 @@ dependencies {
     testImplementation project(':common')
     testImplementation testFixtures(project(':common'))
 
-    // TODO - shadow isn't working, because I'm not able to set up the id
-    shadow "org.apache.flink:flink-table-api-java-bridge:${flinkVersion}"
-    shadow "org.apache.flink:flink-table-planner_${scalaBinaryVersion}:${flinkVersion}"
-    shadow "org.apache.flink:flink-table-common:${flinkVersion}"
+    implementation "org.apache.flink:flink-table-api-java-bridge:${flinkVersion}"
+    implementation "org.apache.flink:flink-table-planner_${scalaBinaryVersion}:${flinkVersion}"
+    implementation "org.apache.flink:flink-table-common:${flinkVersion}"
 }
-
-// TODO - do I need this?
-ext.javaExerciseClassName = 'org.apache.flink.training.exercises.hourlytips.HourlyTipsExercise'
-ext.javaSolutionClassName = 'org.apache.flink.training.solutions.hourlytips.HourlyTipsSolution'
-mainClassName = ext.javaExerciseClassName

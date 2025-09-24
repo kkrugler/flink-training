@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'flink-training-troubleshooting'
+}
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.TroubledStreamingJob'
-
-apply plugin: 'application'
-
-mainClassName = ext.javaExerciseClassName
-
-dependencies {
-    implementation project(path: ':troubleshooting:common')
+application {
+    mainClass = 'com.ververica.flink.training.exercises.TroubledStreamingJob'
 }

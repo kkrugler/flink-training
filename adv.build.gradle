@@ -242,6 +242,7 @@ subprojects {
             exclude(dependency('com.google.code.findbugs:jsr305'))
             exclude(dependency('org.slf4j:.*'))
             exclude(dependency('log4j:.*'))
+            exclude(dependency('com.fasterxml.jackson.core:.*'))
             exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
             // already provided dependencies from serializer frameworks
             exclude(dependency('com.esotericsoftware.kryo:kryo'))

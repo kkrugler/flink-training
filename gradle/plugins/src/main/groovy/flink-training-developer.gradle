@@ -1,15 +1,5 @@
 plugins {
     id 'flink-training-application'
-    id 'com.github.johnrengelman.shadow'
 }
 
 group = 'com.ververica.flink.training.developer'
-
-// TODO - move to flink-training-application.gradle, since likely
-// needed for all three targets (bootcamp, developer, advanced)?
-dependencies {
-    // allows using Flink's web UI when running in the IDE:
-    implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
-    // allow using RocksDB when running in the IDE:
-    implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
-}

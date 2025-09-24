@@ -80,9 +80,26 @@ dependencies {
     implementation "org.apache.flink:flink-java:${flinkVersion}"
     implementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
 
+    // allows using Flink's web UI when running in the IDE:
+    implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
+    // allow using RocksDB when running in the IDE:
+    implementation "org.apache.flink:flink-statebackend-rocksdb:${flinkVersion}"
+
     implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
     implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+
+    plugins.withId('java-test-fixtures') {
+        testFixturesImplementation "org.apache.flink:flink-clients:${flinkVersion}"
+        testFixturesImplementation "org.apache.flink:flink-java:${flinkVersion}"
+        testFixturesImplementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
+
+        testFixturesImplementation 'org.assertj:assertj-core:3.20.2'
+
+        testFixturesImplementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+        testFixturesImplementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        testFixturesImplementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    }
 
     // common set for testing
     testImplementation "junit:junit:${junitVersion}"
@@ -106,11 +123,10 @@ sourceSets {
     // TODO test.runtimeClasspath += configurations.shadow
 }
 
-jar {
+tasks.withType(Jar).configureEach {
+    archiveBaseName = "${project.parent.name}-${project.name}"
     manifest {
         attributes 'Built-By': System.getProperty('user.name'),
                 'Build-Jdk': System.getProperty('java.version')
     }
 }
-
-

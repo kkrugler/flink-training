@@ -15,14 +15,20 @@
  * limitations under the License.
  */
 
-rootProject.name = 'flink-training-developer'
+pluginManagement {
+    includeBuild("../gradle/plugins")
+}
 
+rootProject.name = 'flink-training-troubleshooting'
+
+include 'checkpointing'
 include 'common'
-include 'hourly-tips'
-include 'long-ride-alerts'
-include 'ride-cleansing'
-include 'rides-and-fares'
-
-include 'troubleshooting:common'
-include 'troubleshooting:introduction'
-
+include 'external-enrichment'
+include 'introduction'
+include 'object-reuse'
+include 'rocksdb'
+// include 'state-migration:common'
+// include 'state-migration:exercise'
+// include 'state-migration:solution'
+// include 'state-migration:solution-custom-to-avro'
+include 'throughput'

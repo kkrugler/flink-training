@@ -14,22 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'flink-training-troubleshooting'
+}
 
-ext.javaExerciseClassName = 'com.ververica.flink.training.exercises.RocksDBTuningJob'
-
-apply plugin: 'application'
-
-mainClassName = ext.javaExerciseClassName
+application {
+    mainClass = 'com.ververica.flink.training.exercises.RocksDBTuningJob'
+}
 
 dependencies {
-    implementation project(path: ':troubleshooting:common')
-
     implementation 'com.github.javafaker:javafaker:1.0.2'
 }
 
 sourceSets {
     main.java.srcDirs += 'src/provided/java'
-    tasks.withType(ScalaCompile) {
-        main.scala.srcDirs += 'src/provided/scala'
-    }
 }

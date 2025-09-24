@@ -1,0 +1,31 @@
+plugins {
+    id 'flink-training-application'
+    id 'com.github.johnrengelman.shadow'
+}
+
+group = 'com.ververica.flink.training.troubleshooting'
+
+dependencies {
+    implementation project(':common')
+
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+}
+
+tasks.named('shadowJar') {
+    mergeServiceFiles()
+    dependencies {
+        exclude(dependency("org.apache.flink:.*"))
+        exclude(dependency('com.google.code.findbugs:jsr305'))
+        exclude(dependency('org.slf4j:.*'))
+        exclude(dependency('log4j:.*'))
+        exclude(dependency('org.apache.logging.log4j:log4j-slf4j-impl'))
+        exclude(dependency('org.rocksdb:.*'))
+        exclude(dependency('com.fasterxml.jackson.core:.*'))
+        exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
+        // already provided dependencies from serializer frameworks
+        exclude(dependency('com.esotericsoftware.kryo:kryo'))
+        exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
+        exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
+    }
+}

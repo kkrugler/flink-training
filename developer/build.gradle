@@ -8,12 +8,20 @@ plugins {
 
 // Create a zip of just the required files for students.
 tasks.register('zip', Zip) {
-    // Run tests before...
-
     archiveFileName = "flink-training-developer.zip"
     destinationDirectory = layout.buildDirectory
 
-    from(layout.projectDirectory)
+    from(layout.projectDirectory) {
+        exclude("state-processor")
+    }
+
+    from(layout.projectDirectory.dir("..")) {
+        include("troubleshooting/common/**")
+        include("troubleshooting/introduction/**")
+        include("troubleshooting/build.gradle")
+        include("README-Developer.md")
+    }
+
     exclude("**/build")
     exclude("**/.*")
 }

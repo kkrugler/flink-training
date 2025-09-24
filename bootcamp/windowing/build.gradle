@@ -7,15 +7,6 @@ plugins {
     id 'flink-training-bootcamp'
 }
 
-// TODO - why can't I put this in the bootcamp/build.gradle file? I get error
-// A problem occurred evaluating project ':bootcamp'.
-//> Could not find method implementation() for arguments [DefaultProjectDependency{dependencyProject='project ':bootcamp:common'', configuration='default'}] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler.
-
-dependencies {
-    implementation project(path: ':common')
-    testImplementation testFixtures(project(path: ':common'))
-}
-
 sourceSets {
     main.java.srcDirs += 'src/provided/java'
 }

@@ -8,12 +8,12 @@ plugins {
 
 // Create a zip of just the required files for students.
 tasks.register('zip', Zip) {
-    // Run tests before...
-
     archiveFileName = "flink-training-bootcamp.zip"
     destinationDirectory = layout.buildDirectory
 
     from(layout.projectDirectory)
+    from(layout.projectDirectory.file("../README-Bootcamp.md"))
+
     exclude("**/build")
     exclude("**/.*")
 }

@@ -11,3 +11,8 @@ tasks.register('testSolutions', Test) {
 tasks.named('test', Test) {
     filter { includeTestsMatching("*.exercises.*") }
 }
+
+dependencies {
+    implementation project(':common')
+    testImplementation testFixtures(project(':common'))
+}

@@ -6,8 +6,7 @@ plugins {
 
 includeBuild("bootcamp")
 includeBuild("developer")
-// TODO include
-//includeBuild("troubleshooting")
+includeBuild("troubleshooting")
 
 // Change this to adv. or bc. or dev. for different targets
 // Note that "adv." means "Troubleshooting"
