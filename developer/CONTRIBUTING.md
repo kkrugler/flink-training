@@ -44,16 +44,6 @@ formatting upon saving with these steps:
 5. In the "Save Actions" settings page, set up a "File Path Inclusion" for `.*\.java`. Otherwise, you will get
    unintended reformatting in other files you edit.
 
-### Scala
-
-We use the [Spotless
-plugin](https://github.com/diffplug/spotless/tree/main/plugin-maven) for
-formatting Scala code as well and apply a formatting style similar to the
-Scalastyle configuration from [Apache Flink](https://github.com/apache/flink).
-The code style is verified during `./gradlew check` which will also print
-instructions how to fix the style if it does not comply with the defined
-format.
-
 ## Ignore refactoring commits
 
 There is a list of refactoring commits in `.git-blame-ignore-revs`.
@@ -114,7 +104,7 @@ mainClassName = ext.javaExerciseClassName
 ### Tune the Java compiler
 
 Add the following code to the `subprojects { /*...*/ }` section of the
-[`build.gradle`](build.gradle) file and adapt accordingly. For example:
+[`build.gradle`](../build.gradle) file and adapt accordingly. For example:
 
 ```groovy
     tasks.withType(JavaCompile) {

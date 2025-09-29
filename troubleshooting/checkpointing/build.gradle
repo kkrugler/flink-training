@@ -25,3 +25,7 @@ application {
 sourceSets {
     main.java.srcDirs += 'src/provided/java'
 }
+
+dependencies {
+    implementation project(':common')
+}

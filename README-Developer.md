@@ -244,8 +244,8 @@ For Java exercises and solutions, we provide special tasks that can be listed wi
 
 ## Contribute
 
-If you would like to contribute to this repository or add new exercises, please read the [contributing](CONTRIBUTING.md) guide.
+If you would like to contribute to this repository or add new exercises, please read the [contributing](developer/CONTRIBUTING.md) guide.
 
 ## License
 
-The code in this repository is licensed under the [Apache Software License 2](LICENSE).
+The code in this repository is licensed under the [Apache Software License 2](developer/LICENSE).
